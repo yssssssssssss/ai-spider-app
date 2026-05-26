@@ -7,15 +7,15 @@ class Settings(BaseSettings):
         os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     )
     DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/competitor_db"
+        "DATABASE_URL", "postgresql://heyunshen@localhost:5432/competitor_db"
     )
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-    OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+    OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL", "https://modelservice.jdcloud.com/v1/")
     EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
     EMBEDDING_DIM: int = 1536
     VLM_API_KEY: str = os.getenv("VLM_API_KEY", "")
-    VLM_BASE_URL: str = os.getenv("VLM_BASE_URL", "")
-    VLM_MODEL: str = os.getenv("VLM_MODEL", "autoglm-phone-9b")
+    VLM_BASE_URL: str = os.getenv("VLM_BASE_URL", "https://open.bigmodel.cn/api/paas/v4/")
+    VLM_MODEL: str = os.getenv("VLM_MODEL", "glm-4v")
 
     class Config:
         env_file = ".env"

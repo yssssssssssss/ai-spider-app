@@ -1,3 +1,5 @@
+import os
+import subprocess
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID
@@ -45,6 +47,19 @@ def run_task(task_id: UUID, db: Session = Depends(get_db)):
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     crud.update_task_status(db, task_id, "running")
+    # 子进程调用现有采集脚本
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    script_path = os.path.join(project_root, "run_workflow.py")
+    env = os.environ.copy()
+    env["TB_KEYWORD"] = task.keyword or ""
+    if os.path.exists(script_path):
+        subprocess.Popen(
+            ["python", script_path],
+            cwd=project_root,
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
     return task
 
 @router.get("/tasks/{task_id}/progress")

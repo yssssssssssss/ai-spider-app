@@ -68,7 +68,7 @@ class SearchQuery(BaseModel):
 class SearchResult(BaseModel):
     image: ImageOut
     analysis: Optional[AnalysisOut] = None
-    similarity: float
+    similarity: Optional[float] = None
 
 class ApproveRequest(BaseModel):
     admin_id: str

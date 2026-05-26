@@ -16,6 +16,6 @@ async def search(query: schemas.SearchQuery, db: Session = Depends(get_db)):
         results.append(schemas.SearchResult(
             image=schemas.ImageOut.model_validate(image),
             analysis=schemas.AnalysisOut.model_validate(analysis) if analysis else None,
-            similarity=similarity
+            similarity=None  # 仅按相关性排序，不显示具体数值
         ))
     return results
