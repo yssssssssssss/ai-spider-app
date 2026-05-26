@@ -2,7 +2,7 @@ from uuid import UUID
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from pgvector.sqlalchemy import L2Distance
+
 from app import models, schemas
 
 def create_image(db: Session, image: schemas.ImageCreate) -> models.Image:
@@ -111,6 +111,6 @@ def search_by_embedding(db: Session, vector: List[float], limit: int = 20, offse
     ).join(
         models.Image, models.Analysis.image_id == models.Image.id
     ).order_by(
-        L2Distance(models.Embedding.embedding, vector)
+        func.l2_distance(models.Embedding.embedding, vector)
     ).offset(offset).limit(limit).all()
     return results
