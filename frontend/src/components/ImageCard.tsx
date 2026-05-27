@@ -1,12 +1,7 @@
 export default function ImageCard({ result }: { result: any }) {
-  // 将本地文件路径转换为后端静态文件URL
-  const imageUrl = result.image.file_path.startsWith('/')
-    ? `/static${result.image.file_path}`
-    : `/static/${result.image.file_path}`;
-
   return (
     <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 12 }}>
-      <img src={imageUrl} alt="竞品截图" style={{ width: '100%', borderRadius: 4 }} />
+      <img src={`file://${result.image.file_path}`} alt="竞品截图" style={{ width: '100%', borderRadius: 4 }} />
       <div><strong>App:</strong> {result.image.source_app} | <strong>场景:</strong> {result.image.scenario}</div>
       {result.analysis && (
         <>
