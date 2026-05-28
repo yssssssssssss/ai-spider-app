@@ -5,6 +5,8 @@ from uuid import UUID
 
 class ImageBase(BaseModel):
     file_path: str
+    oss_url: Optional[str] = None
+    oss_key: Optional[str] = None
     source_app: Optional[str] = None
     scenario: Optional[str] = None
     captured_at: Optional[datetime] = None
@@ -14,6 +16,7 @@ class ImageCreate(ImageBase):
 
 class ImageOut(ImageBase):
     id: UUID
+    task_id: Optional[UUID] = None
     created_at: datetime
     class Config:
         from_attributes = True
@@ -53,6 +56,8 @@ class TaskOut(BaseModel):
     keyword: Optional[str] = None
     target_app: Optional[str] = None
     target_scenario: Optional[str] = None
+    mode: str = "uiautomator2"
+    generated_instruction: Optional[str] = None
     status: str
     admin_id: Optional[str] = None
     approved_at: Optional[datetime] = None
@@ -75,6 +80,7 @@ class ApproveRequest(BaseModel):
     keyword: Optional[str] = None
     target_app: Optional[str] = None
     target_scenario: Optional[str] = None
+    mode: str = "uiautomator2"  # "uiautomator2" | "autoglm"
 
 class RejectRequest(BaseModel):
     admin_id: str

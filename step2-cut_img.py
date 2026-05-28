@@ -1,8 +1,12 @@
 import cv2
 import numpy as np
 import os
+import sys
 from PIL import Image
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
+from app.services.oss_uploader import oss_uploader
+from app.scripts_common import save_image_to_db
 
 import config
 
@@ -220,6 +224,14 @@ def detect_and_crop_elements(image_path, output_dir=None):
                     cropped.save(output_path, **save_options)
             
             print(f"已保存元素 {count+1} 到 {output_path}，宽高比: {aspect_ratio:.2f}")
+            
+            # 上传到京东云 OSS
+            result = oss_uploader.upload(output_path, scenario_name="cropped")
+            if result.get("success"):
+                print(f"  ☁️  OSS URL: {result['url']}")
+            else:
+                print(f"  ⚠️ OSS 上传失败: {result.get('error')}")
+            
             count += 1
     else:
         print("未检测到任何有效轮廓")

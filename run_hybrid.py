@@ -9,6 +9,10 @@ import time
 import shutil
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "Open-AutoGLM"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
+
+from app.services.oss_uploader import oss_uploader
+from app.scripts_common import save_image_to_db
 
 from phone_agent import PhoneAgent
 from phone_agent.agent import AgentConfig
@@ -98,6 +102,10 @@ def uiautomator2_scroll_screenshots(
     screenshot_path = os.path.join(output_dir, f"{keyword}_{current_idx}.png")
     d.screenshot(screenshot_path)
     print(f"📸 已保存: {screenshot_path}")
+    result = oss_uploader.upload(screenshot_path, scenario_name="screenshot")
+    if result.get("success"):
+        print(f"  ☁️  OSS URL: {result['url']}")
+        save_image_to_db(screenshot_path, oss_url=result.get("url"), oss_key=result.get("key"), source_app="taobao", scenario="screenshot")
     current_idx += 1
 
     # 大滑动循环
@@ -117,6 +125,10 @@ def uiautomator2_scroll_screenshots(
         screenshot_path = os.path.join(output_dir, f"{keyword}_{current_idx}.png")
         d.screenshot(screenshot_path)
         print(f"📸 已保存: {screenshot_path}")
+        result = oss_uploader.upload(screenshot_path, scenario_name="screenshot")
+        if result.get("success"):
+            print(f"  ☁️  OSS URL: {result['url']}")
+            save_image_to_db(screenshot_path, oss_url=result.get("url"), oss_key=result.get("key"), source_app="taobao", scenario="screenshot")
         current_idx += 1
 
         if (i + 1) % 3 == 0:

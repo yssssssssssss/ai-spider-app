@@ -1,0 +1,23 @@
+{
+  "name": "@jdc/oss-storage",
+  "version": "1.0.0",
+  "description": "京东云 OSS 通用图床封装模块，兼容 S3 协议",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.0.0",
+    "@aws-sdk/s3-request-presigner": "^3.0.0"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^10.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "keywords": ["oss", "jdcloud", "s3", "storage", "upload"],
+  "license": "MIT"
+}

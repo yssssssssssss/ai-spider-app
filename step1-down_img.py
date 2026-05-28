@@ -1,10 +1,14 @@
 import unittest
 import time
 import os
+import sys
 from appium import webdriver
 from appium.options.android import UiAutomator2Options
 from appium.webdriver.common.appiumby import AppiumBy
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
+from app.services.oss_uploader import oss_uploader
+from app.scripts_common import save_image_to_db
 
 import config
 
@@ -96,6 +100,14 @@ class TestAppium(unittest.TestCase):
             self.driver.get_screenshot_as_file(screenshot_path1)
             print(f"已保存首次小滑动截图: {screenshot_path1}")
             
+            # 上传到京东云 OSS
+            result1 = oss_uploader.upload(screenshot_path1, scenario_name="screenshot")
+            if result1.get("success"):
+                print(f"  ☁️  OSS URL: {result1['url']}")
+                save_image_to_db(screenshot_path1, oss_url=result1.get("url"), oss_key=result1.get("key"), source_app="taobao")
+            else:
+                print(f"  ⚠️ OSS 上传失败: {result1.get('error')}")
+            
             # 设置滑动次数
             total_scrolls = 65  # 可以根据需要修改这个值
             
@@ -116,6 +128,14 @@ class TestAppium(unittest.TestCase):
                 screenshot_path2 = os.path.join(self.screenshot_dir, f"{x}_{next_file_num}.png")
                 self.driver.get_screenshot_as_file(screenshot_path2)
                 print(f"已保存第{next_file_num}次大滑动截图: {screenshot_path2}")
+                
+                # 上传到京东云 OSS
+                result2 = oss_uploader.upload(screenshot_path2, scenario_name="screenshot")
+                if result2.get("success"):
+                    print(f"  ☁️  OSS URL: {result2['url']}")
+                    save_image_to_db(screenshot_path2, oss_url=result2.get("url"), oss_key=result2.get("key"), source_app="taobao")
+                else:
+                    print(f"  ⚠️ OSS 上传失败: {result2.get('error')}")
                 
         except Exception as e:
             print(f"滑动截图过程中发生错误: {e}")

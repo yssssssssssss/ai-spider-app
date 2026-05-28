@@ -10,6 +10,9 @@ from typing import List, Dict, Callable, Optional
 from dataclasses import dataclass, field
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "Open-AutoGLM"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
+
+from app.services.oss_uploader import oss_uploader
 
 
 @dataclass
@@ -202,8 +205,10 @@ class WorkflowEngine:
             print(f"✅ 设备已连接: {self.d.device_info['serial']}")
         return self.d
 
-    def _screenshot(self, output_dir: str, prefix: str = "screenshot") -> str:
-        """截图并保存，支持去重"""
+    def _screenshot(self, output_dir: str, prefix: str = "screenshot") -> dict:
+        """截图并保存，支持去重和OSS上传
+        返回: {"local_path": str, "oss_url": str, "oss_key": str}
+        """
         timestamp = datetime.now().strftime("%H%M%S_%f")[:-3]
         filename = f"{prefix}_{timestamp}.png"
         filepath = os.path.join(output_dir, filename)
@@ -214,11 +219,23 @@ class WorkflowEngine:
         if self.dedup and self.dedup.is_duplicate(filepath):
             os.remove(filepath)
             print(f"  📸 [去重] 删除重复截图: {filename}")
-            return ""
+            return {"local_path": "", "oss_url": "", "oss_key": ""}
 
         print(f"  📸 已保存: {filename}")
         self.screenshot_count += 1
-        return filepath
+
+        # 上传到京东云 OSS
+        result = oss_uploader.upload(filepath, scenario_name="screenshot")
+        if result.get("success"):
+            print(f"  ☁️  OSS URL: {result['url']}")
+        else:
+            print(f"  ⚠️ OSS 上传失败: {result.get('error')}")
+
+        return {
+            "local_path": filepath,
+            "oss_url": result.get("url", ""),
+            "oss_key": result.get("key", ""),
+        }
 
     def _handle_popups(self):
         """处理弹窗"""

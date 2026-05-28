@@ -13,6 +13,8 @@ class Image(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     file_path = Column(Text, nullable=False)
+    oss_url = Column(Text)
+    oss_key = Column(Text)
     source_app = Column(Text)
     scenario = Column(Text)
     captured_at = Column(DateTime)
@@ -61,6 +63,8 @@ class Task(Base):
     keyword = Column(Text)
     target_app = Column(Text)
     target_scenario = Column(Text)
+    mode = Column(String, default="uiautomator2")
+    generated_instruction = Column(Text, nullable=True, comment="LLM生成的AutoGLM可执行指令")
     status = Column(String, default="pending")
     admin_id = Column(Text, nullable=True)
     approved_at = Column(DateTime, nullable=True)
