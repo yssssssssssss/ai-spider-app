@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 淘宝竞品采集分析平台 · 架构与修复方案</title>
+<style>
+:root{--paper:#fafaf8;--ink:#0a0a0a;--grey:#f0f0ee;--line:#d4d4d2;--muted:#737373;--accent:#002FA7;--accent-on:#fff;--sans:Inter,"Helvetica Neue",Arial,"Noto Sans SC","Microsoft YaHei",sans-serif;--mono:"SF Mono",Menlo,Consolas,monospace}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--paper);color:var(--ink);font-family:var(--sans)}#deck{height:100vh;display:flex;transition:transform .65s cubic-bezier(.77,0,.175,1)}.slide{width:100vw;height:100vh;flex:0 0 100vw;padding:5.5vh 5vw 7vh;display:flex;flex-direction:column;position:relative;overflow:hidden}.accent{background:var(--accent);color:var(--accent-on)}.dark{background:var(--ink);color:var(--paper)}.grey{background:var(--grey)}.top{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;display:flex;justify-content:space-between;color:inherit;opacity:.72}.hero{font-size:min(8.8vw,15.5vh);line-height:.94;letter-spacing:-.055em;font-weight:200;margin:auto 0 3vh}.title{font-size:min(5.2vw,9.2vh);line-height:1.02;letter-spacing:-.035em;font-weight:200;margin:5vh 0 4vh}.lead{font-size:1.55vw;line-height:1.45;max-width:760px;color:inherit;opacity:.82}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:3vw;align-items:stretch;flex:1}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;flex:1}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;flex:1}.card{background:rgba(255,255,255,.62);border-top:2px solid var(--accent);padding:24px;display:flex;flex-direction:column;gap:12px}.dark .card{background:#161616;border-color:var(--accent)}.accent .card{background:rgba(255,255,255,.12);border-color:#fff}.num{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:.12em}.accent .num{color:#fff}.h{font-size:2vw;line-height:1.15;font-weight:300;letter-spacing:-.02em}.p{font-size:1.05vw;line-height:1.65;color:inherit;opacity:.78}.big{font-size:min(7vw,12vh);line-height:.95;font-weight:200;letter-spacing:-.045em}.tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;border:1px solid currentColor;padding:6px 10px}.pipeline{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:5vh}.step{border-top:2px solid currentColor;padding:16px 10px 0}.step b{font-family:var(--mono);font-size:12px;color:var(--accent)}.accent .step b{color:#fff}.matrix{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}.cell{background:var(--paper);padding:18px;min-height:118px}.dark .cell{background:#111}.ok{color:#0a7f2e}.warn{color:#b26a00}.bad{color:#b00020}.foot{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;border-top:1px solid currentColor;padding-top:14px;display:flex;justify-content:space-between;opacity:.55}.nav{position:fixed;right:24px;bottom:22px;z-index:10;display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:12px}.nav button{border:1px solid var(--line);background:var(--paper);padding:8px 12px;font-family:var(--mono);cursor:pointer}.bar{height:10px;background:var(--accent);margin-top:10px}.list{display:flex;flex-direction:column;gap:18px}.item{border-top:1px solid currentColor;padding-top:14px}.code{font-family:var(--mono);font-size:.85vw;background:rgba(0,0,0,.06);padding:3px 6px}.dark .code{background:rgba(255,255,255,.12)}@media(max-width:900px){.grid2,.grid3,.grid4,.pipeline{grid-template-columns:1fr}.h{font-size:24px}.p,.lead{font-size:16px}.slide{overflow:auto}.nav{display:none}}
+</style>
+</head>
+<body>
+<div id="deck">
+<section class="slide accent">
+  <div class="top"><span>AI TAOBAO APP</span><span>ARCHITECTURE / 2026</span></div>
+  <h1 class="hero">竞品采集<br>分析平台</h1>
+  <p class="lead">从用户需求，到 AutoGLM 手机执行、截图上传、视觉分析、数据库沉淀与前端展示的端到端闭环。</p>
+  <div class="foot"><span>HTML PPT</span><span>01 / 12</span></div>
+</section>
+<section class="slide">
+  <div class="top"><span>VALUE</span><span>WHY IT MATTERS</span></div>
+  <h2 class="title">它解决的是<br>竞品观察的人工瓶颈</h2>
+  <div class="grid3">
+    <div class="card"><div class="num">01</div><div class="h">采集自动化</div><div class="p">把“打开 App、搜索、浏览、截图”交给手机 Agent 执行，减少重复人工操作。</div></div>
+    <div class="card"><div class="num">02</div><div class="h">分析结构化</div><div class="p">LLM 按设计师与运营两个视角输出分析，让截图不只是素材，而是知识资产。</div></div>
+    <div class="card"><div class="num">03</div><div class="h">沉淀可检索</div><div class="p">截图、OSS URL、分析文本与 embedding 入库，后续可按自然语言检索。</div></div>
+  </div>
+  <div class="foot"><span>BUSINESS VALUE</span><span>02 / 12</span></div>
+</section>
+<section class="slide dark">
+  <div class="top"><span>SYSTEM MAP</span><span>FRONTEND → BACKEND → PHONE</span></div>
+  <h2 class="title">整体架构是<br>六段链路</h2>
+  <div class="pipeline">
+    <div class="step"><b>01</b><div class="p">用户提交需求</div></div>
+    <div class="step"><b>02</b><div class="p">管理员审核并选择 AI 采集</div></div>
+    <div class="step"><b>03</b><div class="p">LLM 生成 AutoGLM 指令</div></div>
+    <div class="step"><b>04</b><div class="p">手机端执行浏览点击截图</div></div>
+    <div class="step"><b>05</b><div class="p">上传 OSS 并入库</div></div>
+    <div class="step"><b>06</b><div class="p">VLM 分析并前端展示</div></div>
+  </div>
+  <div class="foot"><span>END TO END PIPELINE</span><span>03 / 12</span></div>
+</section>
+<section class="slide grey">
+  <div class="top"><span>FRONTEND</span><span>ENTRY POINTS</span></div>
+  <h2 class="title">前端入口已经具备<br>但展示闭环不完整</h2>
+  <div class="grid4">
+    <div class="card"><div class="num">提交</div><div class="h">RequestForm</div><div class="p">提交目标 App、场景、关键词、补充说明。</div></div>
+    <div class="card"><div class="num">审核</div><div class="h">AdminRequests</div><div class="p">管理员选择规则采集或 AutoGLM AI 采集。</div></div>
+    <div class="card"><div class="num">任务</div><div class="h">AdminTasks</div><div class="p">可启动任务、查看 AI 指令，但缺少任务结果详情。</div></div>
+    <div class="card"><div class="num">检索</div><div class="h">SearchPage</div><div class="p">通过 embedding 检索图片，ImageCard 展示截图与分析摘要。</div></div>
+  </div>
+  <div class="foot"><span>UI SURFACE</span><span>04 / 12</span></div>
+</section>
+<section class="slide">
+  <div class="top"><span>BACKEND</span><span>API + SERVICES</span></div>
+  <h2 class="title">后端核心由<br>接口、服务、脚本三层组成</h2>
+  <div class="grid3">
+    <div class="card"><div class="num">API</div><div class="h">FastAPI Routers</div><div class="p"><span class="code">requests</span>、<span class="code">admin</span>、<span class="code">images</span>、<span class="code">search</span> 承接前端。</div></div>
+    <div class="card"><div class="num">SERVICES</div><div class="h">Planner / Analyzer / OSS</div><div class="p">任务规划、图片视觉分析、向量化、OSS 上传、采集 watcher。</div></div>
+    <div class="card"><div class="num">SCRIPTS</div><div class="h">AutoGLM Runner</div><div class="p">根目录脚本负责驱动手机 Agent，并在每步截图后上传和写库。</div></div>
+  </div>
+  <div class="foot"><span>SERVER SIDE</span><span>05 / 12</span></div>
+</section>
+<section class="slide dark">
+  <div class="top"><span>DATA MODEL</span><span>POSTGRES + PGVECTOR</span></div>
+  <h2 class="title">数据库承载<br>任务、图片、分析、向量</h2>
+  <div class="matrix">
+    <div class="cell"><div class="num">requests</div><div class="p">用户原始需求：App、场景、关键词、描述、状态。</div></div>
+    <div class="cell"><div class="num">tasks</div><div class="p">审核后任务：模式、状态、AutoGLM 指令。</div></div>
+    <div class="cell"><div class="num">images</div><div class="p">截图路径、OSS URL、OSS key、来源、任务 ID。</div></div>
+    <div class="cell"><div class="num">analysis</div><div class="p">设计分析、运营分析、状态、分析时间。</div></div>
+    <div class="cell"><div class="num">embeddings</div><div class="p">combined / design / ops 三类向量，支撑检索。</div></div>
+  </div>
+  <div class="foot"><span>STATE LAYER</span><span>06 / 12</span></div>
+</section>
+<section class="slide">
+  <div class="top"><span>CURRENT STATE</span><span>AUDIT RESULT</span></div>
+  <h2 class="title">当前状态：<br>不是完整闭环</h2>
+  <div class="grid3">
+    <div class="card"><div class="num ok">可用</div><div class="h">前端提交与审核</div><div class="p">需求提交、管理员审核、AI 指令展示、搜索页展示基本可用。</div></div>
+    <div class="card"><div class="num warn">部分</div><div class="h">截图上传与分析</div><div class="p">OSS、分析、embedding 都有实现，但触发、关联和校验存在缺口。</div></div>
+    <div class="card"><div class="num bad">阻断</div><div class="h">AutoGLM 启动</div><div class="p">后端计算脚本路径错误，会找不到根目录的 run_autoglm.py。</div></div>
+  </div>
+  <div class="foot"><span>GAP ANALYSIS</span><span>07 / 12</span></div>
+</section>
+<section class="slide grey">
+  <div class="top"><span>KEY DEFECTS</span><span>ROOT CAUSES</span></div>
+  <h2 class="title">真正的问题不是“没有代码”<br>而是控制边界混乱</h2>
+  <div class="list">
+    <div class="item"><div class="h">01 · 启动路径错误</div><div class="p">后端把 project_root 算成 backend 目录，导致 AutoGLM 脚本不可达。</div></div>
+    <div class="item"><div class="h">02 · 图片入库双事实源</div><div class="p">脚本会写库，watcher 也会扫描写库，造成重复记录或 task_id/oss_url 断裂。</div></div>
+    <div class="item"><div class="h">03 · 分析接口未暴露</div><div class="p">trigger_analyze 函数存在，但缺少路由装饰器，手动分析接口不可访问。</div></div>
+    <div class="item"><div class="h">04 · 任务结果不可见</div><div class="p">前端没有按任务查看截图与分析的详情页，用户只能走搜索页间接看到结果。</div></div>
+  </div>
+  <div class="foot"><span>ROOT CAUSE</span><span>08 / 12</span></div>
+</section>
+<section class="slide dark">
+  <div class="top"><span>FIX PLAN</span><span>MINIMUM CONTROL INPUT</span></div>
+  <h2 class="title">修复原则：<br>一条主链，一个事实源</h2>
+  <div class="grid2">
+    <div><div class="big">N → 1</div><p class="lead">把图片入库、任务关联、分析触发统一到同一条主链，避免脚本和 watcher 分别制造状态。</p></div>
+    <div class="list">
+      <div class="item"><div class="h">脚本负责采集与上传</div><div class="p">AutoGLM 产出截图，上传 OSS，携带 task_id 入库。</div></div>
+      <div class="item"><div class="h">后端负责状态与分析</div><div class="p">图片入库后统一触发 VLM 分析和 embedding。</div></div>
+      <div class="item"><div class="h">前端负责可观察性</div><div class="p">任务详情页展示每张截图、URL、分析状态和结果。</div></div>
+    </div>
+  </div>
+  <div class="foot"><span>DESIGN RULE</span><span>09 / 12</span></div>
+</section>
+<section class="slide">
+  <div class="top"><span>IMPLEMENTATION</span><span>TECHNICAL PLAN</span></div>
+  <h2 class="title">完整修复方案<br>分为七个动作</h2>
+  <div class="grid4">
+    <div class="card"><div class="num">01</div><div class="p">修正后端 project_root，使用配置中的项目根目录。</div></div>
+    <div class="card"><div class="num">02</div><div class="p">run_autoglm 增加 --task-id，启动时传入任务 ID。</div></div>
+    <div class="card"><div class="num">03</div><div class="p">统一图片入库函数，写入 file_path、oss_url、oss_key、task_id。</div></div>
+    <div class="card"><div class="num">04</div><div class="p">watcher 改为补漏和 SSE 推送，禁止重复制造图片事实。</div></div>
+    <div class="card"><div class="num">05</div><div class="p">暴露 POST /api/images/{id}/analyze，并在入库后自动调用。</div></div>
+    <div class="card"><div class="num">06</div><div class="p">新增 GET /api/admin/tasks/{id}/images，返回截图与分析。</div></div>
+    <div class="card"><div class="num">07</div><div class="p">新增任务详情页，复用 ImageCard 展示采集结果。</div></div>
+    <div class="card"><div class="num">GATE</div><div class="p">补 OSS URL 可访问校验、去重约束、端到端验收脚本。</div></div>
+  </div>
+  <div class="foot"><span>PATCH MAP</span><span>10 / 12</span></div>
+</section>
+<section class="slide grey">
+  <div class="top"><span>ACCEPTANCE</span><span>END TO END GATE</span></div>
+  <h2 class="title">验收标准必须是<br>真实链路可观察</h2>
+  <div class="grid3">
+    <div class="card"><div class="num">L0</div><div class="h">静态门禁</div><div class="p">前端 build、Python compileall、API 路由存在性检查。</div><div class="bar" style="width:70%"></div></div>
+    <div class="card"><div class="num">L1</div><div class="h">接口集成</div><div class="p">提交需求、审核、启动任务、图片入库、分析触发、查询任务图片。</div><div class="bar" style="width:84%"></div></div>
+    <div class="card"><div class="num">L2</div><div class="h">真实设备</div><div class="p">ADB 设备 + AutoGLM 服务 + OSS 凭据 + VLM API 全部可用，完成一次真实采集。</div><div class="bar" style="width:100%"></div></div>
+  </div>
+  <div class="foot"><span>VERIFICATION</span><span>11 / 12</span></div>
+</section>
+<section class="slide accent">
+  <div class="top"><span>TAKEAWAY</span><span>FROM DEMO TO PRODUCT</span></div>
+  <h2 class="hero" style="font-size:min(7vw,12vh)">闭环不是<br>功能堆叠</h2>
+  <p class="lead">闭环是每个状态都有唯一来源、每个动作都有可观察结果、每个失败都有明确恢复路径。</p>
+  <div class="grid3" style="max-height:28vh;margin-top:4vh">
+    <div class="card"><div class="num">01</div><div class="p">先修主链，不先扩功能。</div></div>
+    <div class="card"><div class="num">02</div><div class="p">先去重事实源，再谈自动化。</div></div>
+    <div class="card"><div class="num">03</div><div class="p">先让结果可见，再做优化。</div></div>
+  </div>
+  <div class="foot"><span>FINAL</span><span>12 / 12</span></div>
+</section>
+</div>
+<div class="nav"><button id="prev">PREV</button><span id="idx">1 / 12</span><button id="next">NEXT</button></div>
+<script>
+const deck=document.getElementById('deck');const slides=[...document.querySelectorAll('.slide')];const idx=document.getElementById('idx');let i=0;function go(n){i=Math.max(0,Math.min(slides.length-1,n));deck.style.transform=`translateX(${-i*100}vw)`;idx.textContent=`${i+1} / ${slides.length}`}document.getElementById('prev').onclick=()=>go(i-1);document.getElementById('next').onclick=()=>go(i+1);addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' ')go(i+1);if(e.key==='ArrowLeft')go(i-1);if(e.key==='Home')go(0);if(e.key==='End')go(slides.length-1)});addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>40)go(i+(e.deltaY>0?1:-1))},{passive:true});
+</script>
+</body>
+</html>

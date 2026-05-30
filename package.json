@@ -1,0 +1,13 @@
+{
+  "name": "ai-taobao-app",
+  "private": true,
+  "scripts": {
+    "start": "python3 manage.py start",
+    "stop": "python3 manage.py stop",
+    "restart": "python3 manage.py restart",
+    "reset": "python3 manage.py restart",
+    "status": "python3 manage.py status",
+    "logs": "python3 manage.py logs",
+    "build": "npm --prefix frontend run build"
+  }
+}

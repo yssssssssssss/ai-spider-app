@@ -5,11 +5,16 @@ import SearchPage from './pages/SearchPage';
 import AdminRequests from './pages/AdminRequests';
 import AdminTasks from './pages/AdminTasks';
 import AdminTaskResults from './pages/AdminTaskResults';
+import AdminWatchPlans from './pages/AdminWatchPlans';
+import AdminWatchPlanNew from './pages/AdminWatchPlanNew';
+import AdminWatchPlanDetail from './pages/AdminWatchPlanDetail';
 import AdminDashboard from './pages/AdminDashboard';
 
 function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const active = pathname === to || pathname.startsWith(to + '/');
+  const active = to === '/' || to === '/admin'
+    ? pathname === to
+    : pathname === to || pathname.startsWith(to + '/');
   return (
     <Link
       to={to}
@@ -85,6 +90,7 @@ function Navigation() {
           <NavLink to="/admin">数据看板</NavLink>
           <NavLink to="/admin/requests">需求管理</NavLink>
           <NavLink to="/admin/tasks">任务管理</NavLink>
+          <NavLink to="/admin/watch-plans">持续观察</NavLink>
         </div>
       </div>
     </nav>
@@ -106,6 +112,9 @@ function App() {
                 <Route path="/admin/requests" element={<AdminRequests />} />
                 <Route path="/admin/tasks" element={<AdminTasks />} />
                 <Route path="/admin/tasks/:taskId/results" element={<AdminTaskResults />} />
+                <Route path="/admin/watch-plans" element={<AdminWatchPlans />} />
+                <Route path="/admin/watch-plans/new" element={<AdminWatchPlanNew />} />
+                <Route path="/admin/watch-plans/:planId" element={<AdminWatchPlanDetail />} />
               </Routes>
             </div>
           </main>

@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     PHONE_AGENT_API_KEY: str = os.getenv("PHONE_AGENT_API_KEY", "")
     MODELSCOPE_VLM_MODEL: str = os.getenv("MODELSCOPE_VLM_MODEL", "Qwen/Qwen3-VL-8B-Instruct")
     AUTOGLM_MAX_STEPS: int = min(int(os.getenv("AUTOGLM_MAX_STEPS", "10")), 10)
+    WATCH_SCHEDULER_ENABLED: bool = os.getenv("WATCH_SCHEDULER_ENABLED", "true").lower() != "false"
+    WATCH_SCHEDULER_INTERVAL_SECONDS: int = int(os.getenv("WATCH_SCHEDULER_INTERVAL_SECONDS", "60"))
 
     # 京东云 OSS 配置
     JD_OSS_REGION: str = os.getenv("JD_OSS_REGION", "cn-south-1")

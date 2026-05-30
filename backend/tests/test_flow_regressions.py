@@ -4,7 +4,7 @@ import sys
 import unittest
 import base64
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from io import BytesIO
 from types import SimpleNamespace
 
@@ -365,6 +365,111 @@ class FlowRegressionTests(unittest.TestCase):
             for task in (new_task, old_task):
                 if task:
                     db.delete(task)
+            db.commit()
+            db.close()
+
+    def test_watch_prompt_contains_fixed_page_first_screen_rules(self):
+        from app.services.watch_service import build_watch_prompt
+
+        plan = SimpleNamespace(
+            target_app="淘宝",
+            target_page="百亿补贴",
+            entry_instruction="打开淘宝，从首页进入百亿补贴",
+            focus_question="关注补贴利益点变化",
+        )
+
+        prompt = build_watch_prompt(plan)
+
+        self.assertIn("目标 App：淘宝", prompt)
+        self.assertIn("目标页面：百亿补贴", prompt)
+        self.assertIn("只采集目标页面首屏", prompt)
+        self.assertIn("不要滚动", prompt)
+        self.assertIn("完成目标页首屏截图后结束", prompt)
+
+    def test_watch_run_is_idempotent_per_plan_date(self):
+        from app import crud, schemas
+        from app.database import SessionLocal
+
+        db = SessionLocal()
+        plan = None
+        try:
+            plan = crud.create_watch_plan(db, schemas.WatchPlanCreate(
+                name="idempotent watch",
+                target_app="淘宝",
+                target_page="百亿补贴",
+                entry_instruction="打开淘宝，进入百亿补贴",
+            ))
+            first = crud.create_watch_run(db, plan.id, datetime.utcnow().date())
+            second = crud.create_watch_run(db, plan.id, datetime.utcnow().date())
+
+            self.assertEqual(first.id, second.id)
+        finally:
+            if plan:
+                db.delete(plan)
+            db.commit()
+            db.close()
+
+    def test_due_watch_scheduler_creates_one_run_without_process(self):
+        from app import crud, schemas
+        from app.database import SessionLocal
+        from app.services.watch_service import run_due_watch_plans
+
+        db = SessionLocal()
+        plan = task = None
+        try:
+            plan = crud.create_watch_plan(db, schemas.WatchPlanCreate(
+                name="due watch",
+                target_app="淘宝",
+                target_page="秒杀",
+                entry_instruction="打开淘宝，进入淘宝秒杀",
+                schedule_time=time(10, 0),
+            ))
+            now = datetime.utcnow().replace(hour=10, minute=1, second=0, microsecond=0)
+            plan.created_at = now.replace(hour=9, minute=0)
+            db.commit()
+
+            self.assertEqual(run_due_watch_plans(db, now=now, start_process=False), 1)
+            self.assertEqual(run_due_watch_plans(db, now=now, start_process=False), 0)
+
+            run = crud.get_watch_run_by_date(db, plan.id, now.date())
+            task = crud.get_task(db, run.task_id)
+
+            self.assertEqual(run.status, "running")
+            self.assertEqual(task.mode, "autoglm")
+            self.assertIn("固定页面观察任务", task.generated_instruction)
+        finally:
+            if plan:
+                db.delete(plan)
+                db.flush()
+            if task:
+                db.delete(task)
+            db.commit()
+            db.close()
+
+    def test_due_watch_scheduler_skips_plans_created_after_today_schedule(self):
+        from app import crud, schemas
+        from app.database import SessionLocal
+        from app.services.watch_service import run_due_watch_plans
+
+        db = SessionLocal()
+        plan = None
+        try:
+            now = datetime.utcnow().replace(hour=15, minute=0, second=0, microsecond=0)
+            plan = crud.create_watch_plan(db, schemas.WatchPlanCreate(
+                name="late watch",
+                target_app="淘宝",
+                target_page="百亿补贴",
+                entry_instruction="打开淘宝，进入百亿补贴",
+                schedule_time=time(10, 0),
+            ))
+            plan.created_at = now.replace(hour=14, minute=59)
+            db.commit()
+
+            self.assertEqual(run_due_watch_plans(db, now=now, start_process=False), 0)
+            self.assertIsNone(crud.get_watch_run_by_date(db, plan.id, now.date()))
+        finally:
+            if plan:
+                db.delete(plan)
             db.commit()
             db.close()
 

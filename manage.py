@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 项目服务管理脚本
-支持一键启动、停止、重启 PostgreSQL + FastAPI 后端
+支持一键启动、停止、重启 PostgreSQL + FastAPI 后端 + Vite 前端
 优先使用本地 PostgreSQL，未安装时回退到 Docker
 """
 import os
@@ -16,8 +16,12 @@ from pathlib import Path
 # 项目根目录
 PROJECT_ROOT = Path(__file__).parent.resolve()
 BACKEND_DIR = PROJECT_ROOT / "backend"
+FRONTEND_DIR = PROJECT_ROOT / "frontend"
 PID_FILE = PROJECT_ROOT / ".service_pids"
+FRONTEND_PID_FILE = PROJECT_ROOT / ".frontend_pids"
 DOCKER_COMPOSE_FILE = PROJECT_ROOT / "docker-compose.yml"
+BACKEND_LOG_FILE = PROJECT_ROOT / ".backend.log"
+FRONTEND_LOG_FILE = PROJECT_ROOT / ".frontend.log"
 
 # 颜色输出
 GREEN = "\033[32m"
@@ -32,6 +36,10 @@ PG_PORT = 5432
 PG_USER = os.getenv("USER", "postgres")
 PG_DB = "competitor_db"
 PG_URL = f"postgresql://{PG_USER}@{PG_HOST}:{PG_PORT}/{PG_DB}"
+FRONTEND_HOST = "0.0.0.0"
+FRONTEND_PORT = 6173
+BACKEND_HOST = "0.0.0.0"
+BACKEND_PORT = 8000
 
 
 def log_info(msg: str):
@@ -100,21 +108,85 @@ def is_postgres_running() -> bool:
     return is_local_postgres_running() or is_docker_postgres_running()
 
 
-def is_backend_running() -> bool:
-    """检查 FastAPI 后端是否运行中"""
-    if not PID_FILE.exists():
+def is_pid_running(pid: int) -> bool:
+    """检查 PID 是否仍然存在"""
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
         return False
-    pids = PID_FILE.read_text().strip().split("\n")
-    for pid_str in pids:
+
+
+def read_pids(pid_file: Path) -> list[int]:
+    """读取 PID 文件中的有效 PID"""
+    if not pid_file.exists():
+        return []
+    pids = []
+    for pid_str in pid_file.read_text().strip().split("\n"):
         if not pid_str.strip():
             continue
         try:
-            pid = int(pid_str.strip())
-            os.kill(pid, 0)
-            return True
-        except (OSError, ValueError):
+            pids.append(int(pid_str.strip()))
+        except ValueError:
             continue
-    return False
+    return pids
+
+
+def is_service_running(pid_file: Path) -> bool:
+    """根据 PID 文件检查服务是否运行中"""
+    return any(is_pid_running(pid) for pid in read_pids(pid_file))
+
+
+def is_backend_running() -> bool:
+    """检查 FastAPI 后端是否运行中"""
+    return is_service_running(PID_FILE) and is_port_open("127.0.0.1", BACKEND_PORT)
+
+
+def is_frontend_running() -> bool:
+    """检查 Vite 前端是否运行中"""
+    return is_service_running(FRONTEND_PID_FILE) and is_port_open("127.0.0.1", FRONTEND_PORT)
+
+
+def stop_pid_file(pid_file: Path, service_name: str):
+    """停止 PID 文件中记录的进程组"""
+    if not pid_file.exists():
+        log_warn(f"{service_name} 未在运行（无 PID 文件）")
+        return
+
+    stopped = False
+    for pid in read_pids(pid_file):
+        try:
+            os.killpg(pid, signal.SIGTERM)
+            log_info(f"发送 SIGTERM 到 {service_name} 进程组 {pid}...")
+        except ProcessLookupError:
+            continue
+        except OSError:
+            try:
+                os.kill(pid, signal.SIGTERM)
+                log_info(f"发送 SIGTERM 到 {service_name} 进程 {pid}...")
+            except OSError as e:
+                log_warn(f"停止 {service_name} 进程 {pid} 失败: {e}")
+                continue
+
+        for _ in range(10):
+            if not is_pid_running(pid):
+                break
+            time.sleep(0.5)
+        if is_pid_running(pid):
+            try:
+                os.killpg(pid, signal.SIGKILL)
+                log_warn(f"强制终止 {service_name} 进程组 {pid}")
+            except OSError:
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                    log_warn(f"强制终止 {service_name} 进程 {pid}")
+                except OSError:
+                    pass
+        stopped = True
+
+    pid_file.unlink(missing_ok=True)
+    if stopped:
+        log_ok(f"{service_name} 已停止")
 
 
 def is_adb_connected() -> bool:
@@ -127,19 +199,19 @@ def is_adb_connected() -> bool:
     return False
 
 
-def save_pid(pid: int):
+def save_pid(pid: int, pid_file: Path = PID_FILE):
     """保存进程 PID 到文件"""
     existing = []
-    if PID_FILE.exists():
-        existing = [p for p in PID_FILE.read_text().strip().split("\n") if p.strip()]
+    if pid_file.exists():
+        existing = [p for p in pid_file.read_text().strip().split("\n") if p.strip()]
     existing.append(str(pid))
-    PID_FILE.write_text("\n".join(existing) + "\n")
+    pid_file.write_text("\n".join(existing) + "\n")
 
 
-def clear_pids():
+def clear_pids(pid_file: Path = PID_FILE):
     """清除 PID 文件"""
-    if PID_FILE.exists():
-        PID_FILE.unlink()
+    if pid_file.exists():
+        pid_file.unlink()
 
 
 def start_local_postgres() -> bool:
@@ -264,11 +336,31 @@ def init_database():
     ], capture=True)
 
 
+def ensure_frontend_dependencies() -> bool:
+    """确保前端依赖已安装"""
+    if (FRONTEND_DIR / "node_modules").exists():
+        return True
+
+    log_info("安装前端依赖...")
+    result = run_cmd(["npm", "install"], cwd=FRONTEND_DIR)
+    if result.returncode != 0:
+        log_err(f"安装前端依赖失败: {result.stderr}")
+        return False
+    return True
+
+
 def start_backend() -> bool:
     """启动 FastAPI 后端服务"""
     if is_backend_running():
         log_warn("FastAPI 后端已在运行中")
         return True
+    if is_service_running(PID_FILE):
+        log_warn("检测到旧的 FastAPI 后端进程，但目标端口未就绪，先停止旧进程")
+        stop_backend()
+    if is_port_open("127.0.0.1", BACKEND_PORT):
+        log_err(f"端口 {BACKEND_PORT} 已被占用，但没有匹配的后端 PID 记录")
+        log_info(f"请先释放该端口后重试")
+        return False
 
     log_info("启动 FastAPI 后端服务...")
 
@@ -290,10 +382,20 @@ def start_backend() -> bool:
         log_info("使用 Docker PostgreSQL")
 
     process = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "app.main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"],
+        [
+            sys.executable,
+            "-m",
+            "uvicorn",
+            "app.main:app",
+            "--reload",
+            "--host",
+            BACKEND_HOST,
+            "--port",
+            str(BACKEND_PORT),
+        ],
         cwd=BACKEND_DIR,
         env=env,
-        stdout=open(PROJECT_ROOT / ".backend.log", "a"),
+        stdout=open(BACKEND_LOG_FILE, "a"),
         stderr=subprocess.STDOUT,
         start_new_session=True,
     )
@@ -302,49 +404,59 @@ def start_backend() -> bool:
 
     # 等待服务就绪
     time.sleep(2)
-    result = run_cmd(["curl", "-s", "http://localhost:8000/health"], capture=True)
+    result = run_cmd(["curl", "-s", f"http://localhost:{BACKEND_PORT}/health"], capture=True)
     if result.returncode == 0 and '"status":"ok"' in result.stdout:
-        log_ok(f"FastAPI 后端已启动 (PID: {process.pid})，访问 http://localhost:8000")
+        log_ok(f"FastAPI 后端已启动 (PID: {process.pid})，访问 http://localhost:{BACKEND_PORT}")
         return True
     else:
         log_warn("FastAPI 后端可能还在启动中，请稍后用 status 检查")
         return True
 
 
+def start_frontend() -> bool:
+    """启动 Vite 前端服务"""
+    if is_frontend_running():
+        log_warn("Vite 前端已在运行中")
+        return True
+    if is_service_running(FRONTEND_PID_FILE):
+        log_warn("检测到旧的 Vite 前端进程，但目标端口未就绪，先停止旧进程")
+        stop_frontend()
+    if is_port_open("127.0.0.1", FRONTEND_PORT):
+        log_err(f"端口 {FRONTEND_PORT} 已被占用，但没有匹配的前端 PID 记录")
+        log_info("请先释放该端口后重试")
+        return False
+
+    if not ensure_frontend_dependencies():
+        return False
+
+    log_info("启动 Vite 前端服务...")
+    process = subprocess.Popen(
+        ["npm", "run", "dev", "--", "--host", FRONTEND_HOST, "--port", str(FRONTEND_PORT), "--strictPort"],
+        cwd=FRONTEND_DIR,
+        stdout=open(FRONTEND_LOG_FILE, "a"),
+        stderr=subprocess.STDOUT,
+        start_new_session=True,
+    )
+    save_pid(process.pid, FRONTEND_PID_FILE)
+
+    for _ in range(20):
+        if is_port_open("127.0.0.1", FRONTEND_PORT):
+            log_ok(f"Vite 前端已启动 (PID: {process.pid})，访问 http://localhost:{FRONTEND_PORT}")
+            return True
+        time.sleep(0.5)
+
+    log_warn("Vite 前端可能还在启动中，请稍后用 status 检查")
+    return True
+
+
 def stop_backend():
     """停止 FastAPI 后端服务"""
-    if not PID_FILE.exists():
-        log_warn("FastAPI 后端未在运行（无 PID 文件）")
-        return
+    stop_pid_file(PID_FILE, "FastAPI 后端")
 
-    pids = PID_FILE.read_text().strip().split("\n")
-    stopped = False
-    for pid_str in pids:
-        if not pid_str.strip():
-            continue
-        try:
-            pid = int(pid_str.strip())
-            os.kill(pid, signal.SIGTERM)
-            log_info(f"发送 SIGTERM 到进程 {pid}...")
-            for _ in range(10):
-                try:
-                    os.kill(pid, 0)
-                    time.sleep(0.5)
-                except OSError:
-                    break
-            try:
-                os.kill(pid, 0)
-                os.kill(pid, signal.SIGKILL)
-                log_warn(f"强制终止进程 {pid}")
-            except OSError:
-                pass
-            stopped = True
-        except (OSError, ValueError) as e:
-            log_warn(f"停止进程 {pid_str} 失败: {e}")
 
-    clear_pids()
-    if stopped:
-        log_ok("FastAPI 后端已停止")
+def stop_frontend():
+    """停止 Vite 前端服务"""
+    stop_pid_file(FRONTEND_PID_FILE, "Vite 前端")
 
 
 def start_all():
@@ -367,18 +479,26 @@ def start_all():
         log_err("FastAPI 后端启动失败")
         return False
 
+    # 3. 启动 Vite 前端
+    if not start_frontend():
+        log_err("Vite 前端启动失败")
+        return False
+
     print(f"\n{'='*50}")
     log_ok("所有服务已启动")
     print(f"{'='*50}\n")
     print("服务地址:")
-    print("  - FastAPI API:  http://localhost:8000")
-    print("  - API 文档:     http://localhost:8000/docs")
+    print(f"  - 前端页面:     http://localhost:{FRONTEND_PORT}")
+    print(f"  - FastAPI API:  http://localhost:{BACKEND_PORT}")
+    print(f"  - API 文档:     http://localhost:{BACKEND_PORT}/docs")
     print("  - PostgreSQL:   localhost:5432")
     print("")
     print("常用命令:")
+    print("  npm start                  启动前后端")
+    print("  npm stop                   停止前后端")
+    print("  npm run reset              重启前后端")
     print("  python manage.py status    查看服务状态")
     print("  python manage.py logs      查看后端日志")
-    print("  python manage.py stop      停止所有服务")
     print("")
     return True
 
@@ -389,6 +509,7 @@ def stop_all():
     print(" 停止服务")
     print(f"{'='*50}\n")
 
+    stop_frontend()
     stop_backend()
     stop_postgres()
 
@@ -404,7 +525,7 @@ def restart_all():
     print(f"{'='*50}\n")
     stop_all()
     time.sleep(2)
-    start_all()
+    return start_all()
 
 
 def show_status():
@@ -427,6 +548,12 @@ def show_status():
     else:
         log_err("FastAPI 后端   : 未运行")
 
+    # Vite 前端
+    if is_frontend_running():
+        log_ok(f"Vite 前端      : 运行中 (http://localhost:{FRONTEND_PORT})")
+    else:
+        log_err("Vite 前端      : 未运行")
+
     # ADB 设备
     if is_adb_connected():
         result = run_cmd(["adb", "devices"])
@@ -438,19 +565,24 @@ def show_status():
     print(f"\n{'='*50}\n")
 
 
-def show_logs():
-    """显示后端日志"""
-    log_file = PROJECT_ROOT / ".backend.log"
+def show_log_file(title: str, log_file: Path):
+    """显示指定日志文件最近 50 行"""
     if not log_file.exists():
-        log_warn("暂无日志文件")
+        log_warn(f"暂无{title}日志文件")
         return
 
     print(f"\n{'='*50}")
-    print(" 后端日志 (最近 50 行)")
+    print(f" {title}日志 (最近 50 行)")
     print(f"{'='*50}\n")
 
     result = run_cmd(["tail", "-n", "50", str(log_file)])
     print(result.stdout)
+
+
+def show_logs():
+    """显示服务日志"""
+    show_log_file("后端", BACKEND_LOG_FILE)
+    show_log_file("前端", FRONTEND_LOG_FILE)
     print(f"\n{'='*50}\n")
 
 
@@ -471,11 +603,11 @@ def main():
         sys.exit(1)
 
     if args.command == "start":
-        start_all()
+        sys.exit(0 if start_all() else 1)
     elif args.command == "stop":
         stop_all()
     elif args.command == "restart":
-        restart_all()
+        sys.exit(0 if restart_all() else 1)
     elif args.command == "status":
         show_status()
     elif args.command == "logs":

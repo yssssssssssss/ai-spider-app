@@ -1,17 +1,14 @@
 import asyncio
 import os
-import subprocess
-import sys
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import Optional
-from app.services.collector_bridge import start_collection_watcher
 from app.services.task_events import ensure_queue
 from app.services.task_planner import append_execution_rules, keyword_instruction, plan_task
+from app.services.task_runner import start_task_process
 from app.database import get_db
-from app.config import settings
 from app import crud, schemas
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -56,13 +53,6 @@ def build_autoglm_prompt(task) -> str:
     parts.append("并截图保存到本地")
 
     return append_execution_rules("，".join(parts))
-
-
-def _open_task_log(task_id: str):
-    log_dir = os.path.join(settings.PROJECT_ROOT, "logs", "tasks")
-    os.makedirs(log_dir, exist_ok=True)
-    return open(os.path.join(log_dir, f"{task_id}.log"), "a", encoding="utf-8")
-
 
 @router.get("/requests", response_model=list[schemas.RequestOut])
 def list_requests(status: Optional[str] = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -130,58 +120,17 @@ def run_task(task_id: UUID, db: Session = Depends(get_db)):
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     crud.update_task_status(db, task_id, "running")
+    task = crud.get_task(db, task_id)
 
-    project_root = settings.PROJECT_ROOT
-    tid = str(task_id)
-    ensure_queue(tid)
-    process = None
-
-    if task.mode == "autoglm":
-        # 优先使用 LLM 生成的指令，回退到模板拼接
-        prompt = task.generated_instruction or build_autoglm_prompt(task)
-        script_path = os.path.join(project_root, "run_autoglm.py")
-        if os.path.exists(script_path):
-            log_file = _open_task_log(tid)
-            try:
-                process = subprocess.Popen(
-                    [
-                        sys.executable,
-                        script_path,
-                        prompt,
-                        "--task-id",
-                        tid,
-                        "--max-steps",
-                        str(settings.AUTOGLM_MAX_STEPS),
-                    ],
-                    cwd=project_root,
-                    env=os.environ.copy(),
-                    stdout=log_file,
-                    stderr=subprocess.STDOUT
-                )
-            finally:
-                log_file.close()
-        else:
-            raise HTTPException(status_code=500, detail="AutoGLM script not found")
-    else:
-        script_path = os.path.join(project_root, "run_workflow.py")
-        env = os.environ.copy()
-        env["TB_KEYWORD"] = task.keyword or ""
-        if os.path.exists(script_path):
-            log_file = _open_task_log(tid)
-            try:
-                process = subprocess.Popen(
-                    [sys.executable, script_path],
-                    cwd=project_root,
-                    env=env,
-                    stdout=log_file,
-                    stderr=subprocess.STDOUT
-                )
-            finally:
-                log_file.close()
-        else:
-            raise HTTPException(status_code=500, detail="Workflow script not found")
-
-    start_collection_watcher(tid, project_root, process=process)
+    prompt = task.generated_instruction or build_autoglm_prompt(task) if task.mode == "autoglm" else None
+    try:
+        start_task_process(task, prompt=prompt)
+    except FileNotFoundError as e:
+        crud.update_task_status(db, task_id, "failed")
+        raise HTTPException(status_code=500, detail=str(e))
+    except ValueError as e:
+        crud.update_task_status(db, task_id, "failed")
+        raise HTTPException(status_code=400, detail=str(e))
     return task
 
 

@@ -1,6 +1,12 @@
+import { useState } from 'react';
 import RequestForm from '../components/RequestForm';
+import WatchPlanForm from '../components/WatchPlanForm';
+
+type HomeTab = 'collect' | 'watch';
 
 export default function HomePage() {
+  const [activeTab, setActiveTab] = useState<HomeTab>('collect');
+
   return (
     <div className="animate-fade-in">
       <div
@@ -34,10 +40,36 @@ export default function HomePage() {
             margin: '0 auto',
           }}
         >
-          提交你的竞品搜集需求，AI 将自动帮你采集、分析并生成洞察报告
+          提交竞品搜集需求，或创建一个固定页面的持续观察计划
         </p>
       </div>
-      <RequestForm />
+
+      <div className="home-tab-switch" role="tablist" aria-label="需求提交类型">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'collect'}
+          className={activeTab === 'collect' ? 'active' : ''}
+          onClick={() => setActiveTab('collect')}
+        >
+          竞品搜集
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'watch'}
+          className={activeTab === 'watch' ? 'active' : ''}
+          onClick={() => setActiveTab('watch')}
+        >
+          持续观察
+        </button>
+      </div>
+
+      {activeTab === 'collect' ? (
+        <RequestForm key="collect" />
+      ) : (
+        <WatchPlanForm key="watch" homePanel />
+      )}
     </div>
   );
 }
