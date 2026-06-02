@@ -39,6 +39,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ toasts, showToast, removeToast }}>
       {children}
       <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
         style={{
           position: 'fixed',
           top: 20,

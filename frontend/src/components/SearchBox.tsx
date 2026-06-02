@@ -2,16 +2,20 @@ import { useState } from 'react';
 import { searchImages } from '../api';
 import ImageCard from './ImageCard';
 
+const SEARCH_RESULT_LIMIT = 3;
+
 export default function SearchBox() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const searchMode = results.find(r => r.search_mode)?.search_mode;
+  const modeLabel = searchMode === 'vector' ? '向量搜索' : searchMode === 'text' ? '文本兜底搜索' : null;
 
   const handleSearch = async () => {
     if (!query.trim()) return;
     setLoading(true);
     try {
-      const { data } = await searchImages({ query, limit: 20 });
+      const { data } = await searchImages({ query, limit: SEARCH_RESULT_LIMIT });
       setResults(data);
     } finally {
       setLoading(false);
@@ -54,14 +58,17 @@ export default function SearchBox() {
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.3-4.3" />
           </svg>
-          <input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="输入描述，如红色大促弹窗设计..."
-            style={{ paddingLeft: 42 }}
-          />
-        </div>
+	          <input
+	            aria-label="图片检索描述"
+	            name="image-search-query"
+	            autoComplete="off"
+	            value={query}
+	            onChange={e => setQuery(e.target.value)}
+	            onKeyDown={handleKeyDown}
+	            placeholder="输入描述，如红色大促弹窗设计…"
+	            style={{ paddingLeft: 42 }}
+	          />
+	        </div>
         <button onClick={handleSearch} disabled={loading || !query.trim()}>
           {loading ? '搜索中...' : '搜索'}
         </button>
@@ -69,10 +76,11 @@ export default function SearchBox() {
 
       {results.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-            找到 {results.length} 条结果
-          </span>
-        </div>
+	          <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+	            找到 {results.length} 条结果
+	            {modeLabel ? ` · ${modeLabel}` : ''}
+	          </span>
+	        </div>
       )}
 
       <div

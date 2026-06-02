@@ -11,6 +11,8 @@ import signal
 import subprocess
 import argparse
 import socket
+import shutil
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # 项目根目录
@@ -22,6 +24,44 @@ FRONTEND_PID_FILE = PROJECT_ROOT / ".frontend_pids"
 DOCKER_COMPOSE_FILE = PROJECT_ROOT / "docker-compose.yml"
 BACKEND_LOG_FILE = PROJECT_ROOT / ".backend.log"
 FRONTEND_LOG_FILE = PROJECT_ROOT / ".frontend.log"
+EXPORTS_DIR = PROJECT_ROOT / "exports"
+
+GENERATED_LOG_FILES = (
+    ".backend.log",
+    ".frontend.log",
+)
+GENERATED_PID_FILES = (
+    ".service_pids",
+    ".frontend_pids",
+)
+SECRET_ENV_FILES = (
+    ".env",
+    "backend/.env",
+)
+SECRET_KEYWORDS = (
+    "API_KEY",
+    "SECRET",
+    "TOKEN",
+    "PASSWORD",
+    "ACCESS_KEY",
+    "PRIVATE_KEY",
+    "JWT_SECRET",
+)
+SECRET_VALUE_PREFIXES = (
+    "sk-",
+    "ak-",
+)
+IGNORED_TRACKED_PATTERNS = (
+    ".env",
+    "backend/.env",
+    ".backend.log",
+    ".frontend.log",
+    ".service_pids",
+    ".frontend_pids",
+    "frontend/dist/",
+    "__pycache__/",
+    ".pyc",
+)
 
 # 颜色输出
 GREEN = "\033[32m"
@@ -66,6 +106,212 @@ def run_cmd(cmd: list[str], cwd: Path = None, capture: bool = True) -> subproces
         capture_output=capture,
         text=True,
     )
+
+
+def _within_project(path: Path, root: Path) -> bool:
+    try:
+        path.resolve().relative_to(root.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def _add_existing(paths: list[Path], path: Path, root: Path):
+    if path.exists() and _within_project(path, root):
+        paths.append(path)
+
+
+def _pid_file_safe_to_clean(path: Path) -> bool:
+    if not path.exists():
+        return False
+    for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+        try:
+            pid = int(line.strip())
+        except ValueError:
+            continue
+        if is_pid_running(pid):
+            return False
+    return True
+
+
+def plan_clean(
+    root: Path = PROJECT_ROOT,
+    *,
+    logs: bool = True,
+    pycache: bool = True,
+    dist: bool = False,
+    exports: bool = False,
+) -> list[Path]:
+    """Return generated files/directories that are safe to remove."""
+    targets: list[Path] = []
+
+    if logs:
+        for rel_path in GENERATED_LOG_FILES:
+            _add_existing(targets, root / rel_path, root)
+        for rel_path in GENERATED_PID_FILES:
+            pid_file = root / rel_path
+            if _pid_file_safe_to_clean(pid_file):
+                _add_existing(targets, pid_file, root)
+        _add_existing(targets, root / "logs", root)
+
+    if pycache:
+        for cache_dir in root.rglob("__pycache__"):
+            _add_existing(targets, cache_dir, root)
+        for pyc_file in root.rglob("*.pyc"):
+            _add_existing(targets, pyc_file, root)
+
+    if dist:
+        _add_existing(targets, root / "frontend" / "dist", root)
+
+    if exports:
+        _add_existing(targets, root / "exports", root)
+
+    unique = {}
+    for target in targets:
+        unique[target.resolve()] = target
+    return sorted(unique.values(), key=lambda path: path.relative_to(root).as_posix())
+
+
+def plan_prune_task_logs(root: Path = PROJECT_ROOT, *, days: int = 14) -> list[Path]:
+    cutoff = datetime.now() - timedelta(days=max(days, 0))
+    log_root = root / "logs" / "tasks"
+    if not log_root.exists():
+        return []
+    targets: list[Path] = []
+    for path in log_root.rglob("*.log"):
+        if not path.is_file() or not _within_project(path, root):
+            continue
+        modified = datetime.fromtimestamp(path.stat().st_mtime)
+        if modified < cutoff:
+            targets.append(path)
+    return sorted(targets, key=lambda path: path.relative_to(root).as_posix())
+
+
+def prune_task_logs(root: Path = PROJECT_ROOT, *, days: int = 14, apply: bool = False) -> list[Path]:
+    targets = plan_prune_task_logs(root, days=days)
+    if not apply:
+        return targets
+    for path in targets:
+        path.unlink(missing_ok=True)
+        parent = path.parent
+        while parent != root and parent.exists() and not any(parent.iterdir()):
+            parent.rmdir()
+            parent = parent.parent
+    return targets
+
+
+def clean_generated_files(
+    root: Path = PROJECT_ROOT,
+    *,
+    apply: bool = False,
+    logs: bool = True,
+    pycache: bool = True,
+    dist: bool = False,
+    exports: bool = False,
+) -> list[Path]:
+    """Clean generated files. Dry-run unless apply=True."""
+    targets = plan_clean(root, logs=logs, pycache=pycache, dist=dist, exports=exports)
+    if not apply:
+        return targets
+
+    for target in sorted(targets, key=lambda path: len(path.parts), reverse=True):
+        if not target.exists():
+            continue
+        if target.is_dir():
+            shutil.rmtree(target)
+        else:
+            target.unlink()
+    return targets
+
+
+def _line_has_secret(key: str, value: str) -> bool:
+    key_upper = key.strip().upper()
+    value = value.strip()
+    has_secret_key = any(keyword in key_upper for keyword in SECRET_KEYWORDS)
+    has_secret_value = any(value.startswith(prefix) for prefix in SECRET_VALUE_PREFIXES)
+    return bool(has_secret_key and value or has_secret_value)
+
+
+def _tracked_files(root: Path = PROJECT_ROOT) -> list[str]:
+    result = run_cmd(["git", "ls-files"], cwd=root, capture=True)
+    if result.returncode != 0:
+        return []
+    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+
+
+def scan_tracked_ignored_files(root: Path = PROJECT_ROOT) -> list[dict[str, object]]:
+    findings: list[dict[str, object]] = []
+    for rel_path in _tracked_files(root):
+        if (
+            rel_path in {".env", "backend/.env", ".backend.log", ".frontend.log", ".service_pids", ".frontend_pids"}
+            or rel_path.startswith("frontend/dist/")
+            or "/__pycache__/" in f"/{rel_path}"
+            or rel_path.endswith(".pyc")
+        ):
+            findings.append({
+                "path": rel_path,
+                "line": 0,
+                "reason": "tracked generated or sensitive file",
+            })
+    return findings
+
+
+def scan_log_secret_risks(root: Path = PROJECT_ROOT) -> list[dict[str, object]]:
+    findings: list[dict[str, object]] = []
+    log_paths = [root / ".backend.log", root / ".frontend.log"]
+    log_dir = root / "logs"
+    if log_dir.exists():
+        log_paths.extend(path for path in log_dir.rglob("*.log") if path.is_file())
+
+    for path in log_paths:
+        if not path.exists() or not path.is_file():
+            continue
+        try:
+            rel_path = path.relative_to(root).as_posix()
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        for line_no, line in enumerate(lines, start=1):
+            normalized = line.strip()
+            if "=" in normalized:
+                key, value = normalized.split("=", 1)
+                if _line_has_secret(key, value):
+                    findings.append({"path": rel_path, "line": line_no, "reason": f"{key.strip()} appears in log"})
+                    continue
+            lower = normalized.lower()
+            if "authorization:" in lower or "bearer sk-" in lower or "api_key" in lower and "sk-" in lower:
+                findings.append({"path": rel_path, "line": line_no, "reason": "secret-like token appears in log"})
+    return findings
+
+
+def scan_secret_risks(root: Path = PROJECT_ROOT) -> list[dict[str, object]]:
+    """Report likely secret locations without returning secret values."""
+    findings: list[dict[str, object]] = []
+
+    for rel_path in SECRET_ENV_FILES:
+        path = root / rel_path
+        if not path.exists() or not path.is_file():
+            continue
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        for line_no, line in enumerate(lines, start=1):
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#") or "=" not in stripped:
+                continue
+            key, value = stripped.split("=", 1)
+            if _line_has_secret(key, value):
+                findings.append({
+                    "path": rel_path,
+                    "line": line_no,
+                    "reason": f"{key.strip()} looks sensitive",
+                })
+    return findings
+
+
+def scan_all_secret_risks(root: Path = PROJECT_ROOT) -> list[dict[str, object]]:
+    return scan_secret_risks(root) + scan_log_secret_risks(root) + scan_tracked_ignored_files(root)
 
 
 def get_docker_compose_cmd() -> list[str] | None:
@@ -586,6 +832,75 @@ def show_logs():
     print(f"\n{'='*50}\n")
 
 
+def show_task_logs(args):
+    log_root = PROJECT_ROOT / "logs" / "tasks"
+    print(f"\n{'='*50}")
+    print(" 任务日志")
+    print(f"{'='*50}\n")
+    if not log_root.exists():
+        log_warn("暂无任务日志")
+        return
+    logs = sorted((path for path in log_root.rglob("*.log") if path.is_file()), key=lambda path: path.stat().st_mtime, reverse=True)
+    for path in logs[: max(args.limit, 1)]:
+        print(path.relative_to(PROJECT_ROOT))
+
+
+def show_prune_task_logs(args):
+    targets = prune_task_logs(PROJECT_ROOT, days=args.days, apply=args.apply)
+    print(f"\n{'='*50}")
+    print(" 清理任务日志")
+    print(f"{'='*50}\n")
+    if not targets:
+        log_ok("没有发现过期任务日志")
+        return
+    action = "已删除" if args.apply else "将清理"
+    for target in targets:
+        print(f"{action}: {target.relative_to(PROJECT_ROOT)}")
+    if not args.apply:
+        log_info("当前为 dry-run，未删除任何文件。确认后可追加 --apply")
+
+
+def show_clean_plan(args):
+    targets = clean_generated_files(
+        PROJECT_ROOT,
+        apply=args.apply,
+        logs=args.logs,
+        pycache=args.pycache,
+        dist=args.dist,
+        exports=args.exports,
+    )
+
+    print(f"\n{'='*50}")
+    print(" 清理生成文件")
+    print(f"{'='*50}\n")
+    if not targets:
+        log_ok("没有发现需要清理的生成文件")
+        return
+
+    action = "已删除" if args.apply else "将清理"
+    for target in targets:
+        print(f"{action}: {target.relative_to(PROJECT_ROOT)}")
+    if not args.apply:
+        log_info("当前为 dry-run，未删除任何文件。确认后可追加 --apply")
+    else:
+        log_ok(f"已清理 {len(targets)} 项")
+
+
+def show_secret_risks():
+    findings = scan_all_secret_risks(PROJECT_ROOT)
+    print(f"\n{'='*50}")
+    print(" 敏感配置检查")
+    print(f"{'='*50}\n")
+    if not findings:
+        log_ok("未在常见配置文件中发现已填写的敏感变量")
+        return
+
+    log_warn("发现可能包含敏感值的配置项（仅显示路径和变量名，不显示值）")
+    for finding in findings:
+        print(f"- {finding['path']}:{finding['line']} {finding['reason']}")
+    log_info("请确保这些文件未被提交；如需共享配置，请使用 .env.example")
+
+
 def main():
     parser = argparse.ArgumentParser(description="竞品分析平台服务管理")
     subparsers = parser.add_subparsers(dest="command", help="可用命令")
@@ -595,6 +910,21 @@ def main():
     subparsers.add_parser("restart", help="重启所有服务")
     subparsers.add_parser("status", help="查看服务状态")
     subparsers.add_parser("logs", help="查看后端日志")
+    task_logs_parser = subparsers.add_parser("task-logs", help="列出最近任务日志")
+    task_logs_parser.add_argument("--limit", type=int, default=20, help="最多列出多少条")
+    prune_logs_parser = subparsers.add_parser("prune-task-logs", help="按天数清理过期任务日志")
+    prune_logs_parser.add_argument("--days", type=int, default=14, help="保留最近多少天")
+    prune_logs_parser.add_argument("--apply", action="store_true", help="实际删除；默认只 dry-run")
+    clean_parser = subparsers.add_parser("clean", help="清理日志、缓存、构建和导出产物")
+    clean_mode = clean_parser.add_mutually_exclusive_group()
+    clean_mode.add_argument("--dry-run", dest="apply", action="store_false", help="只列出将清理内容，不删除文件")
+    clean_mode.add_argument("--apply", dest="apply", action="store_true", help="实际删除；默认只 dry-run")
+    clean_parser.set_defaults(apply=False)
+    clean_parser.add_argument("--logs", action=argparse.BooleanOptionalAction, default=True, help="包含日志和 PID 文件")
+    clean_parser.add_argument("--pycache", action=argparse.BooleanOptionalAction, default=True, help="包含 Python 缓存")
+    clean_parser.add_argument("--dist", action="store_true", help="包含 frontend/dist")
+    clean_parser.add_argument("--exports", action="store_true", help="包含 exports 导出目录")
+    subparsers.add_parser("doctor-secrets", help="检查常见敏感配置风险")
 
     args = parser.parse_args()
 
@@ -612,6 +942,14 @@ def main():
         show_status()
     elif args.command == "logs":
         show_logs()
+    elif args.command == "task-logs":
+        show_task_logs(args)
+    elif args.command == "prune-task-logs":
+        show_prune_task_logs(args)
+    elif args.command == "clean":
+        show_clean_plan(args)
+    elif args.command == "doctor-secrets":
+        show_secret_risks()
 
 
 if __name__ == "__main__":

@@ -11,3 +11,4 @@ openai==1.30.0
 alembic==1.13.0
 python-dotenv==1.0.0
 Pillow>=10.0.0
+openpyxl>=3.1.0

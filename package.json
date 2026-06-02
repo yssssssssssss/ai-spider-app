@@ -8,6 +8,10 @@
     "reset": "python3 manage.py restart",
     "status": "python3 manage.py status",
     "logs": "python3 manage.py logs",
+    "task-logs": "python3 manage.py task-logs",
+    "clean": "python3 manage.py clean",
+    "doctor-secrets": "python3 manage.py doctor-secrets",
+    "prune-task-logs": "python3 manage.py prune-task-logs",
     "build": "npm --prefix frontend run build"
   }
 }

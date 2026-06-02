@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getWatchPlan, pauseWatchPlan, resumeWatchPlan, runWatchPlanNow } from '../api';
+import { exportWatchPlanUrl, getWatchPlan, pauseWatchPlan, resumeWatchPlan, runWatchPlanNow } from '../api';
+import { useAuth } from '../auth';
 import ImageCard from '../components/ImageCard';
 import { useToast } from '../components/Toast';
 
@@ -132,9 +133,11 @@ function StructuredPreview({ value }: { value: any }) {
 export default function AdminWatchPlanDetail() {
   const { planId } = useParams();
   const { showToast } = useToast();
+  const { hasRole } = useAuth();
   const [detail, setDetail] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [downloading, setDownloading] = useState<string | null>(null);
 
   const load = async () => {
     if (!planId) return;
@@ -182,6 +185,27 @@ export default function AdminWatchPlanDetail() {
     }
   };
 
+  const download = async (format: 'json' | 'xlsx') => {
+    if (!planId) return;
+    setDownloading(format);
+    try {
+      const response = await fetch(exportWatchPlanUrl(planId, format));
+      if (!response.ok) throw new Error(await response.text());
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `watch-plan-${planId}.${format}`;
+      link.click();
+      URL.revokeObjectURL(url);
+      showToast('导出已开始下载', 'success');
+    } catch {
+      showToast('导出失败', 'error');
+    } finally {
+      setDownloading(null);
+    }
+  };
+
   if (loading && !detail) {
     return <div className="skeleton" style={{ height: 320, borderRadius: 'var(--radius-md)' }} />;
   }
@@ -194,7 +218,15 @@ export default function AdminWatchPlanDetail() {
     );
   }
 
-  const { plan, latest_run, latest_snapshot, latest_summary, period_reports = [], recent_runs = [] } = detail;
+  const {
+    plan,
+    latest_run,
+    latest_success_run,
+    latest_snapshot,
+    latest_summary,
+    period_reports = [],
+    recent_runs = [],
+  } = detail;
   const reportsByDays = new Map(period_reports.map((report: any) => [report.period_days, report]));
 
   return (
@@ -205,15 +237,21 @@ export default function AdminWatchPlanDetail() {
           <p>{plan.target_app} / {plan.target_page}</p>
         </div>
         <div className="watch-header-actions">
+          <button className="btn-secondary btn-sm" onClick={() => download('json')} disabled={!!downloading}>{downloading === 'json' ? '下载中...' : 'JSON'}</button>
+          <button className="btn-secondary btn-sm" onClick={() => download('xlsx')} disabled={!!downloading}>{downloading === 'xlsx' ? '下载中...' : 'Excel'}</button>
           <Link className="btn-secondary btn-sm link-button" to="/admin/watch-plans">
             返回列表
           </Link>
-          <button className="btn-secondary btn-sm" onClick={handleToggle} disabled={busy}>
-            {plan.status === 'active' ? '暂停' : '恢复'}
-          </button>
-          <button className="btn-sm" onClick={handleRun} disabled={busy}>
-            {busy ? '处理中...' : '立即运行'}
-          </button>
+          {hasRole('operator') && (
+            <>
+              <button className="btn-secondary btn-sm" onClick={handleToggle} disabled={busy}>
+                {plan.status === 'active' ? '暂停' : '恢复'}
+              </button>
+              <button className="btn-sm" onClick={handleRun} disabled={busy}>
+                {busy ? '处理中...' : '立即运行'}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -222,7 +260,10 @@ export default function AdminWatchPlanDetail() {
           <div className="watch-meta-row"><span>状态</span><StatusBadge status={plan.status} /></div>
           <div className="watch-meta-row"><span>执行时间</span><strong>{String(plan.schedule_time).slice(0, 5)}</strong></div>
           <div className="watch-meta-row"><span>最近运行</span><strong>{formatDate(plan.last_run_at)}</strong></div>
-          <div className="watch-meta-row"><span>最近结果</span>{latest_run ? <StatusBadge status={latest_run.status} /> : <strong>-</strong>}</div>
+          <div className="watch-meta-row"><span>最近运行状态</span>{latest_run ? <StatusBadge status={latest_run.status} /> : <strong>-</strong>}</div>
+          <div className="watch-meta-row"><span>累计运行</span><strong>{plan.run_count || 0} 次</strong></div>
+          <div className="watch-meta-row"><span>最近成功</span><strong>{formatDate(plan.latest_success_run_at)}</strong></div>
+          <div className="watch-meta-row"><span>创建人</span><strong>{plan.created_by_name || '-'}</strong></div>
           {plan.pause_reason && <p className="watch-warning">{plan.pause_reason}</p>}
         </div>
         <div className="watch-meta-panel">
@@ -235,8 +276,8 @@ export default function AdminWatchPlanDetail() {
 
       <section className="watch-section">
         <div className="section-title-row">
-          <h2>最新截图</h2>
-          {latest_run && <span>运行日期 {latest_run.run_date}</span>}
+          <h2>最新成功观察</h2>
+          {latest_success_run && <span>运行日期 {latest_success_run.run_date}</span>}
         </div>
         {latest_snapshot ? (
           <div className="watch-snapshot-grid">

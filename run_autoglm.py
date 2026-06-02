@@ -42,7 +42,19 @@ POPUP_BACK_TASK = (
     "请优先使用返回键关闭弹窗、广告或浮层；如果返回键无效，再点击可见的关闭、跳过或取消按钮。"
     "关闭后停留在目标页面等待截图保存，不要提前结束。"
 )
+AUTO_SCREENSHOT_STOP_RULE = (
+    "执行约束：平台会在每一步自动截图并保存到本地和后台；"
+    "你不需要、也禁止打开系统设置、相册、文件管理、截图工具或其他非目标应用来保存截图。"
+    "到达用户要求的目标页面并停留完成自动截图后，必须立即结束任务；"
+    "不要返回桌面，不要继续点击、长按、滑动或探索无关页面。"
+)
 MAX_AUTOGLM_STEPS = 10
+
+
+def _append_auto_screenshot_stop_rule(task: str) -> str:
+    if AUTO_SCREENSHOT_STOP_RULE in task:
+        return task
+    return f"{task}。{AUTO_SCREENSHOT_STOP_RULE}"
 
 
 def _requires_popup_close_flow(task: str) -> bool:
@@ -113,7 +125,15 @@ class PopupFlowStateMachine:
         return None
 
 
-def _save_screenshot_from_agent(agent, step_idx: int, output_dir: str, source_app: str = "taobao", task_id: str = None):
+def _save_screenshot_from_agent(
+    agent,
+    step_idx: int,
+    output_dir: str,
+    source_app: str = "taobao",
+    task_id: str = None,
+    task_run_id: str = None,
+    db_device_id: str = None,
+):
     """
     从 agent 上下文中提取最近一步的截图，保存到本地并上传 OSS 入库。
 
@@ -133,20 +153,28 @@ def _save_screenshot_from_agent(agent, step_idx: int, output_dir: str, source_ap
                                 # 提取 base64 数据
                                 b64_data = image_url.split(",", 1)[1]
                                 return _process_screenshot_bytes(
-                                    b64_data, step_idx, output_dir, source_app, task_id
+                                    b64_data, step_idx, output_dir, source_app, task_id, task_run_id, db_device_id
                                 )
                 break
 
         # 如果上下文中没有图片（被 remove_images_from_message 移除了），
         # 则直接从设备截图
-        return _capture_and_save(step_idx, output_dir, source_app, agent.agent_config.device_id, task_id)
+        return _capture_and_save(step_idx, output_dir, source_app, agent.agent_config.device_id, task_id, task_run_id, db_device_id)
 
     except Exception as e:
         print(f"  ⚠️ 截图保存失败: {e}")
         return None
 
 
-def _capture_and_save(step_idx: int, output_dir: str, source_app: str, device_id: str = None, task_id: str = None):
+def _capture_and_save(
+    step_idx: int,
+    output_dir: str,
+    source_app: str,
+    device_id: str = None,
+    task_id: str = None,
+    task_run_id: str = None,
+    db_device_id: str = None,
+):
     """通过 ADB 直接从设备截图并保存"""
     try:
         import subprocess
@@ -186,6 +214,8 @@ def _capture_and_save(step_idx: int, output_dir: str, source_app: str, device_id
                 source_app=source_app,
                 scenario="autoglm",
                 task_id=task_id,
+                task_run_id=task_run_id,
+                device_id=db_device_id,
             )
         return final_path
 
@@ -194,7 +224,15 @@ def _capture_and_save(step_idx: int, output_dir: str, source_app: str, device_id
         return None
 
 
-def _process_screenshot_bytes(b64_data: str, step_idx: int, output_dir: str, source_app: str, task_id: str = None):
+def _process_screenshot_bytes(
+    b64_data: str,
+    step_idx: int,
+    output_dir: str,
+    source_app: str,
+    task_id: str = None,
+    task_run_id: str = None,
+    db_device_id: str = None,
+):
     """将 base64 截图数据保存到本地文件并上传 OSS"""
     try:
         img_bytes = base64.b64decode(b64_data)
@@ -217,6 +255,8 @@ def _process_screenshot_bytes(b64_data: str, step_idx: int, output_dir: str, sou
                 source_app=source_app,
                 scenario="autoglm",
                 task_id=task_id,
+                task_run_id=task_run_id,
+                device_id=db_device_id,
             )
         return file_path
 
@@ -234,6 +274,9 @@ def run_with_autoglm(
     output_dir: str = None,
     capture_screenshots: bool = True,
     task_id: str = None,
+    task_run_id: str = None,
+    device_id: str = None,
+    db_device_id: str = None,
 ):
     """
     使用 AutoGLM 执行自然语言任务，每一步自动截图并上传 OSS 入库
@@ -268,7 +311,7 @@ def run_with_autoglm(
     # Agent 配置
     agent_config = AgentConfig(
         max_steps=max_steps,
-        device_id=os.getenv("PHONE_AGENT_DEVICE_ID", None),
+        device_id=device_id or os.getenv("PHONE_AGENT_DEVICE_ID", None),
         lang="cn",
         verbose=True,
     )
@@ -279,8 +322,12 @@ def run_with_autoglm(
         agent_config=agent_config,
     )
 
+    task = _append_auto_screenshot_stop_rule(task)
+
     print(f"🚀 任务: {task}")
     print(f"📁 截图目录: {output_dir}")
+    if agent_config.device_id:
+        print(f"📱 设备: {agent_config.device_id}")
     print(f"🔢 最大步数: {max_steps}")
     print("-" * 50)
 
@@ -290,7 +337,14 @@ def run_with_autoglm(
     step_idx = 0
 
     if capture_screenshots and step_result.success:
-        screenshot_path = _save_screenshot_from_agent(agent, step_idx, output_dir, task_id=task_id)
+        screenshot_path = _save_screenshot_from_agent(
+            agent,
+            step_idx,
+            output_dir,
+            task_id=task_id,
+            task_run_id=task_run_id,
+            db_device_id=db_device_id,
+        )
         popup_flow.record_screenshot(screenshot_path)
     step_idx += 1
 
@@ -310,7 +364,14 @@ def run_with_autoglm(
             step_result = agent.step()
 
         if capture_screenshots and step_result.success:
-            screenshot_path = _save_screenshot_from_agent(agent, step_idx, output_dir, task_id=task_id)
+            screenshot_path = _save_screenshot_from_agent(
+                agent,
+                step_idx,
+                output_dir,
+                task_id=task_id,
+                task_run_id=task_run_id,
+                db_device_id=db_device_id,
+            )
             popup_flow.record_screenshot(screenshot_path)
         step_idx += 1
 
@@ -330,6 +391,9 @@ def main():
     parser.add_argument("--max-steps", type=int, default=MAX_AUTOGLM_STEPS, help="最大执行步数，上限10")
     parser.add_argument("--output-dir", default=None, help="截图保存目录")
     parser.add_argument("--task-id", default=None, help="关联后台任务 ID")
+    parser.add_argument("--task-run-id", default=None, help="关联后台任务运行 ID")
+    parser.add_argument("--device-id", default=None, help="ADB 设备序列号")
+    parser.add_argument("--db-device-id", default=None, help="后台设备记录 ID")
     parser.add_argument("--no-capture", action="store_true", help="不自动截图（仅执行任务）")
     parser.add_argument("--check", action="store_true", help="检查系统要求")
 
@@ -365,6 +429,9 @@ def main():
         output_dir=args.output_dir,
         capture_screenshots=not args.no_capture,
         task_id=args.task_id,
+        task_run_id=args.task_run_id,
+        device_id=args.device_id,
+        db_device_id=args.db_device_id,
     )
 
 

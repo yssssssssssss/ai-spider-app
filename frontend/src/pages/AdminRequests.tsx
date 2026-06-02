@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useToast } from '../components/Toast';
 import { listAdminRequests, approveRequest, rejectRequest } from '../api';
+import { useAuth } from '../auth';
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
@@ -18,8 +19,9 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function AdminRequests() {
   const { showToast } = useToast();
+  const { user, hasRole } = useAuth();
+  const canReview = hasRole('operator');
   const [requests, setRequests] = useState<any[]>([]);
-  const [adminId] = useState('admin');
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState<string | null>(null);
 
@@ -38,7 +40,7 @@ export default function AdminRequests() {
   const handleApprove = async (id: string, mode: string) => {
     setActingId(id);
     try {
-      await approveRequest(id, { admin_id: adminId, mode });
+      await approveRequest(id, { admin_id: user?.username, mode });
       showToast(mode === 'autoglm' ? '已创建 AI 采集任务' : '已创建规则采集任务', 'success');
       load();
     } catch {
@@ -51,7 +53,7 @@ export default function AdminRequests() {
   const handleReject = async (id: string) => {
     setActingId(id);
     try {
-      await rejectRequest(id, { admin_id: adminId });
+      await rejectRequest(id, { admin_id: user?.username });
       showToast('需求已拒绝', 'warning');
       load();
     } catch {
@@ -65,8 +67,8 @@ export default function AdminRequests() {
     <div className="animate-fade-in">
       <div className="page-header" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div>
-          <h1>需求管理</h1>
-          <p>审核用户提交的竞品分析需求</p>
+          <h1>{canReview ? '审核管理' : '需求管理'}</h1>
+          <p>{canReview ? '审核用户提交的竞品分析需求' : '查看自己提交的竞品分析需求'}</p>
         </div>
         <button className="btn-secondary btn-sm" onClick={load} disabled={loading}>
           {loading ? '刷新中...' : '刷新'}
@@ -115,6 +117,7 @@ export default function AdminRequests() {
                 <th>目标 App</th>
                 <th>场景</th>
                 <th>关键词</th>
+                <th>提交人</th>
                 <th>状态</th>
                 <th style={{ textAlign: 'right' }}>操作</th>
               </tr>
@@ -141,9 +144,10 @@ export default function AdminRequests() {
                   <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {r.keywords?.join(', ')}
                   </td>
+                  <td>{r.user_display_name || r.user_id || '-'}</td>
                   <td><StatusBadge status={r.status} /></td>
                   <td style={{ textAlign: 'right' }}>
-                    {r.status === 'pending' && (
+                    {r.status === 'pending' && canReview && (
                       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                         <button
                           className="btn-sm"

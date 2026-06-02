@@ -195,12 +195,14 @@ class WorkflowEngine:
         self.popup_handler = None
         self.dedup = ScreenshotDeduplicator(threshold=config.dedup_threshold) if config.dedup else None
         self.screenshot_count = 0
+        self.device_id = os.getenv("PHONE_AGENT_DEVICE_ID") or None
+        self.task_output_dir = os.getenv("TASK_OUTPUT_DIR") or None
 
     def _get_device(self):
         """获取或创建设备连接"""
         if self.d is None:
             import uiautomator2 as u2
-            self.d = u2.connect()
+            self.d = u2.connect(self.device_id) if self.device_id else u2.connect()
             self.popup_handler = PopupHandler(self.d)
             print(f"✅ 设备已连接: {self.d.device_info['serial']}")
         return self.d
@@ -251,7 +253,7 @@ class WorkflowEngine:
         # 构建输出目录: app名+时间
         now = datetime.now().strftime("%Y%m%d_%H%M%S")
         app_folder = f"{step.app}_{now}"
-        output_dir = os.path.join(os.path.dirname(__file__), "data", "workflow", app_folder)
+        output_dir = step.output_dir or self.task_output_dir or os.path.join(os.path.dirname(__file__), "data", "workflow", app_folder)
         os.makedirs(output_dir, exist_ok=True)
         print(f"📁 输出目录: {output_dir}")
 

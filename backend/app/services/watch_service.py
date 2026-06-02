@@ -7,6 +7,7 @@ from uuid import UUID
 from app import crud
 from app.config import settings
 from app.database import SessionLocal
+from app.services.devices import refresh_devices
 from app.services.task_runner import start_task_process
 from app.services.watch_reporter import watch_reporter
 
@@ -210,7 +211,7 @@ def _start_monitor(run_id: UUID):
     thread.start()
 
 
-def start_watch_run(db, run, *, start_process: bool = True):
+def start_watch_run(db, run, *, start_process: bool = True, user_id: UUID | None = None):
     plan = crud.get_watch_plan(db, run.watch_plan_id)
     if not plan:
         raise ValueError("Watch plan not found")
@@ -224,6 +225,8 @@ def start_watch_run(db, run, *, start_process: bool = True):
         target_scenario=plan.target_page,
         admin_id=WATCH_ADMIN_ID,
         mode="autoglm",
+        created_by=user_id or plan.created_by,
+        approved_by=user_id or plan.created_by,
     )
     crud.update_task_instruction(db, task.id, prompt)
     task = crud.get_task(db, task.id)
@@ -233,10 +236,25 @@ def start_watch_run(db, run, *, start_process: bool = True):
     if not start_process:
         return run
 
+    refresh_devices(db)
+    device = crud.acquire_device(db)
+    if not device:
+        crud.update_task_status(db, task.id, "failed")
+        _handle_failure(run.id, "No available device")
+        return run
+    task_run = crud.create_task_run(db, task.id, device_id=device.id, created_by=user_id or plan.created_by)
+    if not crud.mark_device_busy(db, device.id, task_run.id):
+        crud.update_task_status(db, task.id, "failed")
+        crud.update_task_run(db, task_run.id, status="failed", failure_reason="Device is busy")
+        _handle_failure(run.id, "Device is busy")
+        return run
+
     try:
-        start_task_process(task, prompt=prompt)
+        start_task_process(task, prompt=prompt, task_run=task_run, created_by=user_id or plan.created_by, device=device)
     except Exception as e:
         crud.update_task_status(db, task.id, "failed")
+        crud.update_task_run(db, task_run.id, status="failed", failure_reason=str(e))
+        crud.release_device_for_run(db, task_run.id)
         _handle_failure(run.id, str(e))
         return run
 

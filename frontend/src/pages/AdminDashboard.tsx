@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { listAdminRequests, listAdminTasks } from '../api';
+import { getAdminStats } from '../api';
 
 interface StatCardProps {
   label: string;
@@ -59,15 +59,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [{ data: reqs }, { data: tasks }] = await Promise.all([
-          listAdminRequests(),
-          listAdminTasks()
-        ]);
+        const { data } = await getAdminStats();
         setStats({
-          requests: reqs.length,
-          tasks: tasks.length,
-          pendingRequests: reqs.filter((r: any) => r.status === 'pending').length,
-          pendingTasks: tasks.filter((t: any) => t.status === 'pending').length
+          requests: data.requests,
+          tasks: data.tasks,
+          pendingRequests: data.pending_requests,
+          pendingTasks: data.pending_tasks
         });
       } finally {
         setLoading(false);

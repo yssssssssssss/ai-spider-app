@@ -2,6 +2,9 @@ node_modules/
 __pycache__/
 *.pyc
 .env
+backend/.env
+.env.local
+.env.*.local
 .backend.log
 .frontend.log
 .service_pids
@@ -9,3 +12,11 @@ __pycache__/
 *.egg-info/
 .ipynb_checkpoints/
 .DS_Store
+logs/
+exports/
+tmp/
+temp/
+frontend/dist/
+data/**/_temp_*
+data/**/exports/
+data/tasks/

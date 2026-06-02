@@ -10,6 +10,8 @@ from app import crud, schemas, models
 from app.config import settings
 from app.services.llm_analyzer import analyzer
 from app.services.embedder import embedder
+from app.services.auth import data_scope_user_id, get_current_user, require_at_least
+from app.services.goal_validator import refresh_task_run_goal_validation
 
 router = APIRouter(prefix="/images", tags=["images"])
 
@@ -17,6 +19,27 @@ NEAR_DUPLICATE_SIZE = (16, 16)
 NEAR_DUPLICATE_MAX_PIXEL_DELTA = 6.0
 NEAR_DUPLICATE_MAX_HASH_DISTANCE = 24
 ANALYZED_STATUSES = ("success", "partial")
+
+
+def _current_user_id(user) -> UUID | None:
+    return data_scope_user_id(user)
+
+
+def _get_owned_image(db: Session, image_id: UUID, user: models.User) -> models.Image:
+    user_id = _current_user_id(user)
+    image = crud.get_image_for_user(db, image_id, user_id) if user_id else crud.get_image(db, image_id)
+    if not image:
+        raise HTTPException(status_code=404, detail="Image not found")
+    return image
+
+
+def _ensure_image_task_owner(db: Session, image: schemas.ImageCreate, user: models.User):
+    if not image.task_id:
+        raise HTTPException(status_code=400, detail="task_id is required for user-owned images")
+    scope_user_id = data_scope_user_id(user)
+    task = crud.get_task_for_user(db, image.task_id, scope_user_id) if scope_user_id else crud.get_task(db, image.task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
 
 
 def _resolve_image_path(image_path: str) -> str:
@@ -30,7 +53,8 @@ def _page_signature(image_path: str) -> tuple[tuple[int, ...], tuple[int, ...]] 
         with Image.open(_resolve_image_path(image_path)) as img:
             gray = ImageOps.grayscale(img)
             small = gray.resize(NEAR_DUPLICATE_SIZE, Image.Resampling.LANCZOS)
-            pixels = tuple(int(p) for p in small.getdata())
+            pixel_data = small.get_flattened_data() if hasattr(small, "get_flattened_data") else small.getdata()
+            pixels = tuple(int(p) for p in pixel_data)
     except (FileNotFoundError, UnidentifiedImageError, OSError):
         return None
 
@@ -92,6 +116,14 @@ def _analysis_context(image) -> dict:
         "focus_question": request.description if request else None,
     }
 
+
+def _record_analysis(db: Session, image: models.Image, design: str, ops: str, status: str = "success"):
+    analysis = crud.create_analysis(db, image.id, design, ops, status=status)
+    if image.task_id:
+        refresh_task_run_goal_validation(db, image.task_id, image.task_run_id)
+    return analysis
+
+
 async def _analyze_and_embed(image_id: UUID):
     from app.database import SessionLocal
     db = SessionLocal()
@@ -101,9 +133,9 @@ async def _analyze_and_embed(image_id: UUID):
             return
         duplicate = _find_near_duplicate_image(db, image)
         if duplicate:
-            crud.create_analysis(
+            _record_analysis(
                 db,
-                image_id,
+                image,
                 "",
                 f"近似页面，跳过重复分析: 已分析过 {duplicate.file_path}",
                 status="skipped",
@@ -113,13 +145,13 @@ async def _analyze_and_embed(image_id: UUID):
         try:
             is_target, reason = await analyzer.is_target_page(image.file_path, context)
             if not is_target:
-                crud.create_analysis(db, image_id, "", f"非目标页面，跳过分析: {reason}", status="skipped")
+                _record_analysis(db, image, "", f"非目标页面，跳过分析: {reason}", status="skipped")
                 return
             design, ops, status = await analyzer.analyze(image.file_path, context=context)
         except Exception as e:
-            crud.create_analysis(db, image_id, "", f"分析失败: {e}", status="failed")
+            _record_analysis(db, image, "", f"分析失败: {e}", status="failed")
             return
-        analysis = crud.create_analysis(db, image_id, design or "", ops or "", status=status)
+        analysis = _record_analysis(db, image, design or "", ops or "", status=status)
         combined_text = f"{design or ''}\n{ops or ''}".strip()
         try:
             if combined_text:
@@ -131,49 +163,92 @@ async def _analyze_and_embed(image_id: UUID):
             if ops:
                 v_ops = await embedder.embed_single(ops)
                 crud.create_embedding(db, analysis.id, v_ops, "ops")
+            crud.update_embedding_status(db, analysis.id, "success")
         except Exception as e:
+            crud.update_embedding_status(db, analysis.id, "failed", str(e))
             print(f"⚠️ 向量写入失败 image={image_id}: {e}")
     finally:
         db.close()
 
 @router.post("", response_model=schemas.ImageOut)
-def create_image(image: schemas.ImageCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def create_image(
+    image: schemas.ImageCreate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_at_least("operator")),
+):
+    _ensure_image_task_owner(db, image, user)
     db_image = crud.create_image(db, image)
     background_tasks.add_task(_analyze_and_embed, db_image.id)
     return db_image
 
 @router.post("/bulk", response_model=List[schemas.ImageOut])
-def create_images_bulk(images: List[schemas.ImageCreate], background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def create_images_bulk(
+    images: List[schemas.ImageCreate],
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_at_least("operator")),
+):
     """批量创建图片记录（脚本上报用）"""
     results = []
     for image in images:
+        _ensure_image_task_owner(db, image, user)
         db_image = crud.create_image(db, image)
         background_tasks.add_task(_analyze_and_embed, db_image.id)
         results.append(db_image)
     return results
 
+
+@router.get("", response_model=List[schemas.SearchResult])
+def list_images(
+    skip: int = 0,
+    limit: int = 100,
+    task_id: UUID | None = None,
+    analysis_status: str | None = None,
+    embedding_status: str | None = None,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(get_current_user),
+):
+    user_id = _current_user_id(user)
+    images = crud.list_images(
+        db,
+        skip=skip,
+        limit=limit,
+        task_id=task_id,
+        analysis_status=analysis_status,
+        embedding_status=embedding_status,
+        user_id=user_id,
+    )
+    return [
+        schemas.SearchResult(
+            image=schemas.ImageOut.model_validate(image),
+            analysis=schemas.AnalysisOut.model_validate(image.analysis) if image.analysis else None,
+            similarity=None,
+        )
+        for image in images
+    ]
+
+
 @router.get("/{image_id}", response_model=schemas.ImageOut)
-def get_image(image_id: UUID, db: Session = Depends(get_db)):
-    img = crud.get_image(db, image_id)
-    if not img:
-        raise HTTPException(status_code=404, detail="Image not found")
-    return img
+def get_image(image_id: UUID, db: Session = Depends(get_db), user: models.User = Depends(get_current_user)):
+    return _get_owned_image(db, image_id, user)
 
 @router.get("/{image_id}/file")
-def get_image_file(image_id: UUID, db: Session = Depends(get_db)):
+def get_image_file(image_id: UUID, db: Session = Depends(get_db), user: models.User = Depends(get_current_user)):
     """直接返回图片文件，避免前端处理静态路径"""
-    img = crud.get_image(db, image_id)
-    if not img:
-        raise HTTPException(status_code=404, detail="Image not found")
+    img = _get_owned_image(db, image_id, user)
     file_path = analyzer._resolve_image_path(img.file_path)
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Image file not found on disk")
     return FileResponse(file_path)
 
 @router.post("/{image_id}/analyze")
-def trigger_analyze(image_id: UUID, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    img = crud.get_image(db, image_id)
-    if not img:
-        raise HTTPException(status_code=404, detail="Image not found")
+def trigger_analyze(
+    image_id: UUID,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_at_least("operator")),
+):
+    _get_owned_image(db, image_id, user)
     background_tasks.add_task(_analyze_and_embed, image_id)
     return {"message": "Analysis triggered", "image_id": image_id}

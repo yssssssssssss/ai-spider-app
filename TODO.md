@@ -1,168 +1,86 @@
-# 竞品分析平台 - 任务总览
+# 竞品分析平台 - TODO
 
-> 最后更新：2026-05-27
+> 最后更新：2026-06-01
 
----
+## P0 已完成
 
-## 一、已完成功能清单
+- [x] Embedding 幂等写入
+- [x] 搜索结果去重
+- [x] 全量 embedding 回填
 
-### 1. 前端页面
-| 页面 | 功能 | 状态 |
-|------|------|------|
-| **需求提交页** (`HomePage`) | 用户填写目标App、场景、关键词、描述，提交需求 | ✅ |
-| **图片检索页** (`SearchPage`) | 关键词/语义检索竞品截图 | ✅ |
-| **数据看板** (`AdminDashboard`) | 统计展示 | ✅ |
-| **需求管理** (`AdminRequests`) | 管理员审核通过/拒绝，支持"规则采集"和"AI 采集" | ✅ |
-| **任务管理** (`AdminTasks`) | 查看任务列表、启动任务、实时显示采集进度 | ✅ |
+## P1 已完成
 
-### 2. 后端 API
-| 接口 | 功能 | 状态 |
-|------|------|------|
-| `POST /api/requests` | 创建需求 | ✅ |
-| `PUT /api/admin/requests/:id/approve` | 审核通过，创建任务（支持选择模式） | ✅ |
-| `PUT /api/admin/requests/:id/reject` | 拒绝需求 | ✅ |
-| `GET /api/admin/tasks` | 任务列表 | ✅ |
-| `POST /api/admin/tasks/:id/run` | 启动任务（启动子进程 + 后台监控） | ✅ |
-| `GET /api/admin/tasks/:id/progress` | 获取任务进度 | ✅ |
-| `GET /api/admin/tasks/:id/events` | SSE 实时进度推送 | ✅ |
-| `POST /api/images` | 创建图片记录 | ✅ |
-| `GET /api/images/:id/file` | 直接返回图片文件 | ✅ |
-| `POST /api/images/:id/analyze` | 手动触发 LLM 分析 | ✅ |
-| `POST /api/search` | 语义检索图片 | ✅ |
+- [x] 任务列表展示 AI 生成指令
+- [x] 图片卡片展示 embedding 状态
+- [x] 统一 SSE 事件格式为 JSON
+- [x] 图片接口分页和筛选；整体查看由图片检索承担，单任务查看由任务结果页承担
 
-### 3. 采集与闭环
-| 功能 | 实现 | 状态 |
-|------|------|------|
-| **uiautomator2 规则采集** | `run_workflow.py` 子进程启动 | ✅ |
-| **AutoGLM AI 采集** | `run_autoglm.py` 子进程启动，支持自然语言指令 | ✅ |
-| **后台监控入库** | `collector_bridge.py` 每 5 秒扫描 `data/` 目录新截图自动入库 | ✅ |
-| **图片关联任务** | 入库时绑定 `task_id` | ✅ |
-| **任务完成检测** | 60 秒无新文件自动标记 `completed` | ✅ |
-| **SSE 实时推送** | 每发现新截图推送 `{"type":"new_image","count":N}` | ✅ |
+## P2 已完成
 
-### 4. 数据模型
-| 实体 | 字段 | 状态 |
-|------|------|------|
-| **Request** (需求) | id, target_app, target_scenario, keywords, description, status, created_at | ✅ |
-| **Task** (任务) | id, name, keyword, target_app, target_scenario, request_id, admin_id, mode, status, created_at | ✅ |
-| **Image** (图片) | id, file_path, source_app, scenario, captured_at, task_id, created_at | ✅ |
-| **Analysis** (分析) | id, image_id, design_analysis, ops_analysis, status, created_at | ✅ |
+### P2.1 用户权限和登录系统
 
-### 5. 前端体验
-| 功能 | 实现 | 状态 |
-|------|------|------|
-| 全局 Toast 通知 | `Toast.tsx` + `ToastProvider` + Axios 拦截器 | ✅ |
-| 按钮 Loading 状态 | 操作按钮显示"处理中..."防止重复提交 | ✅ |
-| 骨架屏 | 列表加载时骨架屏占位 | ✅ |
-| 实时进度显示 | 任务列表显示"已采集 N 张" | ✅ |
+- [x] 数据模型：新增 `users`，定义 `role`、`status`、`password_hash`、时间字段
+- [x] 数据迁移：创建默认管理员/系统用户，回填历史 `requests.user_id`、`tasks.admin_id`
+- [x] 用户关联：需求、任务、持续观察计划记录真实用户 ID，并在列表中展示归属人
+- [x] 认证接口：登录、退出、当前用户 `/me`、管理员创建/禁用用户
+- [x] 权限控制：按 `admin` / `operator` / `viewer` 限制后台、任务、观察、导出接口
+- [x] 前端页面：登录页、登录态保存、退出入口、路由守卫、按角色隐藏或禁用操作
+- [x] 测试验收：密码哈希、登录成功、未登录拦截、低权限拦截、历史数据可读
 
----
+### P2.2 任务失败重试机制
 
-## 二、缺失功能清单（待办）
+- [x] 数据模型：新增 `task_runs`，记录每次执行尝试、状态、时间、退出码、失败原因、日志路径
+- [x] 执行隔离：每次运行使用 `data/tasks/{task_id}/runs/{run_id}/` 独立输出目录
+- [x] 后端接口：任务重试、运行历史、运行详情、日志尾部查看
+- [x] 重试规则：禁止重试运行中任务，限制最大重试次数，保留历史结果不覆盖
+- [x] 前端交互：失败任务重试、尝试次数、失败原因、运行历史、日志摘要
+- [x] 测试验收：重试新建 run、不覆盖旧 run、设备锁竞争、HTTP 权限合同
 
-### 🔴 高优先级
+### P2.3 结果导出 JSON / Excel / ZIP
 
-#### TODO-1: LLM 理解需求并生成 AutoGLM 指令（功能2 完整实现）
-**当前状态**：只有字符串拼接模板，没有真正调用 LLM 理解用户意图。
+- [x] 导出范围：支持按任务导出截图元数据、分析结果、向量化状态、持续观察摘要
+- [x] JSON 导出：结构化输出任务、图片、分析、观察报告，默认不导出原始向量
+- [x] Excel 导出：多 Sheet 展示任务概览、运行记录、图片清单、分析、失败项
+- [x] ZIP 导出：包含图片文件、`metadata.json`、Excel；缺失图片写入 `missing_files.json`
+- [x] 后端接口：任务结果导出、持续观察报告导出，校验路径安全和权限
+- [x] 前端交互：任务结果页、持续观察详情页增加导出按钮和下载状态
+- [x] 测试验收：JSON 不包含向量、缺失图片 ZIP 可导出、权限不足阻断敏感 ZIP
 
-**需要实现**：
-- [ ] 数据库：`Task` 表新增 `generated_instruction` 字段（存储 LLM 生成的指令）
-- [ ] 服务层：新建 `app/services/task_planner.py`
-  - 接收 `Request` 对象
-  - 调用 LLM（`openai.chat.completions.create`）分析用户需求
-  - 生成精确的 AutoGLM 自然语言指令
-  - 返回指令文本
-- [ ] API 层：`approve_request` 审核通过时调用 `task_planner` 生成指令
-  - 将生成结果存入 `task.generated_instruction`
-  - `run_task` 时优先使用 `generated_instruction`，回退到 `build_autoglm_prompt`
-- [ ] 前端：任务列表/详情展示 AI 生成的指令内容
+### P2.4 多设备并发采集
 
-**LLM Prompt 示例**：
-```
-你是移动端App自动化专家。请根据以下需求生成一条精确的自然语言指令，
-用于驱动AI自动操作手机App并截图：
+- [x] 设备发现：封装 `adb devices`，识别在线、离线、未授权设备
+- [x] 数据模型：新增 `devices`，记录序列号、别名、状态、最近心跳、当前任务运行
+- [x] 调度锁：同一设备同一时间只允许一个任务运行，任务可指定设备或自动分配
+- [x] 脚本适配：`run_workflow.py`、`run_autoglm.py` 支持传入 device id
+- [x] 输出隔离：按任务 / 运行 / 设备分目录保存截图，collector 只扫描当前运行目录
+- [x] 前端交互：任务启动时选择设备，设备管理页展示占用和健康状态
+- [x] 测试验收：无设备返回明确错误、设备被占用不能抢占、完成释放锁、输出目录互不污染
 
-目标App: {target_app}
-目标场景: {target_scenario}
-关键词: {keywords}
-补充说明: {description}
+### P2.5 清理日志、构建产物和敏感配置
 
-要求：
-1. 指令必须包含"打开App、搜索/导航、截图保存"三个步骤
-2. 如果涉及筛选条件（如价格、品牌），要精确描述点击位置
-3. 输出只返回指令文本，不要解释
-```
+- [x] Git 忽略规则：覆盖 `.env`、日志、PID、`__pycache__`、临时截图、导出产物、`frontend/dist`、`node_modules`
+- [x] 配置样例：提供 `.env.example`，只保留变量名和说明，不包含真实密钥
+- [x] 清理命令：增加 dry-run 和实际清理模式，默认不删除业务数据和数据库内容
+- [x] 日志治理：任务日志按任务归档，支持查看最近日志和按天数清理
+- [x] 构建产物策略：`frontend/dist` 不纳入版本管理，已跟踪旧 hash 文件从索引移除
+- [x] 安全检查：增加密钥泄露检查、日志检查、Git 跟踪检查和轻量 pre-commit 防线
+- [x] 测试验收：清理命令、敏感文件 Git 跟踪检查、启动状态、前端构建均验证
 
-#### TODO-2: 图片入库后自动触发 LLM 分析（功能5 完整实现）
-**当前状态**：`POST /api/images/:id/analyze` 接口已存在，但图片入库后不会自动触发，需要手动调用。
+### P2.6 多目标截图覆盖校验
 
-**需要实现**：
-- [ ] `collector_bridge.py` 中 `crud.create_image()` 成功后，异步触发 LLM 分析
-  - 方案A：在 bridge 线程中直接调用 `analyzer.analyze_image()`
-  - 方案B：新增 Celery/RQ 异步任务队列（更健壮）
-- [ ] 前端：图片卡片显示分析状态（分析中 / 已完成 / 失败）
-- [ ] 数据库：`Image` 表或 `Analysis` 表新增 `analysis_status` 字段
+- [x] 目标清单：将“限时秒杀，百亿补贴”这类多页面需求拆成必达目标
+- [x] 指令约束：AutoGLM 指令追加目标截图清单、自动截图说明和完成后停止规则
+- [x] 结果校验：基于图片分析文本判断目标是否已覆盖，缺失必达目标时标记失败
+- [x] 负向语境：分析文本中“未出现某目标”不计为命中证据
+- [x] 异步复核：图片分析完成后可重新校验已完成 run，避免漏采任务误判成功
+- [x] 前端展示：任务结果页展示目标覆盖、缺失和待确认状态
 
----
+## 验证记录
 
-### 🟡 中优先级
-
-#### TODO-3: 任务完成后自动标记并推送完成事件
-**当前状态**：60 秒无新文件标记 `completed`，但不会向 SSE 推送完成通知。
-
-**需要实现**：
-- [ ] `collector_bridge.py` 任务完成时调用 `push_event(task_id, json.dumps({"type":"completed"}))`
-- [ ] 前端 EventSource 监听到 `completed` 事件后自动刷新任务列表
-
-#### TODO-4: 采集脚本与后端的状态同步
-**当前状态**：采集脚本（`run_workflow.py` / `run_autoglm.py`）完成后不会主动通知后端。
-
-**需要实现**：
-- [ ] 采集脚本退出时通过某种机制通知后端（如写入标记文件，或调用 API）
-- [ ] 后端检测到采集结束后停止 `collector_bridge` 监控线程
-
-#### TODO-5: 图片展示页支持分页和筛选
-**当前状态**：前端只是简单展示，没有分页。
-
-**需要实现**：
-- [ ] 后端 `GET /api/images` 支持分页和按 `task_id` 筛选
-- [ ] 前端图片展示页增加分页器和筛选条件
-
----
-
-### 🟢 低优先级
-
-#### TODO-6: 结果导出功能
-- [ ] 支持导出任务结果为 JSON/Excel
-- [ ] 支持批量下载图片 ZIP
-
-#### TODO-7: 任务重试机制
-- [ ] 任务失败后支持一键重试
-- [ ] 自动重试（最多3次）
-
-#### TODO-8: 多设备并发采集
-- [ ] 支持同时启动多个设备并行采集
-- [ ] 设备管理和选择界面
-
----
-
-## 三、当前已验证通过
-
-- [x] TypeScript 编译通过（`tsc --noEmit`）
-- [x] Python 后端模块加载正常
-- [x] 数据库模型定义完整
-- [x] API 路由全部注册
-- [x] SSE 实时推送正常
-
----
-
-## 四、下一步建议
-
-**立即执行（补齐功能2和功能5）**：
-1. 修改数据库模型，新增 `Task.generated_instruction`
-2. 新建 `task_planner.py`，接入 LLM 生成指令
-3. 修改 `approve_request` 和 `run_task` 流程
-4. 修改 `collector_bridge.py`，入库后自动触发分析
-5. 前端增加指令展示和分析状态展示
-
-完成以上后，6 大功能（用户提交 → LLM理解 → AutoGLM执行 → 入库 → LLM分析 → 前台展示）将完整闭环。
+- 本轮后端回归测试：77 个通过
+- 本轮前端构建：通过
+- Doubao embedding live health：`ok=true`
+- pgvector 维度：2048
+- `embeddings` 重复组：0
+- `embeddings` 孤儿记录：0
+- 搜索结果：`search_mode=vector`，无重复 analysis

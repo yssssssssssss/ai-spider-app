@@ -1,18 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useToast } from '../components/Toast';
-import { listAdminTasks, runTask } from '../api';
+import { listAdminTasks, listDevices, retryTask, runTask, taskEventsUrl } from '../api';
+import { useAuth } from '../auth';
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     pending: 'badge-pending',
     running: 'badge-running',
     completed: 'badge-completed',
+    failed: 'badge-rejected',
   };
   const labels: Record<string, string> = {
     pending: '待执行',
     running: '执行中',
     completed: '已完成',
+    failed: '失败',
   };
   return <span className={`badge ${map[status] || ''}`}>{labels[status] || status}</span>;
 }
@@ -32,11 +35,15 @@ function formatCompletedAt(value?: string | null) {
 
 export default function AdminTasks() {
   const { showToast } = useToast();
+  const { hasRole } = useAuth();
   const [tasks, setTasks] = useState<any[]>([]);
+  const [devices, setDevices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [runningId, setRunningId] = useState<string | null>(null);
+  const [deviceId, setDeviceId] = useState('');
+  const eventSourceRef = useRef<EventSource | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await listAdminTasks();
@@ -44,15 +51,67 @@ export default function AdminTasks() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    listDevices().then(({ data }) => setDevices(data)).catch(() => setDevices([]));
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    return () => {
+      eventSourceRef.current?.close();
+    };
+  }, []);
+
+  const watchTaskEvents = (id: string) => {
+    eventSourceRef.current?.close();
+    const source = new EventSource(taskEventsUrl(id));
+    eventSourceRef.current = source;
+
+    source.onmessage = (event) => {
+      let payload: { type?: string; count?: number; message?: string; status?: string };
+      try {
+        payload = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+
+      if (payload.type === 'new_image') {
+        showToast(`已采集 ${payload.count || 1} 张截图`, 'info');
+        load();
+        return;
+      }
+      if (payload.type === 'error') {
+        showToast(payload.message || '任务执行失败', 'error');
+        return;
+      }
+      if (payload.type === 'done') {
+        source.close();
+        if (eventSourceRef.current === source) eventSourceRef.current = null;
+        showToast(payload.status === 'failed' ? '任务已失败' : '任务已完成', payload.status === 'failed' ? 'error' : 'success');
+        load();
+      }
+    };
+
+    source.onerror = () => {
+      source.close();
+      if (eventSourceRef.current === source) eventSourceRef.current = null;
+    };
   };
 
-  useEffect(() => { load(); }, []);
-
-  const handleRun = async (id: string) => {
+  const handleRun = async (id: string, retry = false) => {
     setRunningId(id);
     try {
-      await runTask(id);
-      showToast('任务已启动，后台正在采集截图', 'success');
+      const payload = deviceId ? { device_id: deviceId } : {};
+      if (retry) {
+        await retryTask(id, payload);
+      } else {
+        await runTask(id, payload);
+      }
+      showToast(retry ? '重试已启动，后台正在采集截图' : '任务已启动，后台正在采集截图', 'success');
+      watchTaskEvents(id);
       load();
     } catch {
       // api 拦截器已弹出错误 Toast
@@ -72,6 +131,22 @@ export default function AdminTasks() {
           {loading ? '刷新中...' : '刷新'}
         </button>
       </div>
+
+      {hasRole('operator') && (
+        <div className="task-device-toolbar">
+          <label>
+            <span>采集设备</span>
+            <select value={deviceId} onChange={(event) => setDeviceId(event.target.value)}>
+              <option value="">自动分配</option>
+              {devices.map(device => (
+                <option key={device.id} value={device.id} disabled={device.status !== 'online'}>
+                  {device.name || device.serial} · {device.status}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
 
       <div
         style={{
@@ -115,6 +190,8 @@ export default function AdminTasks() {
               <col className="task-col-id" />
               <col className="task-col-name" />
               <col className="task-col-keyword" />
+              <col className="task-col-owner" />
+              <col className="task-col-run" />
               <col className="task-col-completed" />
               <col className="task-col-status" />
               <col className="task-col-actions" />
@@ -124,6 +201,8 @@ export default function AdminTasks() {
                 <th>ID</th>
                 <th>任务名称</th>
                 <th>关键词</th>
+                <th>归属</th>
+                <th>运行</th>
                 <th>完成时间</th>
                 <th>状态</th>
                 <th style={{ textAlign: 'right' }}>操作</th>
@@ -146,7 +225,7 @@ export default function AdminTasks() {
                       {t.id?.slice(0, 8)}
                     </code>
                   </td>
-                  <td style={{ fontWeight: 500 }} title={t.name}>{t.name}</td>
+                  <td className="task-name-cell" title={t.name}>{t.name}</td>
                   <td className="task-keyword-cell">
                     <span
                       style={{
@@ -161,6 +240,18 @@ export default function AdminTasks() {
                       {t.keyword}
                     </span>
                   </td>
+                  <td>
+                    <div className="table-title-cell">
+                      <span>{t.created_by_name || '-'}</span>
+                      <small>{t.approved_by_name || t.run_by_name || '-'}</small>
+                    </div>
+                  </td>
+                  <td title={t.failure_reason || t.device_serial || ''}>
+                    <div className="table-title-cell">
+                      <span>{t.attempt_count || 0} 次</span>
+                      <small>{t.device_serial || t.failure_reason || '-'}</small>
+                    </div>
+                  </td>
                   <td title={t.completed_at || ''}>{formatCompletedAt(t.completed_at)}</td>
                   <td><StatusBadge status={t.status} /></td>
                   <td className="task-actions-cell" style={{ textAlign: 'right' }}>
@@ -171,13 +262,22 @@ export default function AdminTasks() {
                       >
                         查看结果
                       </Link>
-                      {t.status === 'pending' && (
+                      {hasRole('operator') && t.status === 'pending' && (
                         <button
                           className="btn-sm"
                           onClick={() => handleRun(t.id)}
                           disabled={runningId === t.id}
                         >
                           {runningId === t.id ? '启动中...' : '启动'}
+                        </button>
+                      )}
+                      {hasRole('operator') && t.status === 'failed' && (
+                        <button
+                          className="btn-sm"
+                          onClick={() => handleRun(t.id, true)}
+                          disabled={runningId === t.id}
+                        >
+                          {runningId === t.id ? '重试中...' : '重试'}
                         </button>
                       )}
                     </div>

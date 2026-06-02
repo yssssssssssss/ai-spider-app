@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import RequestForm from '../components/RequestForm';
 import WatchPlanForm from '../components/WatchPlanForm';
+import { useAuth } from '../auth';
 
 type HomeTab = 'collect' | 'watch';
 
 export default function HomePage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<HomeTab>('collect');
 
   return (
@@ -65,7 +68,12 @@ export default function HomePage() {
         </button>
       </div>
 
-      {activeTab === 'collect' ? (
+      {!user ? (
+        <div className="empty-state">
+          <p>请先登录账号再提交需求或创建持续观察计划</p>
+          <Link className="link-button btn-sm" to="/login">登录</Link>
+        </div>
+      ) : activeTab === 'collect' ? (
         <RequestForm key="collect" />
       ) : (
         <WatchPlanForm key="watch" homePanel />

@@ -3,6 +3,7 @@
 用于 SSE 实时进度推送
 """
 import asyncio
+import json
 import threading
 
 _task_queues: dict[str, asyncio.Queue] = {}
@@ -33,3 +34,21 @@ def push_event(task_id: str, message: str):
             queue.put_nowait(message)
     except Exception:
         pass
+
+
+def task_event(event_type: str, **payload) -> str:
+    return json.dumps({"type": event_type, **payload}, ensure_ascii=False)
+
+
+def task_event_type(message: str) -> str | None:
+    if message == "DONE":
+        return "done"
+    if message.startswith("ERROR:"):
+        return "error"
+    if message.startswith("NEW_IMAGE:"):
+        return "new_image"
+    try:
+        data = json.loads(message)
+    except json.JSONDecodeError:
+        return None
+    return data.get("type")

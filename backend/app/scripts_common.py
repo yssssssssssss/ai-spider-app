@@ -3,7 +3,7 @@
 供 step1-down_img.py、step2-cut_img.py、run_workflow*.py、run_hybrid.py 等调用
 """
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 
 
 def normalize_image_path(file_path: str) -> str:
@@ -17,7 +17,8 @@ def normalize_image_path(file_path: str) -> str:
 
 
 def save_image_to_db(file_path: str, oss_url: str = None, oss_key: str = None,
-                     source_app: str = None, scenario: str = None, task_id: str = None):
+                     source_app: str = None, scenario: str = None, task_id: str = None,
+                     task_run_id: str = None, device_id: str = None):
     """
     将图片信息保存到数据库。如果数据库不可用则打印警告但不报错。
 
@@ -36,8 +37,10 @@ def save_image_to_db(file_path: str, oss_url: str = None, oss_key: str = None,
                 oss_key=oss_key,
                 source_app=source_app,
                 scenario=scenario,
-                captured_at=datetime.utcnow(),
+                captured_at=datetime.now(UTC).replace(tzinfo=None),
                 task_id=task_id,
+                task_run_id=task_run_id,
+                device_id=device_id,
             )
             db_image = crud.create_image(db, image_data)
             print(f"  ✅ 已保存到数据库: {db_image.id}")

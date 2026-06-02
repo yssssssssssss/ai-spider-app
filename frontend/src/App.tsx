@@ -1,10 +1,15 @@
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import { ToastProvider } from './components/Toast';
+import { AuthProvider, RequireAuth, RequireRole, useAuth } from './auth';
 import HomePage from './pages/HomePage';
 import SearchPage from './pages/SearchPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import AdminRequests from './pages/AdminRequests';
 import AdminTasks from './pages/AdminTasks';
 import AdminTaskResults from './pages/AdminTaskResults';
+import AdminDevices from './pages/AdminDevices';
+import AdminUsers from './pages/AdminUsers';
 import AdminWatchPlans from './pages/AdminWatchPlans';
 import AdminWatchPlanNew from './pages/AdminWatchPlanNew';
 import AdminWatchPlanDetail from './pages/AdminWatchPlanDetail';
@@ -41,6 +46,7 @@ function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
 }
 
 function Navigation() {
+  const { user, logout, hasRole } = useAuth();
   return (
     <nav
       style={{
@@ -86,11 +92,22 @@ function Navigation() {
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, overflow: 'auto' }}>
           <NavLink to="/">需求提交</NavLink>
-          <NavLink to="/search">图片检索</NavLink>
-          <NavLink to="/admin">数据看板</NavLink>
-          <NavLink to="/admin/requests">需求管理</NavLink>
-          <NavLink to="/admin/tasks">任务管理</NavLink>
-          <NavLink to="/admin/watch-plans">持续观察</NavLink>
+          {user ? (
+            <>
+              <NavLink to="/search">图片检索</NavLink>
+              <NavLink to="/admin">数据看板</NavLink>
+              <NavLink to="/admin/requests">{hasRole('operator') ? '审核管理' : '需求管理'}</NavLink>
+              <NavLink to="/admin/tasks">任务管理</NavLink>
+              <NavLink to="/admin/devices">设备管理</NavLink>
+              <NavLink to="/admin/watch-plans">持续观察</NavLink>
+              {hasRole('admin') && <NavLink to="/admin/users">用户管理</NavLink>}
+              <button type="button" className="nav-user-button" onClick={logout}>
+                {user.display_name || user.username} · 退出
+              </button>
+            </>
+          ) : (
+            <NavLink to="/login">登录</NavLink>
+          )}
         </div>
       </div>
     </nav>
@@ -101,35 +118,42 @@ function App() {
   return (
     <ToastProvider>
       <BrowserRouter>
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-          <Navigation />
-          <main style={{ flex: 1, padding: '48px 0' }}>
-            <div className="container">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/search" element={<SearchPage />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/requests" element={<AdminRequests />} />
-                <Route path="/admin/tasks" element={<AdminTasks />} />
-                <Route path="/admin/tasks/:taskId/results" element={<AdminTaskResults />} />
-                <Route path="/admin/watch-plans" element={<AdminWatchPlans />} />
-                <Route path="/admin/watch-plans/new" element={<AdminWatchPlanNew />} />
-                <Route path="/admin/watch-plans/:planId" element={<AdminWatchPlanDetail />} />
-              </Routes>
-            </div>
-          </main>
-          <footer
-            style={{
-              borderTop: '1px solid rgba(255,255,255,0.06)',
-              padding: '24px 0',
-              textAlign: 'center',
-              color: '#6e6e73',
-              fontSize: '0.8125rem',
-            }}
-          >
-            <div className="container">竞品分析平台 · AI 驱动</div>
-          </footer>
-        </div>
+        <AuthProvider>
+          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            <Navigation />
+            <main style={{ flex: 1, padding: '48px 0' }}>
+              <div className="container">
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
+                  <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
+                  <Route path="/admin/requests" element={<RequireAuth><AdminRequests /></RequireAuth>} />
+                  <Route path="/admin/tasks" element={<RequireAuth><AdminTasks /></RequireAuth>} />
+                  <Route path="/admin/tasks/:taskId/results" element={<RequireAuth><AdminTaskResults /></RequireAuth>} />
+                  <Route path="/admin/images" element={<RequireAuth><Navigate to="/search" replace /></RequireAuth>} />
+                  <Route path="/admin/devices" element={<RequireAuth><AdminDevices /></RequireAuth>} />
+                  <Route path="/admin/users" element={<RequireAuth><RequireRole role="admin"><AdminUsers /></RequireRole></RequireAuth>} />
+                  <Route path="/admin/watch-plans" element={<RequireAuth><AdminWatchPlans /></RequireAuth>} />
+                  <Route path="/admin/watch-plans/new" element={<RequireAuth><RequireRole role="operator"><AdminWatchPlanNew /></RequireRole></RequireAuth>} />
+                  <Route path="/admin/watch-plans/:planId" element={<RequireAuth><AdminWatchPlanDetail /></RequireAuth>} />
+                </Routes>
+              </div>
+            </main>
+            <footer
+              style={{
+                borderTop: '1px solid rgba(255,255,255,0.06)',
+                padding: '24px 0',
+                textAlign: 'center',
+                color: '#6e6e73',
+                fontSize: '0.8125rem',
+              }}
+            >
+              <div className="container">竞品分析平台 · AI 驱动</div>
+            </footer>
+          </div>
+        </AuthProvider>
       </BrowserRouter>
     </ToastProvider>
   );
