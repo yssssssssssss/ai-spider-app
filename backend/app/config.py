@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     PHONE_AGENT_MODEL: str = os.getenv("PHONE_AGENT_MODEL", "")
     PHONE_AGENT_API_KEY: str = os.getenv("PHONE_AGENT_API_KEY", "")
     MODELSCOPE_VLM_MODEL: str = os.getenv("MODELSCOPE_VLM_MODEL", "Qwen/Qwen3-VL-8B-Instruct")
-    AUTOGLM_MAX_STEPS: int = min(int(os.getenv("AUTOGLM_MAX_STEPS", "10")), 10)
+    AUTOGLM_MAX_STEPS: int = min(int(os.getenv("AUTOGLM_MAX_STEPS", "30")), 30)
     WATCH_SCHEDULER_ENABLED: bool = os.getenv("WATCH_SCHEDULER_ENABLED", "true").lower() != "false"
     WATCH_SCHEDULER_INTERVAL_SECONDS: int = int(os.getenv("WATCH_SCHEDULER_INTERVAL_SECONDS", "60"))
     JWT_SECRET: str = os.getenv("JWT_SECRET", "dev-only-change-me")

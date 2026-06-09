@@ -28,6 +28,7 @@ from phone_agent.device_factory import DeviceType, set_device_type
 import config as app_config
 
 from app.services.oss_uploader import oss_uploader
+from app.services.long_screenshot import capture_product_detail_long_image
 from app.scripts_common import save_image_to_db
 
 
@@ -43,12 +44,13 @@ POPUP_BACK_TASK = (
     "关闭后停留在目标页面等待截图保存，不要提前结束。"
 )
 AUTO_SCREENSHOT_STOP_RULE = (
-    "执行约束：平台会在每一步自动截图并保存到本地和后台；"
+    "执行约束：平台会按任务配置自动采集截图并保存到本地和后台；"
     "你不需要、也禁止打开系统设置、相册、文件管理、截图工具或其他非目标应用来保存截图。"
-    "到达用户要求的目标页面并停留完成自动截图后，必须立即结束任务；"
+    "到达用户要求的目标页面并停留后，必须立即结束任务；"
     "不要返回桌面，不要继续点击、长按、滑动或探索无关页面。"
 )
-MAX_AUTOGLM_STEPS = 10
+PRODUCT_DETAIL_LONG_CAPTURE_MODE = "product_detail_long_image"
+MAX_AUTOGLM_STEPS = 30
 
 
 def _append_auto_screenshot_stop_rule(task: str) -> str:
@@ -59,6 +61,12 @@ def _append_auto_screenshot_stop_rule(task: str) -> str:
 
 def _requires_popup_close_flow(task: str) -> bool:
     return bool(task) and "截图" in task and any(marker in task for marker in POPUP_CLOSE_MARKERS)
+
+
+def _should_run_post_capture(step_result, post_capture_mode: str | None) -> bool:
+    if post_capture_mode != PRODUCT_DETAIL_LONG_CAPTURE_MODE:
+        return False
+    return bool(getattr(step_result, "success", False)) and bool(getattr(step_result, "finished", False))
 
 
 def _screenshots_are_near_duplicate(left_path: str, right_path: str) -> bool:
@@ -277,6 +285,8 @@ def run_with_autoglm(
     task_run_id: str = None,
     device_id: str = None,
     db_device_id: str = None,
+    post_capture_mode: str = None,
+    long_screenshot_count: int = 10,
 ):
     """
     使用 AutoGLM 执行自然语言任务，每一步自动截图并上传 OSS 入库
@@ -290,6 +300,9 @@ def run_with_autoglm(
         output_dir: 截图保存目录
         capture_screenshots: 是否每一步都截图保存
     """
+    if post_capture_mode and post_capture_mode != PRODUCT_DETAIL_LONG_CAPTURE_MODE:
+        raise ValueError(f"Unsupported post capture mode: {post_capture_mode}")
+
     max_steps = max(1, min(max_steps, MAX_AUTOGLM_STEPS))
 
     # 设置设备类型为 ADB (Android)
@@ -376,8 +389,19 @@ def run_with_autoglm(
         step_idx += 1
 
     print("-" * 50)
-    print(f"✅ 任务完成: {step_result.message or 'done'}")
-    print(f"📸 共截图 {step_idx} 张，保存在: {output_dir}")
+    print(f"✅ AutoGLM 导航完成: {step_result.message or 'done'}")
+    print(f"🔢 AutoGLM 执行步数: {step_idx}")
+    if post_capture_mode == PRODUCT_DETAIL_LONG_CAPTURE_MODE:
+        if not _should_run_post_capture(step_result, post_capture_mode):
+            raise RuntimeError(f"AutoGLM navigation did not finish successfully: {step_result.message or 'unknown error'}")
+        print(f"📜 开始商品详情长图采集: {long_screenshot_count} 屏")
+        capture_result = capture_product_detail_long_image(
+            device_id=agent_config.device_id,
+            output_dir=output_dir,
+            screen_count=long_screenshot_count,
+        )
+        print(f"🧩 长图已生成: {capture_result.stitched_path}")
+    print(f"✅ 任务完成，结果目录: {output_dir}")
     return step_result.message or "done"
 
 
@@ -388,12 +412,14 @@ def main():
     parser.add_argument("--base-url", default=None, help="模型服务地址")
     parser.add_argument("--model", default=None, help="模型名称")
     parser.add_argument("--apikey", default=None, help="API Key")
-    parser.add_argument("--max-steps", type=int, default=MAX_AUTOGLM_STEPS, help="最大执行步数，上限10")
+    parser.add_argument("--max-steps", type=int, default=MAX_AUTOGLM_STEPS, help="最大执行步数，上限30")
     parser.add_argument("--output-dir", default=None, help="截图保存目录")
     parser.add_argument("--task-id", default=None, help="关联后台任务 ID")
     parser.add_argument("--task-run-id", default=None, help="关联后台任务运行 ID")
     parser.add_argument("--device-id", default=None, help="ADB 设备序列号")
     parser.add_argument("--db-device-id", default=None, help="后台设备记录 ID")
+    parser.add_argument("--post-capture-mode", default=None, choices=[PRODUCT_DETAIL_LONG_CAPTURE_MODE], help="到达目标页后的代码采集模式")
+    parser.add_argument("--long-screenshot-count", type=int, default=10, help="商品详情长图采集屏数")
     parser.add_argument("--no-capture", action="store_true", help="不自动截图（仅执行任务）")
     parser.add_argument("--check", action="store_true", help="检查系统要求")
 
@@ -432,6 +458,8 @@ def main():
         task_run_id=args.task_run_id,
         device_id=args.device_id,
         db_device_id=args.db_device_id,
+        post_capture_mode=args.post_capture_mode,
+        long_screenshot_count=args.long_screenshot_count,
     )
 
 

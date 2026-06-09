@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import sys
 from datetime import UTC, datetime
@@ -8,6 +9,51 @@ from app.config import settings
 from app.database import SessionLocal
 from app.services.collector_bridge import start_collection_watcher
 from app.services.task_events import ensure_queue
+
+
+LONG_CAPTURE_MODE = "product_detail_long_image"
+LONG_CAPTURE_TRIGGERS = ("长图", "拼接", "拼长图", "滚动", "多屏", "每一屏", "全页")
+PRODUCT_DETAIL_TRIGGERS = ("商品详情", "详情页", "商品页")
+LONG_CAPTURE_NAVIGATION_RULE = (
+    "执行约束：你只负责进入商品详情页首屏并停留结束；"
+    "不要滚动详情页，不要执行多屏截图，不要尝试拼接长图；"
+    "后续滚动截图、重复区域裁切和长图拼接由平台自动处理。"
+)
+
+
+def _task_request_description(task) -> str:
+    request = getattr(task, "request", None)
+    return getattr(request, "description", "") if request else ""
+
+
+def _task_capture_text(task, prompt: str | None) -> str:
+    parts = [
+        getattr(task, "name", ""),
+        getattr(task, "keyword", ""),
+        getattr(task, "target_scenario", ""),
+        getattr(task, "generated_instruction", ""),
+        prompt or "",
+        _task_request_description(task),
+    ]
+    return " ".join(str(part or "") for part in parts)
+
+
+def product_detail_long_capture_count(task, prompt: str | None = None) -> int | None:
+    text = _task_capture_text(task, prompt)
+    if not any(marker in text for marker in PRODUCT_DETAIL_TRIGGERS):
+        return None
+    if not any(marker in text for marker in LONG_CAPTURE_TRIGGERS):
+        return None
+
+    match = re.search(r"(\d{1,2})\s*(?:屏|页|张)", text)
+    count = int(match.group(1)) if match else 10
+    return max(1, min(count, 30))
+
+
+def apply_product_detail_long_capture_rule(instruction: str) -> str:
+    if LONG_CAPTURE_NAVIGATION_RULE in instruction:
+        return instruction
+    return f"{instruction.rstrip('。')}。{LONG_CAPTURE_NAVIGATION_RULE}"
 
 
 def _safe_device_dir_name(device) -> str:
@@ -54,6 +100,9 @@ def start_task_process(task, prompt: str | None = None, *, task_run=None, create
         instruction = prompt or task.generated_instruction
         if not instruction:
             raise ValueError("AutoGLM prompt is required")
+        long_capture_count = product_detail_long_capture_count(task, instruction)
+        if long_capture_count:
+            instruction = apply_product_detail_long_capture_rule(instruction)
         run, output_dir, log_path = _prepare_run(
             task,
             task_run=task_run,
@@ -66,21 +115,30 @@ def start_task_process(task, prompt: str | None = None, *, task_run=None, create
             if device:
                 env["PHONE_AGENT_DEVICE_ID"] = device.serial
             env["TASK_RUN_ID"] = str(run.id)
+            command = [
+                sys.executable,
+                script_path,
+                instruction,
+                "--task-id",
+                task_id,
+                "--task-run-id",
+                str(run.id),
+                *(["--device-id", device.serial, "--db-device-id", str(device.id)] if device else []),
+                "--output-dir",
+                output_dir,
+                "--max-steps",
+                str(settings.AUTOGLM_MAX_STEPS),
+            ]
+            if long_capture_count:
+                command.extend([
+                    "--post-capture-mode",
+                    LONG_CAPTURE_MODE,
+                    "--long-screenshot-count",
+                    str(long_capture_count),
+                    "--no-capture",
+                ])
             process = subprocess.Popen(
-                [
-                    sys.executable,
-                    script_path,
-                    instruction,
-                    "--task-id",
-                    task_id,
-                    "--task-run-id",
-                    str(run.id),
-                    *(["--device-id", device.serial, "--db-device-id", str(device.id)] if device else []),
-                    "--output-dir",
-                    output_dir,
-                    "--max-steps",
-                    str(settings.AUTOGLM_MAX_STEPS),
-                ],
+                command,
                 cwd=project_root,
                 env=env,
                 stdout=log_file,

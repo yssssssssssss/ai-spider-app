@@ -37,6 +37,10 @@ export default function ImageCard({ result }: { result: any }) {
     embeddingStatus === 'failed' ? 'rgba(255,69,58,0.9)' :
     'rgba(142,142,147,0.9)';
   const src = imageFileUrl(image.id);
+  const fallbackDownloadName = `screenshot-${image.id}.png`;
+  const downloadFilename = typeof image.file_path === 'string' && image.file_path.trim()
+    ? image.file_path.split(/[\\/]/).pop() || fallbackDownloadName
+    : fallbackDownloadName;
   const missingImagePlaceholder = (
     <div
       style={{
@@ -77,8 +81,6 @@ export default function ImageCard({ result }: { result: any }) {
         className="image-detail-dialog"
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 'min(1180px, 100%)',
-          maxHeight: '92vh',
           display: 'grid',
           gap: 0,
           background: 'var(--bg-secondary)',
@@ -89,34 +91,22 @@ export default function ImageCard({ result }: { result: any }) {
         }}
       >
         <div
-          style={{
-            minHeight: 420,
-            maxHeight: '92vh',
-            background: '#050505',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 20,
-            overflow: 'auto',
-          }}
+          className="image-detail-preview-pane"
         >
-          {imageError ? missingImagePlaceholder : (
-            <img
-              src={src}
-              alt="完整竞品截图"
-              width={image.width || 1080}
-              height={image.height || 1920}
-              style={{
-                maxWidth: '100%',
-                maxHeight: '86vh',
-                objectFit: 'contain',
-                display: 'block',
-              }}
-              onError={() => setImageError(true)}
-            />
-          )}
+          <div className="image-detail-preview-scroll">
+            {imageError ? missingImagePlaceholder : (
+              <img
+                className="image-detail-image"
+                src={src}
+                alt="完整竞品截图"
+                width={image.width || 1080}
+                height={image.height || 1920}
+                onError={() => setImageError(true)}
+              />
+            )}
+          </div>
         </div>
-        <div style={{ padding: 28, overflow: 'auto', maxHeight: '92vh' }}>
+        <div className="image-detail-analysis-pane">
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', marginBottom: 24 }}>
             <div>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
@@ -129,9 +119,14 @@ export default function ImageCard({ result }: { result: any }) {
               </div>
               <h3>截图分析</h3>
             </div>
-            <button type="button" className="btn-secondary btn-sm" onClick={() => setOpen(false)}>
-              关闭
-            </button>
+            <div className="image-detail-actions">
+              <a className="link-button btn-secondary btn-sm" href={src} download={downloadFilename}>
+                下载图片
+              </a>
+              <button type="button" className="btn-secondary btn-sm" onClick={() => setOpen(false)}>
+                关闭
+              </button>
+            </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>

@@ -23,6 +23,116 @@ def utc_now():
 
 
 class FlowRegressionTests(unittest.TestCase):
+    def test_stitch_images_crops_adjacent_vertical_overlap(self):
+        from PIL import Image
+        from app.services.long_screenshot import stitch_images
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            first_path = root / "first.png"
+            second_path = root / "second.png"
+            output_path = root / "stitched.png"
+
+            first = Image.new("RGB", (8, 10))
+            for y in range(10):
+                for x in range(8):
+                    first.putpixel((x, y), (y, x, 0))
+            first.save(first_path)
+
+            second = Image.new("RGB", (8, 10))
+            for y in range(10):
+                source_row = y + 6
+                for x in range(8):
+                    second.putpixel((x, y), (source_row, x, 0))
+            second.save(second_path)
+
+            result = stitch_images([str(first_path), str(second_path)], str(output_path), min_overlap=2)
+
+            self.assertEqual(result.crop_tops, [0, 4])
+            with Image.open(output_path) as stitched:
+                self.assertEqual(stitched.size, (8, 16))
+                self.assertEqual([stitched.getpixel((0, y))[0] for y in range(16)], list(range(16)))
+
+    def test_stitch_images_keeps_frames_without_clear_overlap(self):
+        from PIL import Image
+        from app.services.long_screenshot import stitch_images
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            first_path = root / "first.png"
+            second_path = root / "second.png"
+            output_path = root / "stitched.png"
+
+            Image.new("RGB", (6, 5), (10, 20, 30)).save(first_path)
+            Image.new("RGB", (6, 5), (200, 210, 220)).save(second_path)
+
+            result = stitch_images([str(first_path), str(second_path)], str(output_path), min_overlap=2)
+
+            self.assertEqual(result.crop_tops, [0, 0])
+            with Image.open(output_path) as stitched:
+                self.assertEqual(stitched.size, (6, 10))
+
+    def test_task_runner_detects_product_detail_long_capture(self):
+        from app.services.task_runner import product_detail_long_capture_count
+
+        task = SimpleNamespace(
+            name="手机商品详情长图",
+            keyword="手机",
+            target_scenario="商品详情页滚动 10 屏并拼接长图",
+            generated_instruction="打开淘宝，搜索手机，进入一个商品详情页后停留并结束任务",
+            request=SimpleNamespace(description="每一屏截图，重复区域裁切掉"),
+        )
+
+        self.assertEqual(product_detail_long_capture_count(task, task.generated_instruction), 10)
+
+    def test_task_runner_does_not_trigger_long_capture_for_plain_detail_page(self):
+        from app.services.task_runner import product_detail_long_capture_count
+
+        task = SimpleNamespace(
+            name="手机商品详情",
+            keyword="手机",
+            target_scenario="商品详情页首屏",
+            generated_instruction="打开淘宝，搜索手机，进入一个商品详情页后停留并结束任务",
+            request=SimpleNamespace(description="只看首屏"),
+        )
+
+        self.assertIsNone(product_detail_long_capture_count(task, task.generated_instruction))
+
+    def test_task_runner_adds_navigation_only_rule_for_long_capture(self):
+        from app.services.task_runner import apply_product_detail_long_capture_rule
+
+        instruction = apply_product_detail_long_capture_rule("打开淘宝，搜索手机，进入商品详情页")
+
+        self.assertIn("进入商品详情页首屏", instruction)
+        self.assertIn("不要滚动详情页", instruction)
+        self.assertIn("长图拼接由平台自动处理", instruction)
+
+    def test_autoglm_runner_exposes_product_detail_long_capture_hook(self):
+        source = Path(PROJECT_ROOT, "run_autoglm.py").read_text(encoding="utf-8")
+        config_source = Path(PROJECT_ROOT, "backend", "app", "config.py").read_text(encoding="utf-8")
+
+        self.assertIn("--post-capture-mode", source)
+        self.assertIn("product_detail_long_image", source)
+        self.assertIn("capture_product_detail_long_image", source)
+        self.assertIn("MAX_AUTOGLM_STEPS = 30", source)
+        self.assertIn('os.getenv("AUTOGLM_MAX_STEPS", "30")', config_source)
+
+    def test_autoglm_runner_skips_long_capture_when_navigation_failed(self):
+        import importlib.util
+
+        sys.path.insert(0, PROJECT_ROOT)
+        spec = importlib.util.spec_from_file_location("run_autoglm_module", os.path.join(PROJECT_ROOT, "run_autoglm.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        failed = SimpleNamespace(success=False, finished=True, message="Model error: blocked")
+        unfinished = SimpleNamespace(success=True, finished=False, message="still running")
+        finished = SimpleNamespace(success=True, finished=True, message="done")
+
+        self.assertFalse(module._should_run_post_capture(failed, module.PRODUCT_DETAIL_LONG_CAPTURE_MODE))
+        self.assertFalse(module._should_run_post_capture(unfinished, module.PRODUCT_DETAIL_LONG_CAPTURE_MODE))
+        self.assertTrue(module._should_run_post_capture(finished, module.PRODUCT_DETAIL_LONG_CAPTURE_MODE))
+
     def test_manage_clean_accepts_explicit_dry_run_flag(self):
         result = subprocess.run(
             [sys.executable, "manage.py", "clean", "--dry-run", "--no-logs", "--no-pycache"],
@@ -200,6 +310,21 @@ class FlowRegressionTests(unittest.TestCase):
         self.assertIn("图片暂不可预览", source)
         self.assertIn("setImageError(true)", source)
         self.assertNotIn("style.display = 'none'", source)
+
+    def test_image_card_detail_supports_long_image_preview_and_download(self):
+        component = Path(PROJECT_ROOT, "frontend", "src", "components", "ImageCard.tsx").read_text(encoding="utf-8")
+        styles = Path(PROJECT_ROOT, "frontend", "src", "styles", "index.css").read_text(encoding="utf-8")
+
+        self.assertIn("image-detail-preview-pane", component)
+        self.assertIn("image-detail-preview-scroll", component)
+        self.assertIn("image-detail-image", component)
+        self.assertIn("下载图片", component)
+        self.assertIn("download={downloadFilename}", component)
+        self.assertNotIn("maxHeight: '86vh'", component)
+        self.assertIn(".image-detail-preview-pane", styles)
+        self.assertIn("overflow-y: auto", styles)
+        self.assertIn(".image-detail-image", styles)
+        self.assertIn("width: clamp(360px, 38vw, 520px)", styles)
 
     def test_frontend_does_not_expose_redundant_image_management_tab(self):
         app_source = Path(PROJECT_ROOT, "frontend", "src", "App.tsx").read_text(encoding="utf-8")
@@ -971,7 +1096,7 @@ class FlowRegressionTests(unittest.TestCase):
         from app.config import settings
 
         self.assertGreater(settings.AUTOGLM_MAX_STEPS, 0)
-        self.assertLessEqual(settings.AUTOGLM_MAX_STEPS, 10)
+        self.assertLessEqual(settings.AUTOGLM_MAX_STEPS, 30)
 
     def test_llm_analyzer_prompt_includes_focus_question(self):
         from app.services.llm_analyzer import LLMAnalyzer
@@ -1176,7 +1301,7 @@ class FlowRegressionTests(unittest.TestCase):
         prompt = module._append_auto_screenshot_stop_rule("打开拼多多App，找到百亿补贴，并截图保存到本地")
         prompt_again = module._append_auto_screenshot_stop_rule(prompt)
 
-        self.assertIn("平台会在每一步自动截图并保存", prompt)
+        self.assertIn("平台会按任务配置自动采集截图并保存", prompt)
         self.assertIn("禁止打开系统设置、相册、文件管理、截图工具", prompt)
         self.assertIn("必须立即结束任务", prompt)
         self.assertEqual(prompt, prompt_again)
