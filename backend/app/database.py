@@ -9,6 +9,17 @@ engine = create_engine(settings.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+DEFAULT_ANALYSIS_SKILLS = (
+    (
+        "设计维度",
+        "# 设计维度\n从 UI 设计角度分析截图中的布局、配色、视觉层级、信息架构、组件密度、交互提示和可读性。请指出具体画面证据。",
+    ),
+    (
+        "运营维度",
+        "# 运营维度\n从运营策略角度分析截图中的促销机制、文案策略、价格策略、用户引导、转化路径、活动利益点和紧迫感营造。请指出具体画面证据。",
+    ),
+)
+
 
 def _enable_pgvector(dbapi_conn, connection_record):
     with dbapi_conn.cursor() as cursor:
@@ -186,6 +197,7 @@ def _ensure_task_runs_backfill(conn):
         FROM tasks t
         LEFT JOIN task_runs r ON r.task_id = t.id
         WHERE r.id IS NULL
+          AND t.status = 'completed'
     """)).all()
     for row in task_rows:
         run_id = str(uuid.uuid4())
@@ -208,6 +220,22 @@ def _ensure_task_runs_backfill(conn):
         )
 
 
+def _ensure_default_analysis_skills(conn):
+    for name, instruction_md in DEFAULT_ANALYSIS_SKILLS:
+        conn.execute(
+            text("""
+                INSERT INTO analysis_skills (
+                    id, name, instruction_md, owner_id, is_official, status, created_at, updated_at
+                )
+                VALUES (
+                    :id, :name, :instruction_md, NULL, true, 'active', now(), now()
+                )
+                ON CONFLICT (name) WHERE is_official = true DO NOTHING
+            """),
+            {"id": str(uuid.uuid4()), "name": name, "instruction_md": instruction_md},
+        )
+
+
 def ensure_schema():
     """Create missing tables and add columns introduced after the first prototype."""
     init_db()
@@ -218,12 +246,25 @@ def ensure_schema():
             _ensure_column(conn, inspector, "tasks", "mode", "VARCHAR DEFAULT 'uiautomator2'")
             _ensure_column(conn, inspector, "tasks", "generated_instruction", "TEXT")
             _ensure_column(conn, inspector, "tasks", "target_goals_json", "JSONB DEFAULT '[]'::jsonb")
+            _ensure_column(conn, inspector, "tasks", "analysis_skill_snapshots_json", "JSONB DEFAULT '[]'::jsonb")
+            _ensure_column(conn, inspector, "tasks", "scheduled_run_date", "DATE")
             _ensure_column(conn, inspector, "tasks", "created_by", "UUID")
             _ensure_column(conn, inspector, "tasks", "approved_by", "UUID")
             _ensure_column(conn, inspector, "tasks", "run_by", "UUID")
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_tasks_created_by ON tasks(created_by)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_tasks_request_scheduled_date ON tasks(request_id, scheduled_run_date)"))
         if "requests" in tables:
+            _ensure_column(conn, inspector, "requests", "analysis_skill_snapshots_json", "JSONB DEFAULT '[]'::jsonb")
+            _ensure_column(conn, inspector, "requests", "compare_jd_enabled", "BOOLEAN DEFAULT false")
+            _ensure_column(conn, inspector, "requests", "comparison_config_json", "JSONB DEFAULT '{}'::jsonb")
+            _ensure_column(conn, inspector, "requests", "schedule_enabled", "BOOLEAN DEFAULT false")
+            _ensure_column(conn, inspector, "requests", "schedule_start_date", "DATE")
+            _ensure_column(conn, inspector, "requests", "schedule_end_date", "DATE")
+            _ensure_column(conn, inspector, "requests", "schedule_time", "TIME")
+            _ensure_column(conn, inspector, "requests", "schedule_cycle", "VARCHAR")
+            _ensure_column(conn, inspector, "requests", "approved_task_mode", "VARCHAR")
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_requests_user_id ON requests(user_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_requests_schedule_status ON requests(status, schedule_enabled)"))
         if "images" in tables:
             _ensure_column(conn, inspector, "images", "oss_url", "TEXT")
             _ensure_column(conn, inspector, "images", "oss_key", "TEXT")
@@ -232,18 +273,58 @@ def ensure_schema():
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_images_task_id ON images(task_id)"))
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_images_task_run_id ON images(task_run_id)"))
         if "analysis" in tables:
+            _ensure_column(conn, inspector, "analysis", "custom_analysis_json", "JSONB DEFAULT '{}'::jsonb")
             _ensure_column(conn, inspector, "analysis", "embedding_status", "VARCHAR DEFAULT 'pending'")
             _ensure_column(conn, inspector, "analysis", "embedding_error", "TEXT")
         if "watch_plans" in tables:
+            _ensure_column(conn, inspector, "watch_plans", "analysis_skill_snapshots_json", "JSONB DEFAULT '[]'::jsonb")
+            _ensure_column(conn, inspector, "watch_plans", "schedule_start_date", "DATE")
+            _ensure_column(conn, inspector, "watch_plans", "schedule_end_date", "DATE")
+            _ensure_column(conn, inspector, "watch_plans", "schedule_cycle", "VARCHAR DEFAULT 'daily'")
             _ensure_column(conn, inspector, "watch_plans", "created_by", "UUID")
             _ensure_column(conn, inspector, "watch_plans", "updated_by", "UUID")
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_watch_plans_created_by ON watch_plans(created_by)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_watch_plans_schedule ON watch_plans(status, schedule_cycle, schedule_start_date, schedule_end_date)"))
         if "devices" in tables:
+            _ensure_column(conn, inspector, "devices", "source", "VARCHAR DEFAULT 'local'")
+            _ensure_column(conn, inspector, "devices", "worker_id", "UUID")
             conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_devices_serial ON devices(serial)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_devices_worker_id ON devices(worker_id)"))
         if "task_runs" in tables:
             _ensure_column(conn, inspector, "task_runs", "goal_validation_json", "JSONB DEFAULT '{}'::jsonb")
+            _ensure_column(conn, inspector, "task_runs", "execution_mode", "VARCHAR DEFAULT 'local'")
+            _ensure_column(conn, inspector, "task_runs", "worker_id", "UUID")
+            _ensure_column(conn, inspector, "task_runs", "claimed_at", "TIMESTAMP")
+            _ensure_column(conn, inspector, "task_runs", "heartbeat_at", "TIMESTAMP")
             conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_task_runs_task_attempt ON task_runs(task_id, attempt_no)"))
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_task_runs_task_id ON task_runs(task_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_task_runs_worker_id ON task_runs(worker_id)"))
+        if "workers" in tables:
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_workers_node_key ON workers(node_key)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_workers_status ON workers(status)"))
+        if "analysis_skills" in tables:
+            conn.execute(text("""
+                DELETE FROM analysis_skills s
+                USING (
+                    SELECT id,
+                           row_number() OVER (
+                               PARTITION BY name
+                               ORDER BY created_at ASC NULLS LAST, id
+                           ) AS rn
+                    FROM analysis_skills
+                    WHERE is_official = true
+                ) ranked
+                WHERE s.id = ranked.id
+                  AND ranked.rn > 1
+            """))
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_analysis_skills_official_name ON analysis_skills(name) WHERE is_official = true"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_analysis_skills_owner_status ON analysis_skills(owner_id, status)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_analysis_skills_official_status ON analysis_skills(is_official, status)"))
+            _ensure_default_analysis_skills(conn)
+        if "blackboard_posts" in tables:
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_blackboard_posts_task_id ON blackboard_posts(task_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_blackboard_posts_published_at ON blackboard_posts(published_at)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_blackboard_posts_published_by ON blackboard_posts(published_by)"))
         if "embeddings" in tables:
             _ensure_embedding_vector_dim(conn)
             _ensure_embedding_uniqueness(conn)
@@ -254,6 +335,25 @@ def ensure_schema():
             _ensure_default_app_settings(conn)
         if "task_runs" in tables and "tasks" in tables:
             _ensure_task_runs_backfill(conn)
+        if "comparison_groups" in tables:
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_groups_request_id ON comparison_groups(request_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_groups_jd_task_id ON comparison_groups(jd_task_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_groups_status ON comparison_groups(status)"))
+        if "comparison_group_apps" in tables:
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_comparison_group_apps_app ON comparison_group_apps(comparison_group_id, app_name)"))
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_comparison_group_apps_task ON comparison_group_apps(comparison_group_id, task_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_group_apps_group_id ON comparison_group_apps(comparison_group_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_group_apps_task_id ON comparison_group_apps(task_id)"))
+        if "comparison_slots" in tables:
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_comparison_slots_key ON comparison_slots(comparison_group_id, slot_key)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_slots_group_order ON comparison_slots(comparison_group_id, sort_order)"))
+        if "comparison_slot_matches" in tables:
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_comparison_slot_matches_image ON comparison_slot_matches(image_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_slot_matches_group_slot_app ON comparison_slot_matches(comparison_group_id, slot_id, app_name)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_slot_matches_task_id ON comparison_slot_matches(task_id)"))
+        if "comparison_pair_analyses" in tables:
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_comparison_pair_group_app_slot ON comparison_pair_analyses(comparison_group_app_id, slot_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_pair_analyses_slot_id ON comparison_pair_analyses(slot_id)"))
 
 
 def get_db():

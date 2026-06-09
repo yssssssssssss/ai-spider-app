@@ -6,11 +6,15 @@ from openai import OpenAI
 from app.config import settings
 
 
+JD_CLOUD_HOST = "modelservice.jdcloud.com"
+JD_CLOUD_GPT_55_MODEL = "gpt-5.5"
 SEARCH_SCENE_MARKERS = ("搜索", "search", "检索", "查询", "商品列表", "结果页", "商品详情", "详情页", "商品页")
 POPUP_CLOSE_MARKERS = ("弹窗", "浮层", "广告", "关闭", "关闭后", "跳过")
 POPUP_CLOSE_RULE = (
     "执行约束：如果出现与本次任务相关的弹窗、广告或浮层，不要立即关闭，也不要立即结束任务；"
-    "必须先停留在弹窗页等待一次截图保存，然后点击关闭、跳过、取消或返回关闭弹窗；"
+    "必须先停留在弹窗页等待一次截图保存，然后只点击明确的X、×或“关闭”按钮关闭弹窗；"
+    "禁止点击开心收下、立即领取、去使用、立即购买、抢、领券、跳过、取消、返回或任何业务内容；"
+    "如果没有明确关闭按钮，不要点击其他内容，直接结束并说明未找到关闭按钮；"
     "确认弹窗消失后，在关闭后的目标页面再等待一次截图保存。"
     "未完成弹窗页截图和关闭后页面截图前，禁止结束任务。"
 )
@@ -56,6 +60,39 @@ def _planner_client() -> tuple[OpenAI, str]:
     return OpenAI(api_key=settings.PHONE_AGENT_API_KEY, base_url=settings.PHONE_AGENT_BASE_URL), settings.PHONE_AGENT_MODEL
 
 
+def _planner_base_url() -> str:
+    if settings.VLM_API_KEY:
+        return settings.VLM_BASE_URL
+    if settings.OPENAI_API_KEY:
+        return settings.OPENAI_BASE_URL
+    return settings.PHONE_AGENT_BASE_URL
+
+
+def _should_omit_temperature(base_url: str | None, model_name: str | None) -> bool:
+    return JD_CLOUD_HOST in (base_url or "") and (model_name or "").lower() == JD_CLOUD_GPT_55_MODEL
+
+
+def _is_empty_planner_instruction(instruction: str | None) -> bool:
+    normalized = (instruction or "").strip(" \t\r\n,，.。")
+    return not normalized or normalized == "到达目标页面后停留并结束任务"
+
+
+def chat_completion_options(*, base_url: str | None, model_name: str | None, temperature: float | None = None, **kwargs):
+    if temperature is not None and not _should_omit_temperature(base_url, model_name):
+        kwargs["temperature"] = temperature
+    return kwargs
+
+
+def planner_chat_completion_options(*, model: str, temperature: float | None = None, **kwargs):
+    return chat_completion_options(
+        base_url=_planner_base_url(),
+        model_name=model,
+        temperature=temperature,
+        model=model,
+        **kwargs,
+    )
+
+
 async def plan_task(
     target_app: str | None,
     target_scenario: str | None,
@@ -81,35 +118,40 @@ async def plan_task(
         "补充说明": description or "无",
     }, ensure_ascii=False)
 
-    system_prompt = """你是移动端App自动化操作专家。你的任务是将用户需求转化为一条精确的自然语言指令，用于驱动AI手机助手（AutoGLM）自动操作手机App并截图保存。
+    system_prompt = """你是移动端App自动化操作专家。你的任务是将用户需求转化为一条精确的自然语言指令，用于驱动AI手机助手（AutoGLM）自动操作手机App。
 
 指令要求：
-1. 必须包含完整操作序列：打开App → 搜索/导航 → 到达目标页面 → 截图保存
+1. 必须包含完整操作序列：打开App → 搜索/导航 → 到达目标页面 → 停留并结束任务
 2. 如果有筛选条件（如价格区间、品牌），要明确描述操作步骤
 3. 搜索框、搜索结果页、商品列表页、商品详情页等需要定位具体商品/内容的场景，可以把关键词作为搜索或导航线索
 4. 弹窗、Banner、频道页等不依赖文本输入的场景，把关键词当作关注点、筛选条件或识别目标，不要强行搜索
 5. 指令要具体、可执行，避免模糊表述
 6. 只输出一条指令文本，不要解释、不要编号、不要多余内容
-7. 指令结尾必须是"并截图保存到本地"
+7. 不要要求手机助手执行截图、保存图片、打开相册、文件管理、系统设置或系统截图工具
+8. 指令结尾必须是"到达目标页面后停留并结束任务"
 
 示例输入：
 {"目标App": "淘宝", "目标场景": "大促弹窗", "关键词或关注点": ["限时优惠", "红包"], "补充说明": "关注红色主题的限时优惠弹窗"}
 
 示例输出：
-打开淘宝App，进入首页或活动入口，找到包含限时优惠和红包利益点的红色主题弹窗，并截图保存到本地"""
+打开淘宝App，进入首页或活动入口，找到包含限时优惠和红包利益点的红色主题弹窗，到达目标页面后停留并结束任务"""
 
     try:
         client, model = _planner_client()
         response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content},
-            ],
-            temperature=0.3,
-            max_tokens=256,
+            **planner_chat_completion_options(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_content},
+                ],
+                temperature=0.3,
+                max_tokens=256,
+            ),
         )
-        instruction = response.choices[0].message.content.strip()
+        instruction = _strip_manual_capture_instruction(response.choices[0].message.content or "")
+        if _is_empty_planner_instruction(instruction):
+            raise ValueError("LLM returned empty instruction")
         print(f"🤖 LLM 生成指令: {instruction}")
         return append_execution_rules(instruction)
     except Exception as e:
@@ -135,5 +177,25 @@ def _fallback_instruction(
         parts.append(f"找到{target_scenario}")
     if description:
         parts.append(description)
-    parts.append("并截图保存到本地")
-    return append_execution_rules("，".join(parts))
+    parts.append("到达目标页面后停留并结束任务")
+    return append_execution_rules(_strip_manual_capture_instruction("，".join(parts)))
+
+
+def _strip_manual_capture_instruction(instruction: str) -> str:
+    cleaned = instruction.strip()
+    replacements = (
+        "，并截图保存到本地",
+        "并截图保存到本地",
+        "，截图保存到本地",
+        "截图保存到本地",
+        "，并截图保存",
+        "并截图保存",
+    )
+    for text in replacements:
+        cleaned = cleaned.replace(text, "")
+    cleaned = cleaned.strip(" ，,。")
+    if not cleaned:
+        return ""
+    if "停留并结束任务" not in cleaned:
+        cleaned = f"{cleaned.rstrip('。')}，到达目标页面后停留并结束任务"
+    return cleaned

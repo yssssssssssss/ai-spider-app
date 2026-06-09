@@ -43,6 +43,11 @@ def refresh_devices(db: Session) -> tuple[list[models.Device], bool]:
         crud.upsert_device(db, serial=serial, status=status, last_seen_at=now, notes=notes)
 
     for device in crud.list_devices(db):
-        if device.serial not in seen and device.status not in ("disabled", "busy"):
-            crud.upsert_device(db, serial=device.serial, status="offline", last_seen_at=device.last_seen_at, notes="not listed by adb")
+        if device.source != "local" or device.serial in seen or device.status == "disabled":
+            continue
+        device.status = "offline"
+        device.current_task_run_id = None
+        device.notes = "not listed by adb"
+        device.updated_at = now
+        db.commit()
     return crud.list_devices(db), True

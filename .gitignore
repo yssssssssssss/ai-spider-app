@@ -20,3 +20,4 @@ frontend/dist/
 data/**/_temp_*
 data/**/exports/
 data/tasks/
+worker_runs/

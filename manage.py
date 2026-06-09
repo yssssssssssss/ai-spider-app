@@ -901,6 +901,57 @@ def show_secret_risks():
     log_info("请确保这些文件未被提交；如需共享配置，请使用 .env.example")
 
 
+def reconcile_statuses(apply: bool = False) -> dict:
+    sys.path.insert(0, str(BACKEND_DIR))
+    from app.database import SessionLocal
+    from app.services.status_reconciler import reconcile_stale_statuses
+
+    db = SessionLocal()
+    try:
+        return reconcile_stale_statuses(db, apply=apply, include_empty_tasks=True)
+    finally:
+        db.close()
+
+
+def show_reconcile_statuses(args):
+    result = reconcile_statuses(apply=args.apply)
+    print(f"\n{'='*50}")
+    print(" 收口任务状态")
+    print(f"{'='*50}\n")
+    action = "已更新" if args.apply else "将更新"
+
+    local_runs = result.get("local_runs") or []
+    tasks = result.get("tasks") or []
+    groups = result.get("comparison_groups") or []
+    if not local_runs and not tasks and not groups:
+        log_ok("没有发现需要收口的任务状态")
+        return
+
+    for row in local_runs:
+        print(
+            f"{action} local_run {row['run_id']}: "
+            f"{row['old_run_status']} -> {row['new_run_status']} "
+            f"(task={row['task_id']}, app={row.get('target_app')}, images={row.get('image_count')})"
+        )
+    for row in tasks:
+        print(
+            f"{action} task {row['task_id']}: "
+            f"{row['old_status']} -> {row['new_status']} "
+            f"(latest_run={row['latest_run_id']}, app={row.get('target_app')})"
+        )
+    for row in groups:
+        print(
+            f"{action} comparison_group {row['comparison_group_id']}: "
+            f"{row['old_status']} -> {row['new_status']} "
+            f"(request={row['request_id']})"
+        )
+
+    if args.apply:
+        log_ok(f"已收口 {len(local_runs)} 个 local_run、{len(tasks)} 个 task、{len(groups)} 个 comparison group")
+    else:
+        log_info("当前为 dry-run，未修改数据库。确认后可追加 --apply")
+
+
 def main():
     parser = argparse.ArgumentParser(description="竞品分析平台服务管理")
     subparsers = parser.add_subparsers(dest="command", help="可用命令")
@@ -924,6 +975,8 @@ def main():
     clean_parser.add_argument("--pycache", action=argparse.BooleanOptionalAction, default=True, help="包含 Python 缓存")
     clean_parser.add_argument("--dist", action="store_true", help="包含 frontend/dist")
     clean_parser.add_argument("--exports", action="store_true", help="包含 exports 导出目录")
+    reconcile_parser = subparsers.add_parser("reconcile-statuses", help="收口数据库中的假 pending/running 状态")
+    reconcile_parser.add_argument("--apply", action="store_true", help="实际更新数据库；默认只 dry-run")
     subparsers.add_parser("doctor-secrets", help="检查常见敏感配置风险")
 
     args = parser.parse_args()
@@ -948,6 +1001,8 @@ def main():
         show_prune_task_logs(args)
     elif args.command == "clean":
         show_clean_plan(args)
+    elif args.command == "reconcile-statuses":
+        show_reconcile_statuses(args)
     elif args.command == "doctor-secrets":
         show_secret_risks()
 

@@ -54,6 +54,10 @@ class Settings(BaseSettings):
     AUTH_DEFAULT_ADMIN_DISPLAY_NAME: str = os.getenv("AUTH_DEFAULT_ADMIN_DISPLAY_NAME", "管理员")
     AUTH_REGISTRATION_INVITE_CODE: str = os.getenv("AUTH_REGISTRATION_INVITE_CODE", "1234")
     TASK_MAX_RETRIES: int = int(os.getenv("TASK_MAX_RETRIES", "3"))
+    EXECUTION_MODE: str = os.getenv("EXECUTION_MODE", "local")
+    WORKER_API_TOKEN: str = os.getenv("WORKER_API_TOKEN", "dev-worker-token")
+    WORKER_UPLOAD_MAX_BYTES: int = int(os.getenv("WORKER_UPLOAD_MAX_BYTES", str(10 * 1024 * 1024)))
+    WORKER_LOG_MAX_BYTES: int = int(os.getenv("WORKER_LOG_MAX_BYTES", str(2 * 1024 * 1024)))
 
     # 京东云 OSS 配置
     JD_OSS_REGION: str = os.getenv("JD_OSS_REGION", "cn-south-1")

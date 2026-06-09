@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from app import crud
 from app.config import settings
@@ -31,7 +31,7 @@ def _prepare_run(task, task_run=None, created_by=None, device=None):
             db,
             run.id,
             status="running",
-            started_at=datetime.now(UTC).replace(tzinfo=None),
+            started_at=datetime.now(timezone.utc).replace(tzinfo=None),
             output_dir=os.path.relpath(output_dir, settings.PROJECT_ROOT),
             log_path=os.path.relpath(log_path, settings.PROJECT_ROOT),
             device_id=device_id,
@@ -78,6 +78,8 @@ def start_task_process(task, prompt: str | None = None, *, task_run=None, create
                     *(["--device-id", device.serial, "--db-device-id", str(device.id)] if device else []),
                     "--output-dir",
                     output_dir,
+                    "--source-app",
+                    task.target_app or "",
                     "--max-steps",
                     str(settings.AUTOGLM_MAX_STEPS),
                 ],

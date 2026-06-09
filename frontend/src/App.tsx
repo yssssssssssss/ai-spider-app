@@ -14,6 +14,9 @@ import AdminWatchPlans from './pages/AdminWatchPlans';
 import AdminWatchPlanNew from './pages/AdminWatchPlanNew';
 import AdminWatchPlanDetail from './pages/AdminWatchPlanDetail';
 import AdminDashboard from './pages/AdminDashboard';
+import AnalysisSkillsPage from './pages/AnalysisSkillsPage';
+import BlackboardPage from './pages/BlackboardPage';
+import BlackboardTaskResults from './pages/BlackboardTaskResults';
 
 function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
   const { pathname } = useLocation();
@@ -92,6 +95,7 @@ function Navigation() {
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, overflow: 'auto' }}>
           <NavLink to="/">需求提交</NavLink>
+          <NavLink to="/blackboard">黑板报</NavLink>
           {user ? (
             <>
               <NavLink to="/search">图片检索</NavLink>
@@ -100,6 +104,7 @@ function Navigation() {
               <NavLink to="/admin/tasks">任务管理</NavLink>
               <NavLink to="/admin/devices">设备管理</NavLink>
               <NavLink to="/admin/watch-plans">持续观察</NavLink>
+              <NavLink to="/analysis-skills">分析 skill</NavLink>
               {hasRole('admin') && <NavLink to="/admin/users">用户管理</NavLink>}
               <button type="button" className="nav-user-button" onClick={logout}>
                 {user.display_name || user.username} · 退出
@@ -125,9 +130,12 @@ function App() {
               <div className="container">
                 <Routes>
                   <Route path="/" element={<HomePage />} />
+                  <Route path="/blackboard" element={<BlackboardPage />} />
+                  <Route path="/blackboard/tasks/:taskId" element={<BlackboardTaskResults />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
+                  <Route path="/analysis-skills" element={<RequireAuth><AnalysisSkillsPage /></RequireAuth>} />
                   <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
                   <Route path="/admin/requests" element={<RequireAuth><AdminRequests /></RequireAuth>} />
                   <Route path="/admin/tasks" element={<RequireAuth><AdminTasks /></RequireAuth>} />

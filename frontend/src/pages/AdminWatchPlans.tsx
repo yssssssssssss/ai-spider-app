@@ -37,9 +37,19 @@ function formatDateTime(value?: string | null) {
   });
 }
 
-function formatSchedule(value?: string) {
-  if (!value) return '10:00';
-  return value.slice(0, 5);
+const cycleLabels: Record<string, string> = {
+  daily: '每天',
+  weekly: '每周',
+  monthly: '每月',
+};
+
+function formatSchedule(plan: any) {
+  const time = plan.schedule_time ? String(plan.schedule_time).slice(0, 5) : '10:00';
+  const cycle = cycleLabels[plan.schedule_cycle] || plan.schedule_cycle || '每天';
+  const range = plan.schedule_end_date
+    ? `${plan.schedule_start_date || '-'} 至 ${plan.schedule_end_date}`
+    : `${plan.schedule_start_date || '-'} 起`;
+  return `${cycle} · ${time} · ${range}`;
 }
 
 export default function AdminWatchPlans() {
@@ -126,7 +136,7 @@ export default function AdminWatchPlans() {
               <tr>
                 <th>观察名称</th>
 	                <th>目标页面</th>
-	                <th>时间</th>
+	                <th>执行计划</th>
 	                <th>创建人</th>
 	                <th>运行记录</th>
 	                <th>最近成功</th>
@@ -144,7 +154,7 @@ export default function AdminWatchPlans() {
                     </div>
 	                  </td>
 	                  <td>{plan.target_app} / {plan.target_page}</td>
-	                  <td>{formatSchedule(plan.schedule_time)}</td>
+	                  <td title={formatSchedule(plan)}>{formatSchedule(plan)}</td>
 	                  <td>{plan.created_by_name || '-'}</td>
 	                  <td>
 	                    <div className="table-title-cell">

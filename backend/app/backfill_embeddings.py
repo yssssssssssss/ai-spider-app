@@ -15,9 +15,18 @@ from app.database import SessionLocal  # noqa: E402
 from app.services.embedder import embedder  # noqa: E402
 
 
+def _dynamic_analysis_text(analysis: models.Analysis) -> str:
+    data = analysis.custom_analysis_json if isinstance(analysis.custom_analysis_json, dict) else {}
+    return "\n".join(
+        row.get("analysis", "")
+        for row in data.get("results", [])
+        if isinstance(row, dict) and row.get("analysis")
+    ).strip()
+
+
 def _analysis_text(analysis: models.Analysis) -> dict[str, str]:
     texts = {}
-    combined = f"{analysis.design_analysis or ''}\n{analysis.ops_analysis or ''}".strip()
+    combined = _dynamic_analysis_text(analysis) or f"{analysis.design_analysis or ''}\n{analysis.ops_analysis or ''}".strip()
     if combined:
         texts["combined"] = combined
     if analysis.design_analysis:

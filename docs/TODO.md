@@ -1,6 +1,6 @@
 # 竞品分析平台 - TODO
 
-> 最后更新：2026-06-01
+> 最后更新：2026-06-03
 
 ## 已完成
 
@@ -12,6 +12,14 @@
 - [x] 向量搜索结果按 analysis 去重，避免同一图片重复展示
 - [x] 历史 analysis 全量回填 embedding
 - [x] 数据库清理孤儿 embedding，并增加唯一索引与非空约束
+
+### 分析 skill 与自定义分析维度
+
+- [x] 新增用户自定义分析 skill
+- [x] 支持 Markdown 文本和 `.md` 上传
+- [x] 支持官方 skill 和管理员管理
+- [x] 任务与持续观察计划按创建时 skill 快照分析
+- [x] 自定义维度结果可展示、搜索、导出
 
 ## P1 已完成
 
@@ -451,6 +459,79 @@
 - [x] run 完成时缺少必达目标会失败
 - [x] 分析完成后的复核可以把误完成 run 改为失败
 
+### P2.7 云端任务队列与本地 Worker
+
+#### 目标
+
+项目支持“云端平台 + 本地设备 Worker”模式：云端负责任务、权限、分析、搜索和结果展示，本地 Worker 负责连接安卓手机并执行采集。
+
+#### 配置与数据模型
+
+- [x] 新增 `EXECUTION_MODE=local|worker`，默认保留 `local`
+- [x] 新增 `WORKER_API_TOKEN`，Worker API 通过 `X-Worker-Token` 校验
+- [x] 新增 `workers` 表，记录节点、状态、版本、最近心跳
+- [x] 扩展 `devices`，记录 `source`、`worker_id`
+- [x] 扩展 `task_runs`，记录 `execution_mode`、`worker_id`、`claimed_at`、`heartbeat_at`
+
+#### 后端执行逻辑
+
+- [x] 新增 `TaskExecutor` 执行适配器
+- [x] `LocalTaskExecutor` 继续使用原本后端本机执行链路
+- [x] `WorkerTaskExecutor` 创建 queued run，等待 Worker 领取
+- [x] Worker 领取 run 后将 task/run 标记为 running，并占用对应设备
+- [x] Worker 完成后复用现有 `_finish_run`，释放设备并触发目标覆盖校验
+
+#### Worker API
+
+- [x] `POST /api/worker/register`
+- [x] `POST /api/worker/heartbeat`
+- [x] `POST /api/worker/devices`
+- [x] `POST /api/worker/task-runs/claim`
+- [x] `POST /api/worker/task-runs/{run_id}/images`
+- [x] `POST /api/worker/task-runs/{run_id}/logs`
+- [x] `POST /api/worker/task-runs/{run_id}/finish`
+
+#### 本地 Worker 程序
+
+- [x] 新增 `worker/main.py`
+- [x] 启动参数支持 `--server`、`--token`、`--node-key`、`--work-dir`
+- [x] 使用本机 `adb devices` 上报设备
+- [x] 领取任务后执行 `run_autoglm.py` 或 `run_workflow.py`
+- [x] 上传截图、日志、完成状态
+
+#### 前端与部署
+
+- [x] 任务列表展示执行模式和 Worker 信息
+- [x] 设备管理页展示本机 / Worker 来源
+- [x] `.env.example` 补充 Worker 配置
+- [x] `.gitignore` 忽略本地 `worker_runs/`
+- [x] 当前 local 模式继续可用
+
+### P2.8 对比 JD 终态截图与配对质量
+
+#### 目标
+
+对比 JD 不再把入口、模块、搜索中间页或加载页误判为最终截图；当同一槽位出现更高质量终态截图时，可替换早期低质量占坑，缺失配对时只保留单图分析。
+
+#### 后端执行逻辑
+
+- [x] PageEvidence 增加 `page_state`、`target_role`、`is_terminal_target`、`needs_more_wait`
+- [x] 目标覆盖校验只采信终态页面证据；有页面证据时不再用零散分析文本兜底命中
+- [x] 多目标校验按 `captured_at/created_at` 稳定排序，截图顺序错误会标记缺失
+- [x] JD 对比槽位匹配忽略非终态页面证据
+- [x] 同槽位同 App 允许更高置信截图替换旧匹配，并清理基于旧图的 AB 分析
+- [x] `run_autoglm.py` 支持 `--source-app`，任务启动时传入 `task.target_app`
+- [x] 无自定义 skill 时，AB 对比使用默认设计/运营维度生成结果
+
+#### 测试与验收
+
+- [x] 非终态首页关键词不会命中首页目标
+- [x] 多目标截图顺序错误会失败
+- [x] 非终态页面证据不会直接进入对比槽位
+- [x] 更高质量终态截图可替换同槽位旧匹配
+- [x] AutoGLM 启动参数包含正确 `--source-app`
+- [x] 空 skill 的 AB 分析仍返回默认维度
+
 ## P2 执行结果
 
 1. [x] P2.5 清理日志、构建产物和敏感配置
@@ -459,11 +540,13 @@
 4. [x] P2.4 多设备并发采集
 5. [x] P2.3 结果导出 JSON / Excel / ZIP
 6. [x] P2.6 多目标截图覆盖校验
+7. [x] P2.7 云端任务队列与本地 Worker
+8. [x] P2.8 对比 JD 终态截图与配对质量
 
 ## 当前验证快照
 
-- 本轮后端回归测试：77 个通过
-- 本轮前端构建：通过
+- 本轮后端回归测试：133 个通过
+- Python 编译检查：通过
 - embedding provider：Doubao
 - embedding 维度：2048
 - `embeddings` 重复组：0

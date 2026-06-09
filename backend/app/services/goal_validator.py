@@ -2,14 +2,25 @@ import os
 from typing import Any
 from uuid import UUID
 
+from app.services.page_evidence import evidence_matches_goal, get_page_evidence
+
 
 FINAL_ANALYSIS_STATUSES = {"success", "partial", "skipped", "failed"}
 EVIDENCE_ANALYSIS_STATUSES = {"success", "partial"}
 NEGATIVE_MARKERS = ("未出现", "未见", "没有", "不包含", "不是", "缺少", "无法确认", "未找到")
+GOAL_FAILURE_MARKERS = ("缺少目标页截图", "目标页截图顺序不正确")
 
 
 def _is_visible_image(image) -> bool:
     return not os.path.basename(image.file_path).startswith("_temp_")
+
+
+def _image_order_key(image) -> tuple[Any, Any, str]:
+    return (
+        getattr(image, "captured_at", None) or getattr(image, "created_at", None),
+        getattr(image, "created_at", None),
+        str(getattr(image, "id", "")),
+    )
 
 
 def _goal_keywords(goal: dict[str, Any]) -> list[str]:
@@ -25,7 +36,21 @@ def _analysis_text(image) -> str:
     analysis = getattr(image, "analysis", None)
     if not analysis or analysis.status not in EVIDENCE_ANALYSIS_STATUSES:
         return ""
-    return "\n".join(part for part in [analysis.design_analysis, analysis.ops_analysis] if part)
+    custom = analysis.custom_analysis_json if isinstance(analysis.custom_analysis_json, dict) else {}
+    dynamic = "\n".join(
+        row.get("analysis", "")
+        for row in custom.get("results", [])
+        if isinstance(row, dict) and row.get("analysis")
+    ).strip()
+    legacy = "\n".join(part for part in [analysis.design_analysis, analysis.ops_analysis] if part)
+    return "\n".join(part for part in [dynamic, legacy] if part)
+
+
+def _page_evidence(image) -> dict[str, Any] | None:
+    analysis = getattr(image, "analysis", None)
+    if not analysis or analysis.status not in EVIDENCE_ANALYSIS_STATUSES:
+        return None
+    return get_page_evidence(analysis)
 
 
 def _is_negative_mention(line: str, needle: str) -> bool:
@@ -54,17 +79,19 @@ def validate_task_run_goals(task, images) -> dict[str, Any] | None:
     if not goals:
         return None
 
-    visible_images = [image for image in images if _is_visible_image(image)]
+    visible_images = sorted((image for image in images if _is_visible_image(image)), key=_image_order_key)
     pending_count = sum(
         1
         for image in visible_images
         if not image.analysis or image.analysis.status not in FINAL_ANALYSIS_STATUSES
     )
     evidence_texts = [text for image in visible_images if (text := _analysis_text(image))]
+    page_evidences = [evidence for image in visible_images if (evidence := _page_evidence(image))]
 
     goal_results: list[dict[str, Any]] = []
     matched: list[str] = []
     missing: list[str] = []
+    matched_positions: dict[str, list[int]] = {}
 
     if not visible_images:
         status = "uncertain"
@@ -72,22 +99,31 @@ def validate_task_run_goals(task, images) -> dict[str, Any] | None:
     elif pending_count:
         status = "uncertain"
         reason = "仍有截图待分析"
-    elif not evidence_texts:
+    elif not evidence_texts and not page_evidences:
         status = "uncertain"
-        reason = "没有可用于目标校验的分析文本"
+        reason = "没有可用于目标校验的分析证据"
     else:
         status = "matched"
         reason = None
 
-    for goal in goals:
+    for goal_index, goal in enumerate(goals):
         label = str(goal["label"])
         required = bool(goal.get("required", True))
         keywords = _goal_keywords(goal)
         if status == "uncertain":
             goal_status = "uncertain"
-        elif _contains_any(evidence_texts, keywords):
+        elif any(evidence_matches_goal(evidence, goal) for evidence in page_evidences):
             goal_status = "matched"
             matched.append(label)
+            matched_positions[label] = [
+                index
+                for index, image in enumerate(visible_images)
+                if evidence_matches_goal(_page_evidence(image), goal)
+            ]
+        elif not page_evidences and _contains_any(evidence_texts, keywords):
+            goal_status = "matched"
+            matched.append(label)
+            matched_positions[label] = [goal_index]
         else:
             goal_status = "missing"
             if required:
@@ -100,15 +136,39 @@ def validate_task_run_goals(task, images) -> dict[str, Any] | None:
             "evidence_keywords": keywords,
         })
 
+    order_error = False
+    previous_position = -1
+    if status != "uncertain":
+        for goal in goals:
+            label = str(goal["label"])
+            positions = matched_positions.get(label) or []
+            if not positions:
+                continue
+            position = next((item for item in positions if item > previous_position), None)
+            if position is None:
+                order_error = True
+                if label not in missing and bool(goal.get("required", True)):
+                    missing.append(label)
+                for item in goal_results:
+                    if item["label"] == label:
+                        item["status"] = "missing"
+                        break
+                continue
+            previous_position = position
+
     if missing:
         status = "missing"
-        reason = f"缺少目标页截图：{'、'.join(missing)}"
+        if order_error:
+            reason = f"目标页截图顺序不正确：{'、'.join(missing)}"
+        else:
+            reason = f"缺少目标页截图：{'、'.join(missing)}"
 
     return {
         "status": status,
         "reason": reason,
         "matched": matched,
         "missing": missing,
+        "order_error": order_error,
         "pending_count": pending_count,
         "image_count": len(visible_images),
         "goals": goal_results,
@@ -145,7 +205,16 @@ def refresh_task_run_goal_validation(db, task_id: UUID, run_id: UUID | None):
     if was_completed and failure_reason:
         update_kwargs["status"] = "failed"
         update_kwargs["failure_reason"] = failure_reason
+    elif (
+        run.status == "failed"
+        and validation.get("status") == "matched"
+        and any(marker in (run.failure_reason or "") for marker in GOAL_FAILURE_MARKERS)
+    ):
+        update_kwargs["status"] = "completed"
+        update_kwargs["failure_reason"] = ""
     crud.update_task_run(db, run_id, **update_kwargs)
     if was_completed and failure_reason:
         crud.update_task_status(db, task_id, "failed")
+    elif update_kwargs.get("status") == "completed":
+        crud.update_task_status(db, task_id, "completed")
     return validation

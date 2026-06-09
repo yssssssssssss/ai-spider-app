@@ -1,6 +1,6 @@
 # 竞品分析平台 - TODO
 
-> 最后更新：2026-06-01
+> 最后更新：2026-06-03
 
 ## P0 已完成
 
@@ -75,10 +75,29 @@
 - [x] 异步复核：图片分析完成后可重新校验已完成 run，避免漏采任务误判成功
 - [x] 前端展示：任务结果页展示目标覆盖、缺失和待确认状态
 
+### P2.7 云端任务队列与本地 Worker
+
+- [x] 配置层：新增 `EXECUTION_MODE=local|worker`、Worker token、上传与日志大小限制
+- [x] 数据模型：新增 `workers`，扩展 `devices` 与 `task_runs` 记录 Worker 来源和领取状态
+- [x] 后端接口：Worker 注册、心跳、设备上报、任务领取、截图上传、日志上传、完成上报
+- [x] 执行层：新增 `TaskExecutor`，保留 local 直接执行，新增 worker 排队执行
+- [x] 本地程序：新增 `worker/main.py`，负责 ADB 设备上报、任务执行和结果回传
+- [x] 前端展示：任务列表展示执行模式 / Worker，设备页展示来源和所属 Worker
+- [x] 安全约束：Worker API 使用 `X-Worker-Token`，不暴露 ADB 到公网
+
+### P2.8 对比 JD 终态截图与配对质量
+
+- [x] 页面证据增加终态字段：`page_state`、`target_role`、`is_terminal_target`、`needs_more_wait`
+- [x] 目标覆盖校验只采信终态页面证据，避免入口、模块、加载页被误判为目标页
+- [x] 多目标截图按 `captured_at/created_at` 稳定校验顺序，顺序错误时标记缺失
+- [x] 对比槽位匹配忽略非终态证据，同槽位允许更高置信终态截图替换低质量占坑
+- [x] AutoGLM 截图入库透传 `task.target_app` 为 `source_app`，避免 JD 截图被记录成淘宝
+- [x] 无自定义分析 skill 时，AB 对比使用默认设计/运营维度兜底
+
 ## 验证记录
 
-- 本轮后端回归测试：77 个通过
-- 本轮前端构建：通过
+- 本轮后端回归测试：133 个通过
+- Python 编译检查：通过
 - Doubao embedding live health：`ok=true`
 - pgvector 维度：2048
 - `embeddings` 重复组：0

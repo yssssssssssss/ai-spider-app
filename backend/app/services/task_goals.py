@@ -4,7 +4,13 @@ from typing import Any
 
 SPLIT_PATTERN = re.compile(r"\s*(?:,|，|、|;|；|/|和|以及)\s*")
 QUOTED_PATTERN = re.compile(r"[“\"']([^”\"']{1,32})[”\"']")
-GOAL_CHECKLIST_MARKER = "目标截图清单"
+GOAL_CHECKLIST_MARKER = "目标页面顺序"
+HOME_LABELS = {"首页", "主页", "app首页", "应用首页"}
+BUSINESS_MODULE_MARKERS = ("会场", "活动", "频道", "补贴", "特价", "秒杀", "领券")
+
+
+def _norm(value: str | None) -> str:
+    return re.sub(r"\s+", "", (value or "").strip()).lower()
 
 
 def _clean_label(value: str | None) -> str:
@@ -23,6 +29,26 @@ def _dedupe(labels: list[str]) -> list[str]:
             seen.add(cleaned)
             result.append(cleaned)
     return result
+
+
+def _home_evidence_keywords(target_app: str | None) -> list[str]:
+    app = _norm(target_app)
+    if "淘宝" in app:
+        return ["首页", "底部主导航", "顶部分类Tab选中推荐"]
+    if "京东" in app or app == "jd":
+        return ["首页", "底部主导航", "顶部分类Tab选中首页"]
+    return ["首页", "底部主导航"]
+
+
+def _goal_evidence_keywords(target_app: str | None, label: str) -> list[str]:
+    if _norm(label) in HOME_LABELS:
+        return _home_evidence_keywords(target_app)
+    return [label]
+
+
+def _accepts_business_module(label: str) -> bool:
+    normalized = _norm(label)
+    return any(marker in normalized for marker in BUSINESS_MODULE_MARKERS)
 
 
 def _split_labels(text: str | None) -> list[str]:
@@ -59,7 +85,8 @@ def build_target_goals(
             "label": label,
             "type": "page",
             "required": True,
-            "evidence_keywords": [label],
+            "evidence_keywords": _goal_evidence_keywords(target_app, label),
+            "accepts_business_module": _accepts_business_module(label),
         })
     return goals
 
@@ -72,17 +99,21 @@ def append_target_goal_checklist(instruction: str, goals: list[dict[str, Any]] |
     for index, goal in enumerate(goals, start=1):
         label = _clean_label(str(goal.get("label") or ""))
         if label:
-            lines.append(f"{index}. {label}")
+            keywords = _dedupe([
+                _clean_label(str(keyword or ""))
+                for keyword in goal.get("evidence_keywords", [])
+            ])
+            evidence = f"（判定条件：{'、'.join(keywords)}）" if keywords else ""
+            if goal.get("accepts_business_module"):
+                evidence += "（可接受终态：独立会场/频道页，或当前页面中完整露出与目标等价的业务模块；若已看到模块标题、多个商品/权益和核心利益点，停留结束，不要继续点击“更多”；单个入口按钮不算）"
+            lines.append(f"{index}. {label}{evidence}")
     if not lines:
         return instruction
 
     checklist = "；".join(lines)
     return (
-        f"{instruction}。"
-        f"{GOAL_CHECKLIST_MARKER}：{checklist}。"
-        "执行约束：必须逐一完成清单中的每个目标；"
-        "只有当前页面标题或核心内容与当前目标一致时，才能认为该目标完成；"
-        "不要把一个目标页面当成另一个目标；"
-        "平台会在每一步自动截图并保存；"
-        "完成所有目标页后立即结束任务。"
+        f"{instruction}。目标页面顺序：{checklist}。"
+        "必须按顺序逐页完成；当前页面只满足后续目标时，不算完成前序目标；"
+        "不要把“从首页来访”等来源文案当作首页已完成证据。"
+        "到达最后一个目标页面后停留并结束任务。"
     )

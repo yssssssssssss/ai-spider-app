@@ -37,6 +37,7 @@ def _analysis_dict(analysis):
         "embedding_error": analysis.embedding_error,
         "design_analysis": analysis.design_analysis,
         "ops_analysis": analysis.ops_analysis,
+        "custom_analysis_json": analysis.custom_analysis_json,
         "analyzed_at": analysis.analyzed_at.isoformat() if analysis.analyzed_at else None,
     }
 
@@ -94,6 +95,10 @@ def task_export_payload(db: Session, task_id: UUID, user_id: UUID | None = None)
                 "exit_code": run.exit_code,
                 "failure_reason": run.failure_reason,
                 "goal_validation_json": run.goal_validation_json,
+                "execution_mode": run.execution_mode,
+                "worker_id": str(run.worker_id) if run.worker_id else None,
+                "claimed_at": run.claimed_at.isoformat() if run.claimed_at else None,
+                "heartbeat_at": run.heartbeat_at.isoformat() if run.heartbeat_at else None,
                 "log_path": run.log_path,
                 "output_dir": run.output_dir,
                 "device_id": str(run.device_id) if run.device_id else None,
@@ -189,7 +194,11 @@ def excel_bytes(payload: dict) -> bytes:
     _append_dict_rows(images, [_flatten_image(row) for row in image_rows])
 
     analyses = wb.create_sheet("analysis")
-    _append_dict_rows(analyses, [_flatten_analysis(row) for row in image_rows if row.get("analysis")])
+    analysis_rows = []
+    for row in image_rows:
+        if row.get("analysis"):
+            analysis_rows.extend(_flatten_analysis(row))
+    _append_dict_rows(analyses, analysis_rows)
 
     failures = wb.create_sheet("failures")
     failure_rows = [row for row in run_rows if row.get("failure_reason") or row.get("status") in ("failed", "timeout")]
@@ -227,11 +236,31 @@ def _flatten_image(row: dict) -> dict:
     return data
 
 
-def _flatten_analysis(row: dict) -> dict:
+def _flatten_analysis(row: dict) -> list[dict]:
     analysis = dict(row.get("analysis") or {})
-    analysis["image_id"] = row.get("id")
-    analysis["image_path"] = row.get("file_path")
-    return analysis
+    base = {
+        "image_id": row.get("id"),
+        "image_path": row.get("file_path"),
+        "analysis_id": analysis.get("id"),
+        "status": analysis.get("status"),
+        "embedding_status": analysis.get("embedding_status"),
+    }
+    custom = analysis.get("custom_analysis_json") or {}
+    results = custom.get("results") if isinstance(custom, dict) else None
+    if results:
+        return [
+            {
+                **base,
+                "skill_name": item.get("skill_name"),
+                "analysis_text": item.get("analysis"),
+            }
+            for item in results
+            if isinstance(item, dict)
+        ]
+    return [
+        {**base, "skill_name": "设计维度", "analysis_text": analysis.get("design_analysis")},
+        {**base, "skill_name": "运营维度", "analysis_text": analysis.get("ops_analysis")},
+    ]
 
 
 def task_zip_bytes(db: Session, task_id: UUID, user_id: UUID | None = None) -> bytes:

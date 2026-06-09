@@ -1,18 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useToast } from '../components/Toast';
-import { listAdminTasks, listDevices, retryTask, runTask, taskEventsUrl } from '../api';
+import { listAdminTasks, listDevices, publishTaskToBlackboard, retryTask, runTask, taskEventsUrl, unpublishTaskFromBlackboard } from '../api';
 import { useAuth } from '../auth';
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     pending: 'badge-pending',
+    queued: 'badge-pending',
     running: 'badge-running',
     completed: 'badge-completed',
     failed: 'badge-rejected',
   };
   const labels: Record<string, string> = {
     pending: '待执行',
+    queued: '等待节点',
     running: '执行中',
     completed: '已完成',
     failed: '失败',
@@ -40,6 +42,7 @@ export default function AdminTasks() {
   const [devices, setDevices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [runningId, setRunningId] = useState<string | null>(null);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
   const [deviceId, setDeviceId] = useState('');
   const eventSourceRef = useRef<EventSource | null>(null);
 
@@ -120,6 +123,24 @@ export default function AdminTasks() {
     }
   };
 
+  const handleBlackboardToggle = async (task: any) => {
+    setPublishingId(task.id);
+    try {
+      if (task.blackboard_post_id) {
+        await unpublishTaskFromBlackboard(task.id);
+        showToast('已从黑板报撤下', 'success');
+      } else {
+        await publishTaskToBlackboard(task.id);
+        showToast('已发布到黑板报', 'success');
+      }
+      load();
+    } catch {
+      // api 拦截器已弹出错误 Toast
+    } finally {
+      setPublishingId(null);
+    }
+  };
+
   return (
     <div className="animate-fade-in">
       <div className="page-header" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
@@ -140,7 +161,7 @@ export default function AdminTasks() {
               <option value="">自动分配</option>
               {devices.map(device => (
                 <option key={device.id} value={device.id} disabled={device.status !== 'online'}>
-                  {device.name || device.serial} · {device.status}
+                  {device.name || device.serial} · {device.worker_name || device.source || 'local'} · {device.status}
                 </option>
               ))}
             </select>
@@ -249,7 +270,7 @@ export default function AdminTasks() {
                   <td title={t.failure_reason || t.device_serial || ''}>
                     <div className="table-title-cell">
                       <span>{t.attempt_count || 0} 次</span>
-                      <small>{t.device_serial || t.failure_reason || '-'}</small>
+                      <small>{[t.execution_mode, t.worker_name || t.device_serial || t.failure_reason].filter(Boolean).join(' · ') || '-'}</small>
                     </div>
                   </td>
                   <td title={t.completed_at || ''}>{formatCompletedAt(t.completed_at)}</td>
@@ -262,6 +283,13 @@ export default function AdminTasks() {
                       >
                         查看结果
                       </Link>
+                      <button
+                        className="btn-secondary btn-sm"
+                        onClick={() => handleBlackboardToggle(t)}
+                        disabled={publishingId === t.id}
+                      >
+                        {publishingId === t.id ? '处理中...' : t.blackboard_post_id ? '撤下黑板报' : '发布黑板报'}
+                      </button>
                       {hasRole('operator') && t.status === 'pending' && (
                         <button
                           className="btn-sm"

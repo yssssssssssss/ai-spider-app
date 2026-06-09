@@ -2,9 +2,23 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { imageFileUrl } from '../api';
 
-export default function ImageCard({ result }: { result: any }) {
+function analysisBlocks(analysis: any) {
+  const results = analysis?.custom_analysis_json?.results;
+  if (Array.isArray(results) && results.length > 0) {
+    return results
+      .filter((row: any) => row?.analysis)
+      .map((row: any) => ({ title: row.skill_name || '分析维度', text: row.analysis }));
+  }
+  const blocks = [];
+  if (analysis?.design_analysis) blocks.push({ title: '设计分析', text: analysis.design_analysis });
+  if (analysis?.ops_analysis) blocks.push({ title: '运营分析', text: analysis.ops_analysis });
+  return blocks;
+}
+
+export default function ImageCard({ result, imageUrl }: { result: any; imageUrl?: string }) {
   const image = result.image;
   const analysis = result.analysis;
+  const blocks = analysisBlocks(analysis);
   const [open, setOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
   useEffect(() => {
@@ -36,7 +50,7 @@ export default function ImageCard({ result }: { result: any }) {
   const embeddingColor = embeddingStatus === 'success' ? 'rgba(48,209,88,0.9)' :
     embeddingStatus === 'failed' ? 'rgba(255,69,58,0.9)' :
     'rgba(142,142,147,0.9)';
-  const src = imageFileUrl(image.id);
+  const src = imageUrl || imageFileUrl(image.id);
   const missingImagePlaceholder = (
     <div
       style={{
@@ -135,18 +149,19 @@ export default function ImageCard({ result }: { result: any }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-            <section>
-              <div style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: 8 }}>设计分析</div>
-              <p style={{ lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-                {analysis?.design_analysis || '暂无设计分析'}
-              </p>
-            </section>
-            <section>
-              <div style={{ color: '#0a84ff', fontWeight: 600, marginBottom: 8 }}>运营分析</div>
-              <p style={{ lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-                {analysis?.ops_analysis || '暂无运营分析'}
-              </p>
-            </section>
+            {blocks.length === 0 ? (
+              <section>
+                <div style={{ color: 'var(--text-secondary)', fontWeight: 600, marginBottom: 8 }}>分析结果</div>
+                <p style={{ lineHeight: 1.8 }}>暂无分析结果</p>
+              </section>
+            ) : blocks.map((block, index) => (
+              <section key={`${block.title}-${index}`}>
+                <div style={{ color: index === 0 ? 'var(--accent)' : '#0a84ff', fontWeight: 600, marginBottom: 8 }}>{block.title}</div>
+                <p style={{ lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                  {block.text}
+                </p>
+              </section>
+            ))}
           </div>
         </div>
       </div>
@@ -302,46 +317,26 @@ export default function ImageCard({ result }: { result: any }) {
 
           {analysis && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {analysis.design_analysis && (
-                <div>
+              {blocks.map((block, index) => (
+                <div key={`${block.title}-${index}`}>
                   <div
                     style={{
                       fontSize: '0.75rem',
                       fontWeight: 500,
                       textTransform: 'uppercase',
                       letterSpacing: '0.08em',
-                      color: 'var(--accent)',
+                      color: index === 0 ? 'var(--accent)' : '#0a84ff',
                       marginBottom: 4,
                     }}
                   >
-                    设计分析
+                    {block.title}
                   </div>
                   <p style={{ fontSize: '0.875rem', lineHeight: 1.6 }}>
-                    {analysis.design_analysis.slice(0, 120)}
-                    {analysis.design_analysis.length > 120 ? '...' : ''}
+                    {block.text.slice(0, 120)}
+                    {block.text.length > 120 ? '...' : ''}
                   </p>
                 </div>
-              )}
-              {analysis.ops_analysis && (
-                <div>
-                  <div
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em',
-                      color: '#0a84ff',
-                      marginBottom: 4,
-                    }}
-                  >
-                    运营分析
-                  </div>
-                  <p style={{ fontSize: '0.875rem', lineHeight: 1.6 }}>
-                    {analysis.ops_analysis.slice(0, 120)}
-                    {analysis.ops_analysis.length > 120 ? '...' : ''}
-                  </p>
-                </div>
-              )}
+              ))}
             </div>
           )}
         </div>

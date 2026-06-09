@@ -9,6 +9,8 @@ import os
 import sys
 import argparse
 import base64
+import re
+import subprocess
 from datetime import datetime
 from PIL import Image, ImageOps, UnidentifiedImageError
 
@@ -22,6 +24,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
 
 from phone_agent import PhoneAgent
 from phone_agent.agent import AgentConfig
+from phone_agent.config.apps import get_package_name
 from phone_agent.model import ModelConfig
 from phone_agent.device_factory import DeviceType, set_device_type
 
@@ -34,21 +37,24 @@ from app.scripts_common import save_image_to_db
 POPUP_CLOSE_MARKERS = ("弹窗", "浮层", "广告", "关闭", "关闭后", "跳过")
 POPUP_CONTINUE_TASK = (
     "继续执行：你还没有完成弹窗关闭后的页面截图。"
-    "如果当前仍有弹窗、广告或浮层，请先点击关闭、跳过、取消或返回关闭它；"
+    "如果当前仍有弹窗、广告或浮层，只允许点击明确的X、×或“关闭”按钮关闭它；"
+    "禁止点击开心收下、立即领取、去使用、立即购买、抢、领券、跳过、取消、返回或任何业务内容。"
+    "找不到明确关闭按钮时，不要点击其他内容，直接结束并说明未找到关闭按钮；"
     "弹窗消失后停留在目标页面，等待截图保存，然后再结束任务。"
 )
 POPUP_BACK_TASK = (
     "继续执行：当前界面关闭弹窗后没有明显变化。"
-    "请优先使用返回键关闭弹窗、广告或浮层；如果返回键无效，再点击可见的关闭、跳过或取消按钮。"
+    "请只点击明确的X、×或“关闭”按钮关闭弹窗、广告或浮层。"
+    "禁止点击开心收下、立即领取、去使用、立即购买、抢、领券、跳过、取消、返回或任何业务内容。"
+    "如果没有明确关闭按钮，不要点击其他内容，直接结束并说明未找到关闭按钮；"
     "关闭后停留在目标页面等待截图保存，不要提前结束。"
 )
 AUTO_SCREENSHOT_STOP_RULE = (
-    "执行约束：平台会在每一步自动截图并保存到本地和后台；"
-    "你不需要、也禁止打开系统设置、相册、文件管理、截图工具或其他非目标应用来保存截图。"
-    "到达用户要求的目标页面并停留完成自动截图后，必须立即结束任务；"
-    "不要返回桌面，不要继续点击、长按、滑动或探索无关页面。"
+    "执行约束：到达目标页面后停留并结束任务。"
+    "不要打开与目标无关的应用，不要继续探索无关页面。"
 )
 MAX_AUTOGLM_STEPS = 10
+PAGE_TRANSITION_ACTIONS = {"Tap", "Back", "Home", "Launch", "Swipe"}
 
 
 def _append_auto_screenshot_stop_rule(task: str) -> str:
@@ -125,6 +131,44 @@ class PopupFlowStateMachine:
         return None
 
 
+class SequentialGoalFinishGuard:
+    def __init__(self, task: str):
+        self.goals = self._parse_goal_labels(task)
+        self.enabled = len(self.goals) >= 2
+        self.has_page_transition = False
+
+    @staticmethod
+    def _parse_goal_labels(task: str) -> list[str]:
+        labels = []
+        for match in re.finditer(r"(?:^|[：:；;。])\s*\d+[.．、]\s*([^；;。（(]+)", task or ""):
+            label = match.group(1).strip()
+            if label:
+                labels.append(label)
+        return labels
+
+    def record_action(self, action: dict | None) -> None:
+        if not isinstance(action, dict) or action.get("_metadata") != "do":
+            return
+        if action.get("action") in PAGE_TRANSITION_ACTIONS:
+            self.has_page_transition = True
+
+    def should_accept_finish(self) -> bool:
+        return not self.enabled or self.has_page_transition
+
+    def next_instruction(self, finished: bool = False) -> str | None:
+        if not self.enabled or not finished or self.should_accept_finish():
+            return None
+        first_goal = self.goals[0]
+        second_goal = self.goals[1]
+        return (
+            "继续执行：多目标截图任务尚未按顺序完成。"
+            f"第1个目标页面：{first_goal}；第2个目标页面：{second_goal}。"
+            "当前页面只满足后续目标时，不算完成前序目标。"
+            "请先回到或打开第1个目标页面并停留确认，然后再进入第2个目标页面；"
+            "到达最后一个目标页面后再结束任务。"
+        )
+
+
 def _save_screenshot_from_agent(
     agent,
     step_idx: int,
@@ -167,7 +211,7 @@ def _save_screenshot_from_agent(
 
 
 def _capture_and_save(
-    step_idx: int,
+    step_idx: int | str,
     output_dir: str,
     source_app: str,
     device_id: str = None,
@@ -265,6 +309,93 @@ def _process_screenshot_bytes(
         return None
 
 
+def _should_capture_before_action(action: dict | None) -> bool:
+    if not isinstance(action, dict):
+        return False
+    if action.get("_metadata") != "do":
+        return False
+    return action.get("action") == "Tap"
+
+
+def _should_install_pre_action_capture(task: str) -> bool:
+    return _requires_popup_close_flow(task)
+
+
+def _should_save_step_screenshot(step_result) -> bool:
+    return bool(getattr(step_result, "success", False)) and not bool(getattr(step_result, "finished", False))
+
+
+def _resolve_app_package(app_name: str | None) -> str | None:
+    app_name = (app_name or "").strip()
+    if not app_name:
+        return None
+    return get_package_name(app_name)
+
+
+def _adb_command(device_id: str | None, *args: str) -> list[str]:
+    command = ["adb"]
+    if device_id:
+        command.extend(["-s", device_id])
+    command.extend(args)
+    return command
+
+
+def _force_stop_app(app_name: str | None, device_id: str | None = None) -> bool:
+    package_name = _resolve_app_package(app_name)
+    if not package_name:
+        print(f"  ⚠️ 未找到 App 包名，跳过退出: {app_name or 'unknown'}")
+        return False
+    try:
+        result = subprocess.run(
+            _adb_command(device_id, "shell", "am", "force-stop", package_name),
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        print(f"  ⚠️ 退出应用失败: {app_name} ({package_name}): {exc}")
+        return False
+    if result.returncode != 0:
+        error = (result.stderr or "").strip()
+        print(f"  ⚠️ 退出应用失败: {app_name} ({package_name}): {error or result.returncode}")
+        return False
+    print(f"  🛑 已退出应用: {app_name} ({package_name})")
+    return True
+
+
+def _install_pre_action_screenshot_capture(
+    agent,
+    output_dir: str,
+    source_app: str,
+    task_id: str = None,
+    task_run_id: str = None,
+    db_device_id: str = None,
+):
+    original_execute = agent.action_handler.execute
+    counter = {"value": 0}
+
+    def execute_with_pre_action_capture(action, screen_width, screen_height):
+        if _should_capture_before_action(action):
+            step_idx = f"pre_action_{counter['value']}"
+            counter["value"] += 1
+            try:
+                _capture_and_save(
+                    step_idx,
+                    output_dir,
+                    source_app,
+                    agent.agent_config.device_id,
+                    task_id,
+                    task_run_id,
+                    db_device_id,
+                )
+            except Exception as e:
+                print(f"  ⚠️ 预动作截图失败: {e}")
+        return original_execute(action, screen_width, screen_height)
+
+    agent.action_handler.execute = execute_with_pre_action_capture
+    return execute_with_pre_action_capture
+
+
 def run_with_autoglm(
     task: str,
     base_url: str = None,
@@ -277,6 +408,8 @@ def run_with_autoglm(
     task_run_id: str = None,
     device_id: str = None,
     db_device_id: str = None,
+    source_app: str = "taobao",
+    exit_app_on_finish: bool = True,
 ):
     """
     使用 AutoGLM 执行自然语言任务，每一步自动截图并上传 OSS 入库
@@ -321,6 +454,15 @@ def run_with_autoglm(
         model_config=model_config,
         agent_config=agent_config,
     )
+    if capture_screenshots and _should_install_pre_action_capture(task):
+        _install_pre_action_screenshot_capture(
+            agent,
+            output_dir,
+            source_app,
+            task_id,
+            task_run_id,
+            db_device_id,
+        )
 
     task = _append_auto_screenshot_stop_rule(task)
 
@@ -333,51 +475,61 @@ def run_with_autoglm(
 
     # 使用 step() 逐步执行，每步截图
     popup_flow = PopupFlowStateMachine(task)
+    goal_finish_guard = SequentialGoalFinishGuard(task)
     step_result = agent.step(task=task)
     step_idx = 0
 
-    if capture_screenshots and step_result.success:
+    if capture_screenshots and _should_save_step_screenshot(step_result):
         screenshot_path = _save_screenshot_from_agent(
             agent,
             step_idx,
             output_dir,
+            source_app=source_app,
             task_id=task_id,
             task_run_id=task_run_id,
             db_device_id=db_device_id,
         )
         popup_flow.record_screenshot(screenshot_path)
     step_idx += 1
+    goal_finish_guard.record_action(step_result.action)
 
     # 继续执行直到完成
     while step_idx < max_steps:
-        if step_result.finished and popup_flow.should_accept_finish():
+        if step_result.finished and popup_flow.should_accept_finish() and goal_finish_guard.should_accept_finish():
             break
 
         instruction = popup_flow.next_instruction(finished=step_result.finished)
+        if not instruction:
+            instruction = goal_finish_guard.next_instruction(finished=step_result.finished)
         if instruction:
-            print("⚠️ AutoGLM 弹窗流程未闭环，按状态机继续执行")
-            popup_flow.expect_close_result()
+            print("⚠️ AutoGLM 流程未闭环，按状态机继续执行")
+            if instruction in (POPUP_CONTINUE_TASK, POPUP_BACK_TASK):
+                popup_flow.expect_close_result()
             step_result = agent.step(task=instruction)
         elif step_result.finished:
             break
         else:
             step_result = agent.step()
 
-        if capture_screenshots and step_result.success:
+        if capture_screenshots and _should_save_step_screenshot(step_result):
             screenshot_path = _save_screenshot_from_agent(
                 agent,
                 step_idx,
                 output_dir,
+                source_app=source_app,
                 task_id=task_id,
                 task_run_id=task_run_id,
                 db_device_id=db_device_id,
             )
             popup_flow.record_screenshot(screenshot_path)
         step_idx += 1
+        goal_finish_guard.record_action(step_result.action)
 
     print("-" * 50)
     print(f"✅ 任务完成: {step_result.message or 'done'}")
     print(f"📸 共截图 {step_idx} 张，保存在: {output_dir}")
+    if exit_app_on_finish:
+        _force_stop_app(source_app, agent_config.device_id)
     return step_result.message or "done"
 
 
@@ -394,7 +546,9 @@ def main():
     parser.add_argument("--task-run-id", default=None, help="关联后台任务运行 ID")
     parser.add_argument("--device-id", default=None, help="ADB 设备序列号")
     parser.add_argument("--db-device-id", default=None, help="后台设备记录 ID")
+    parser.add_argument("--source-app", default="taobao", help="截图入库时记录的来源 App")
     parser.add_argument("--no-capture", action="store_true", help="不自动截图（仅执行任务）")
+    parser.add_argument("--no-exit-app", action="store_true", help="任务完成后不退出当前执行 App")
     parser.add_argument("--check", action="store_true", help="检查系统要求")
 
     args = parser.parse_args()
@@ -432,6 +586,8 @@ def main():
         task_run_id=args.task_run_id,
         device_id=args.device_id,
         db_device_id=args.db_device_id,
+        source_app=args.source_app,
+        exit_app_on_finish=not args.no_exit_app,
     )
 
 

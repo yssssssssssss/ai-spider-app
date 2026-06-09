@@ -7,12 +7,29 @@ import time
 import threading
 import asyncio
 from uuid import UUID
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from app.database import SessionLocal
 from app import crud, schemas
 from app.services.goal_validator import missing_goal_failure_reason, validate_task_run_goals
 from app.services.task_events import push_event, task_event
 from app.services.oss_uploader import oss_uploader
+from app.services.status_reconciler import reconcile_stale_statuses
+from app.services.devices import refresh_devices
+
+
+ACTIVE_TASK_STATUSES = {"queued", "running"}
+
+
+def execution_mode() -> str:
+    from app.services.task_executor import execution_mode as current_execution_mode
+
+    return current_execution_mode()
+
+
+def task_executor():
+    from app.services.task_executor import task_executor as current_task_executor
+
+    return current_task_executor()
 
 
 def _is_collectable_image_file(filename: str) -> bool:
@@ -35,8 +52,72 @@ def _trigger_analysis(image_id: UUID):
     t.start()
 
 
+def _start_local_comparison_task(db, task, *, created_by):
+    refresh_devices(db)
+    device = crud.acquire_device(db)
+    if not device:
+        crud.update_task_status(db, task.id, "failed")
+        return None
+
+    crud.update_task_status(db, task.id, "running")
+    run = crud.create_task_run(
+        db,
+        task.id,
+        status="pending",
+        execution_mode="local",
+        device_id=device.id,
+        created_by=created_by,
+    )
+    if not crud.mark_device_busy(db, device.id, run.id):
+        crud.update_task_status(db, task.id, "failed")
+        crud.update_task_run(db, run.id, status="failed", failure_reason="Device is busy")
+        return None
+
+    prompt = task.generated_instruction if task.mode == "autoglm" else None
+    try:
+        task_executor().run(task, prompt=prompt, task_run=run, created_by=created_by, device=device)
+    except (FileNotFoundError, ValueError) as exc:
+        crud.update_task_status(db, task.id, "failed")
+        crud.update_task_run(db, run.id, status="failed", failure_reason=str(exc))
+        crud.release_device_for_run(db, run.id)
+        return None
+    return crud.get_task(db, task.id)
+
+
+def _next_pending_comparison_task(group, *, exclude_task_id: UUID):
+    for app in group.apps:
+        if app.task and app.task.id != exclude_task_id and app.task.status == "pending":
+            return app.task
+    if group.jd_task and group.jd_task.id != exclude_task_id and group.jd_task.status == "pending":
+        return group.jd_task
+    return None
+
+
+def _maybe_start_jd_comparison_task(db, task_uuid: UUID, *, final_status: str):
+    if final_status != "completed" or execution_mode() != "local":
+        return None
+
+    group = crud.get_comparison_group_by_task(db, task_uuid)
+    if not group:
+        return None
+    if group.jd_task_id == task_uuid:
+        return None
+
+    tasks = [app.task for app in group.apps if app.task]
+    if group.jd_task:
+        tasks.append(group.jd_task)
+    if any(task.status in ACTIVE_TASK_STATUSES for task in tasks if task.id != task_uuid):
+        return None
+
+    next_task = _next_pending_comparison_task(group, exclude_task_id=task_uuid)
+    if not next_task:
+        return None
+    created_by = next_task.created_by or (group.jd_task.created_by if group.jd_task else None)
+    return _start_local_comparison_task(db, next_task, created_by=created_by)
+
+
 def _finish_run(db, task_uuid: UUID, run_uuid: UUID | None, status: str, *, exit_code: int | None = None, failure_reason: str | None = None):
-    now = datetime.now(UTC).replace(tzinfo=None)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     task = crud.get_task(db, task_uuid)
     goal_validation = None
     final_status = status
@@ -61,6 +142,8 @@ def _finish_run(db, task_uuid: UUID, run_uuid: UUID | None, status: str, *, exit
             goal_validation_json=goal_validation,
         )
         crud.release_device_for_run(db, run_uuid)
+    _maybe_start_jd_comparison_task(db, task_uuid, final_status=final_status)
+    reconcile_stale_statuses(db, apply=True, task_ids=[task_uuid])
 
 
 def _watch_and_upload(
@@ -153,7 +236,7 @@ def _watch_and_upload(
                         oss_key=oss_key,
                         source_app=(task.target_app if task else None),
                         scenario=(task.target_scenario if task else None),
-                        captured_at=datetime.now(UTC).replace(tzinfo=None),
+                        captured_at=datetime.now(timezone.utc).replace(tzinfo=None),
                         task_id=task_uuid,
                         task_run_id=run_uuid,
                         device_id=device_uuid,

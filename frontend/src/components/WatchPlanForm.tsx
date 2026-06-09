@@ -1,7 +1,23 @@
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createWatchPlan } from '../api';
+import AnalysisSkillSelector from './AnalysisSkillSelector';
 import { useToast } from './Toast';
+
+const toDateInputValue = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const todayValue = () => toDateInputValue(new Date());
+
+const daysFromTodayValue = (days: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return toDateInputValue(date);
+};
 
 const initialForm = {
   name: '',
@@ -9,13 +25,17 @@ const initialForm = {
   target_page: '',
   entry_instruction: '',
   focus_question: '',
+  schedule_start_date: todayValue(),
+  schedule_end_date: daysFromTodayValue(30),
   schedule_time: '10:00',
+  schedule_cycle: 'daily',
 };
 
 export default function WatchPlanForm({ homePanel = false }: { homePanel?: boolean }) {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [form, setForm] = useState(initialForm);
+  const [analysisSkillIds, setAnalysisSkillIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   const update = (key: string, value: string) => {
@@ -33,7 +53,11 @@ export default function WatchPlanForm({ homePanel = false }: { homePanel?: boole
         target_page: form.target_page.trim(),
         entry_instruction: form.entry_instruction.trim(),
         focus_question: form.focus_question.trim() || null,
+        schedule_start_date: form.schedule_start_date,
+        schedule_end_date: form.schedule_end_date,
         schedule_time: form.schedule_time.length === 5 ? `${form.schedule_time}:00` : form.schedule_time,
+        schedule_cycle: form.schedule_cycle,
+        analysis_skill_ids: analysisSkillIds,
       };
       const { data } = await createWatchPlan(payload);
       showToast('观察计划已创建', 'success');
@@ -51,7 +75,7 @@ export default function WatchPlanForm({ homePanel = false }: { homePanel?: boole
         <div>
           <h2 style={{ marginBottom: 8 }}>新建观察</h2>
           <p style={{ marginBottom: 32, color: 'var(--text-secondary)' }}>
-            创建一个每天自动采集的固定页面首屏观察计划
+            创建一个按周期自动采集的固定页面首屏观察计划
           </p>
         </div>
       )}
@@ -85,6 +109,33 @@ export default function WatchPlanForm({ homePanel = false }: { homePanel?: boole
               required
             />
           </label>
+        </div>
+
+        <div className="form-grid">
+          <label>
+            <span>起始日期</span>
+            <input
+              type="date"
+              value={form.schedule_start_date}
+              onChange={event => {
+                update('schedule_start_date', event.target.value);
+                if (form.schedule_end_date < event.target.value) {
+                  update('schedule_end_date', event.target.value);
+                }
+              }}
+              required
+            />
+          </label>
+          <label>
+            <span>结束日期</span>
+            <input
+              type="date"
+              value={form.schedule_end_date}
+              min={form.schedule_start_date}
+              onChange={event => update('schedule_end_date', event.target.value)}
+              required
+            />
+          </label>
           <label>
             <span>执行时间</span>
             <input
@@ -93,6 +144,25 @@ export default function WatchPlanForm({ homePanel = false }: { homePanel?: boole
               onChange={event => update('schedule_time', event.target.value)}
               required
             />
+          </label>
+          <label>
+            <span>执行周期</span>
+            <div className="request-schedule-cycle" role="group" aria-label="执行周期">
+              {[
+                ['daily', '每天'],
+                ['weekly', '每周'],
+                ['monthly', '每月'],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={form.schedule_cycle === value ? 'active' : ''}
+                  onClick={() => update('schedule_cycle', value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </label>
         </div>
 
@@ -114,6 +184,8 @@ export default function WatchPlanForm({ homePanel = false }: { homePanel?: boole
             placeholder="关注页面的补贴利益点、主视觉、频道入口和活动氛围变化"
           />
         </label>
+
+        <AnalysisSkillSelector value={analysisSkillIds} onChange={setAnalysisSkillIds} />
 
         <div className="form-actions">
           <button type="submit" disabled={submitting}>

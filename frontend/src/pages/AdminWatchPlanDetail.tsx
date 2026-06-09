@@ -39,6 +39,19 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`badge ${map[status] || ''}`}>{labels[status] || status}</span>;
 }
 
+const cycleLabels: Record<string, string> = {
+  daily: '每天',
+  weekly: '每周',
+  monthly: '每月',
+};
+
+function formatScheduleRange(plan: any) {
+  if (!plan.schedule_end_date) {
+    return `${plan.schedule_start_date || '-'} 起`;
+  }
+  return `${plan.schedule_start_date || '-'} 至 ${plan.schedule_end_date}`;
+}
+
 const fieldLabels: Record<string, string> = {
   added: '新增内容',
   removed: '消失内容',
@@ -258,6 +271,8 @@ export default function AdminWatchPlanDetail() {
       <section className="watch-overview">
         <div className="watch-meta-panel">
           <div className="watch-meta-row"><span>状态</span><StatusBadge status={plan.status} /></div>
+          <div className="watch-meta-row"><span>日期范围</span><strong>{formatScheduleRange(plan)}</strong></div>
+          <div className="watch-meta-row"><span>执行周期</span><strong>{cycleLabels[plan.schedule_cycle] || plan.schedule_cycle || '每天'}</strong></div>
           <div className="watch-meta-row"><span>执行时间</span><strong>{String(plan.schedule_time).slice(0, 5)}</strong></div>
           <div className="watch-meta-row"><span>最近运行</span><strong>{formatDate(plan.last_run_at)}</strong></div>
           <div className="watch-meta-row"><span>最近运行状态</span>{latest_run ? <StatusBadge status={latest_run.status} /> : <strong>-</strong>}</div>

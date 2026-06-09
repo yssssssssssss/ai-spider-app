@@ -2,7 +2,8 @@ from uuid import UUID
 from typing import List, Optional
 from datetime import date, datetime
 from sqlalchemy.orm import Session
-from sqlalchemy import func, or_
+from sqlalchemy import String, func, or_
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app import models, schemas
 
@@ -74,11 +75,19 @@ def list_images(
             q = q.filter(models.Analysis.embedding_status == embedding_status)
     return q.order_by(models.Image.created_at.desc()).offset(skip).limit(limit).all()
 
-def create_analysis(db: Session, image_id: UUID, design: str, ops: str, status: str = "success") -> models.Analysis:
+def create_analysis(
+    db: Session,
+    image_id: UUID,
+    design: str,
+    ops: str,
+    status: str = "success",
+    custom_analysis_json: Optional[dict] = None,
+) -> models.Analysis:
     db_analysis = get_analysis_by_image(db, image_id)
     if db_analysis:
         db_analysis.design_analysis = design
         db_analysis.ops_analysis = ops
+        db_analysis.custom_analysis_json = custom_analysis_json or {}
         db_analysis.status = status
         db_analysis.embedding_status = "pending"
         db_analysis.embedding_error = None
@@ -88,6 +97,7 @@ def create_analysis(db: Session, image_id: UUID, design: str, ops: str, status: 
             image_id=image_id,
             design_analysis=design,
             ops_analysis=ops,
+            custom_analysis_json=custom_analysis_json or {},
             status=status,
             embedding_status="pending",
             analyzed_at=func.now()
@@ -117,10 +127,21 @@ def update_embedding_status(
 def get_analysis_by_image(db: Session, image_id: UUID) -> Optional[models.Analysis]:
     return db.query(models.Analysis).filter(models.Analysis.image_id == image_id).first()
 
-def create_request(db: Session, req: schemas.RequestCreate, user_id: Optional[str] = None) -> models.Request:
+def create_request(
+    db: Session,
+    req: schemas.RequestCreate,
+    user_id: Optional[str] = None,
+    analysis_skill_snapshots: Optional[list[dict]] = None,
+    comparison_config: Optional[dict] = None,
+) -> models.Request:
     data = req.model_dump()
+    data.pop("analysis_skill_ids", None)
+    data.pop("comparison", None)
     if user_id:
         data["user_id"] = user_id
+    data["analysis_skill_snapshots_json"] = analysis_skill_snapshots or []
+    data["comparison_config_json"] = comparison_config or {}
+    data["compare_jd_enabled"] = bool(req.compare_jd_enabled and comparison_config)
     db_req = models.Request(**data)
     db.add(db_req)
     db.commit()
@@ -162,6 +183,32 @@ def update_request_status(db: Session, request_id: UUID, status: str) -> Optiona
         db.refresh(req)
     return req
 
+
+def approve_request(db: Session, request_id: UUID, approved_task_mode: str) -> Optional[models.Request]:
+    req = db.query(models.Request).filter(models.Request.id == request_id).first()
+    if req:
+        req.status = "approved"
+        req.approved_task_mode = approved_task_mode
+        db.commit()
+        db.refresh(req)
+    return req
+
+
+def list_scheduled_requests(
+    db: Session,
+    *,
+    status: str = "approved",
+    limit: int = 1000,
+) -> List[models.Request]:
+    return (
+        db.query(models.Request)
+        .filter(models.Request.status == status)
+        .filter(models.Request.schedule_enabled.is_(True))
+        .order_by(models.Request.created_at.asc())
+        .limit(limit)
+        .all()
+    )
+
 def create_task(
     db: Session,
     name: str,
@@ -171,16 +218,19 @@ def create_task(
     request_id: Optional[UUID] = None,
     admin_id: Optional[str] = None,
     mode: str = "uiautomator2",
+    scheduled_run_date: Optional[date] = None,
     created_by: Optional[UUID] = None,
     approved_by: Optional[UUID] = None,
     run_by: Optional[UUID] = None,
     target_goals_json: Optional[list | dict] = None,
+    analysis_skill_snapshots: Optional[list[dict]] = None,
 ) -> models.Task:
     db_task = models.Task(
         name=name,
         keyword=keyword,
         target_app=target_app,
         target_scenario=target_scenario,
+        scheduled_run_date=scheduled_run_date,
         mode=mode,
         request_id=request_id,
         admin_id=admin_id,
@@ -188,6 +238,7 @@ def create_task(
         approved_by=approved_by,
         run_by=run_by,
         target_goals_json=target_goals_json or [],
+        analysis_skill_snapshots_json=analysis_skill_snapshots or [],
         status="pending",
         approved_at=func.now() if admin_id or approved_by else None
     )
@@ -195,6 +246,302 @@ def create_task(
     db.commit()
     db.refresh(db_task)
     return db_task
+
+
+def create_comparison_group(
+    db: Session,
+    *,
+    request_id: UUID,
+    baseline_app: str,
+    jd_instruction: str,
+    status: str = "pending",
+) -> models.ComparisonGroup:
+    group = models.ComparisonGroup(
+        request_id=request_id,
+        baseline_app=baseline_app,
+        jd_instruction=jd_instruction,
+        status=status,
+    )
+    db.add(group)
+    db.commit()
+    db.refresh(group)
+    return group
+
+
+def update_comparison_group_jd_task(
+    db: Session,
+    group_id: UUID,
+    jd_task_id: UUID,
+    *,
+    status: Optional[str] = None,
+) -> Optional[models.ComparisonGroup]:
+    group = db.query(models.ComparisonGroup).filter(models.ComparisonGroup.id == group_id).first()
+    if not group:
+        return None
+    group.jd_task_id = jd_task_id
+    if status is not None:
+        group.status = status
+    group.updated_at = datetime.now()
+    db.commit()
+    db.refresh(group)
+    return group
+
+
+def create_comparison_group_app(
+    db: Session,
+    comparison_group_id: UUID,
+    app_name: str,
+    task_id: Optional[UUID],
+    *,
+    status: str = "pending",
+) -> models.ComparisonGroupApp:
+    row = models.ComparisonGroupApp(
+        comparison_group_id=comparison_group_id,
+        app_name=app_name,
+        task_id=task_id,
+        status=status,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+def create_comparison_slot(
+    db: Session,
+    comparison_group_id: UUID,
+    slot_key: str,
+    name: str,
+    description: str,
+    required: bool,
+    sort_order: int,
+) -> models.ComparisonSlot:
+    slot = models.ComparisonSlot(
+        comparison_group_id=comparison_group_id,
+        slot_key=slot_key,
+        name=name,
+        description=description,
+        required=required,
+        sort_order=sort_order,
+    )
+    db.add(slot)
+    db.commit()
+    db.refresh(slot)
+    return slot
+
+
+def get_comparison_group_by_request(db: Session, request_id: UUID) -> Optional[models.ComparisonGroup]:
+    return db.query(models.ComparisonGroup).filter(models.ComparisonGroup.request_id == request_id).first()
+
+
+def get_comparison_group_by_task(db: Session, task_id: UUID) -> Optional[models.ComparisonGroup]:
+    group = db.query(models.ComparisonGroup).filter(models.ComparisonGroup.jd_task_id == task_id).first()
+    if group:
+        return group
+    return (
+        db.query(models.ComparisonGroup)
+        .join(models.ComparisonGroupApp, models.ComparisonGroupApp.comparison_group_id == models.ComparisonGroup.id)
+        .filter(models.ComparisonGroupApp.task_id == task_id)
+        .first()
+    )
+
+
+def get_comparison_group_app_by_task(db: Session, task_id: UUID) -> Optional[models.ComparisonGroupApp]:
+    return db.query(models.ComparisonGroupApp).filter(models.ComparisonGroupApp.task_id == task_id).first()
+
+
+def list_comparison_group_apps(db: Session, group_id: UUID) -> List[models.ComparisonGroupApp]:
+    return (
+        db.query(models.ComparisonGroupApp)
+        .filter(models.ComparisonGroupApp.comparison_group_id == group_id)
+        .order_by(models.ComparisonGroupApp.app_name.asc())
+        .all()
+    )
+
+
+def list_comparison_slots(db: Session, group_id: UUID) -> List[models.ComparisonSlot]:
+    return (
+        db.query(models.ComparisonSlot)
+        .filter(models.ComparisonSlot.comparison_group_id == group_id)
+        .order_by(models.ComparisonSlot.sort_order.asc(), models.ComparisonSlot.created_at.asc())
+        .all()
+    )
+
+
+def create_comparison_slot_match(
+    db: Session,
+    comparison_group_id: UUID,
+    slot_id: Optional[UUID],
+    app_name: str,
+    task_id: UUID,
+    image_id: UUID,
+    confidence: float,
+    status: str,
+    reason: Optional[str] = None,
+) -> models.ComparisonSlotMatch:
+    def delete_stale_pair_analyses(match: models.ComparisonSlotMatch) -> None:
+        if not match.slot_id:
+            return
+        if match.app_name == "京东":
+            app_ids = (
+                db.query(models.ComparisonGroupApp.id)
+                .filter(models.ComparisonGroupApp.comparison_group_id == match.comparison_group_id)
+            )
+            stale_pairs = (
+                db.query(models.ComparisonPairAnalysis)
+                .filter(models.ComparisonPairAnalysis.slot_id == match.slot_id)
+                .filter(models.ComparisonPairAnalysis.comparison_group_app_id.in_(app_ids))
+                .all()
+            )
+        else:
+            group_app = (
+                db.query(models.ComparisonGroupApp)
+                .filter(models.ComparisonGroupApp.comparison_group_id == match.comparison_group_id)
+                .filter(models.ComparisonGroupApp.app_name == match.app_name)
+                .first()
+            )
+            stale_pairs = (
+                db.query(models.ComparisonPairAnalysis)
+                .filter(models.ComparisonPairAnalysis.slot_id == match.slot_id)
+                .filter(models.ComparisonPairAnalysis.comparison_group_app_id == group_app.id)
+                .all()
+                if group_app else []
+            )
+        for pair in stale_pairs:
+            db.delete(pair)
+
+    existing_image = (
+        db.query(models.ComparisonSlotMatch)
+        .filter(models.ComparisonSlotMatch.image_id == image_id)
+        .first()
+    )
+    if existing_image:
+        return existing_image
+
+    if status == "matched" and slot_id is not None:
+        locked = (
+            db.query(models.ComparisonSlotMatch)
+            .filter(models.ComparisonSlotMatch.comparison_group_id == comparison_group_id)
+            .filter(models.ComparisonSlotMatch.slot_id == slot_id)
+            .filter(models.ComparisonSlotMatch.app_name == app_name)
+            .filter(models.ComparisonSlotMatch.status == "matched")
+            .order_by(models.ComparisonSlotMatch.confidence.desc(), models.ComparisonSlotMatch.created_at.asc())
+            .first()
+        )
+        if locked:
+            if confidence > locked.confidence:
+                delete_stale_pair_analyses(locked)
+                locked.task_id = task_id
+                locked.image_id = image_id
+                locked.confidence = confidence
+                locked.reason = reason
+                db.commit()
+                db.refresh(locked)
+            return locked
+
+    match = models.ComparisonSlotMatch(
+        comparison_group_id=comparison_group_id,
+        slot_id=slot_id,
+        app_name=app_name,
+        task_id=task_id,
+        image_id=image_id,
+        confidence=confidence,
+        status=status,
+        reason=reason,
+    )
+    db.add(match)
+    db.commit()
+    db.refresh(match)
+    return match
+
+
+def list_comparison_slot_matches(db: Session, group_id: UUID) -> List[models.ComparisonSlotMatch]:
+    return (
+        db.query(models.ComparisonSlotMatch)
+        .filter(models.ComparisonSlotMatch.comparison_group_id == group_id)
+        .order_by(models.ComparisonSlotMatch.created_at.asc())
+        .all()
+    )
+
+
+def get_comparison_pair_analysis(
+    db: Session,
+    comparison_group_app_id: UUID,
+    slot_id: UUID,
+) -> Optional[models.ComparisonPairAnalysis]:
+    return (
+        db.query(models.ComparisonPairAnalysis)
+        .filter(models.ComparisonPairAnalysis.comparison_group_app_id == comparison_group_app_id)
+        .filter(models.ComparisonPairAnalysis.slot_id == slot_id)
+        .first()
+    )
+
+
+def create_comparison_pair_analysis(
+    db: Session,
+    comparison_group_app_id: UUID,
+    slot_id: UUID,
+    a_image_id: UUID,
+    jd_image_id: UUID,
+    custom_analysis_json: Optional[dict] = None,
+    *,
+    status: str = "pending",
+    error: Optional[str] = None,
+) -> models.ComparisonPairAnalysis:
+    existing = get_comparison_pair_analysis(db, comparison_group_app_id, slot_id)
+    if existing:
+        return existing
+    analysis = models.ComparisonPairAnalysis(
+        comparison_group_app_id=comparison_group_app_id,
+        slot_id=slot_id,
+        a_image_id=a_image_id,
+        jd_image_id=jd_image_id,
+        custom_analysis_json=custom_analysis_json or {},
+        status=status,
+        error=error,
+        analyzed_at=func.now() if status in ("success", "partial", "failed") else None,
+    )
+    db.add(analysis)
+    db.commit()
+    db.refresh(analysis)
+    return analysis
+
+
+def update_comparison_pair_analysis(
+    db: Session,
+    pair_id: UUID,
+    *,
+    custom_analysis_json: Optional[dict] = None,
+    status: Optional[str] = None,
+    error: Optional[str] = None,
+) -> Optional[models.ComparisonPairAnalysis]:
+    pair = db.query(models.ComparisonPairAnalysis).filter(models.ComparisonPairAnalysis.id == pair_id).first()
+    if not pair:
+        return None
+    if custom_analysis_json is not None:
+        pair.custom_analysis_json = custom_analysis_json
+    if status is not None:
+        pair.status = status
+    pair.error = error
+    if status in ("success", "partial", "failed"):
+        pair.analyzed_at = func.now()
+    pair.updated_at = datetime.now()
+    db.commit()
+    db.refresh(pair)
+    return pair
+
+
+def get_scheduled_task_for_request_date(
+    db: Session,
+    request_id: UUID,
+    run_date: date,
+) -> Optional[models.Task]:
+    return (
+        db.query(models.Task)
+        .filter(models.Task.request_id == request_id)
+        .filter(models.Task.scheduled_run_date == run_date)
+        .first()
+    )
 
 def get_task(db: Session, task_id: UUID) -> Optional[models.Task]:
     return db.query(models.Task).filter(models.Task.id == task_id).first()
@@ -226,11 +573,59 @@ def list_tasks(
         models.Task.approved_at.desc().nullslast(),
     ).offset(skip).limit(limit).all()
 
+
+def publish_task_to_blackboard(db: Session, task_id: UUID, published_by: Optional[UUID]) -> Optional[models.BlackboardPost]:
+    task = get_task(db, task_id)
+    if not task:
+        return None
+    existing = db.query(models.BlackboardPost).filter(models.BlackboardPost.task_id == task_id).first()
+    if existing:
+        return existing
+    post = models.BlackboardPost(task_id=task_id, published_by=published_by)
+    db.add(post)
+    db.commit()
+    db.refresh(post)
+    return post
+
+
+def unpublish_task_from_blackboard(db: Session, task_id: UUID) -> bool:
+    post = db.query(models.BlackboardPost).filter(models.BlackboardPost.task_id == task_id).first()
+    if not post:
+        return False
+    db.delete(post)
+    db.commit()
+    return True
+
+
+def get_blackboard_post_by_task(db: Session, task_id: UUID) -> Optional[models.BlackboardPost]:
+    return db.query(models.BlackboardPost).filter(models.BlackboardPost.task_id == task_id).first()
+
+
+def list_blackboard_posts(db: Session, skip: int = 0, limit: int = 100) -> List[models.BlackboardPost]:
+    return (
+        db.query(models.BlackboardPost)
+        .join(models.Task, models.BlackboardPost.task_id == models.Task.id)
+        .order_by(models.BlackboardPost.published_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+
+def get_blackboard_image(db: Session, image_id: UUID) -> Optional[models.Image]:
+    return (
+        db.query(models.Image)
+        .join(models.Task, models.Image.task_id == models.Task.id)
+        .join(models.BlackboardPost, models.BlackboardPost.task_id == models.Task.id)
+        .filter(models.Image.id == image_id)
+        .first()
+    )
+
 def update_task_status(db: Session, task_id: UUID, status: str) -> Optional[models.Task]:
     task = db.query(models.Task).filter(models.Task.id == task_id).first()
     if task:
         task.status = status
-        if status == "completed":
+        if status in ("completed", "failed"):
             task.completed_at = func.now()
         db.commit()
         db.refresh(task)
@@ -257,6 +652,117 @@ def update_task_instruction(db: Session, task_id: UUID, instruction: str) -> Opt
 
 def get_user(db: Session, user_id: UUID) -> Optional[models.User]:
     return db.query(models.User).filter(models.User.id == user_id).first()
+
+
+def create_analysis_skill(
+    db: Session,
+    *,
+    name: str,
+    instruction_md: str,
+    owner_id: Optional[UUID],
+    is_official: bool = False,
+    status: str = "active",
+) -> models.AnalysisSkill:
+    skill = models.AnalysisSkill(
+        name=name,
+        instruction_md=instruction_md,
+        owner_id=owner_id,
+        is_official=is_official,
+        status=status,
+    )
+    db.add(skill)
+    db.commit()
+    db.refresh(skill)
+    return skill
+
+
+def get_analysis_skill(db: Session, skill_id: UUID) -> Optional[models.AnalysisSkill]:
+    return db.query(models.AnalysisSkill).filter(models.AnalysisSkill.id == skill_id).first()
+
+
+def get_official_analysis_skill_by_name(
+    db: Session,
+    name: str,
+    exclude_id: Optional[UUID] = None,
+) -> Optional[models.AnalysisSkill]:
+    q = (
+        db.query(models.AnalysisSkill)
+        .filter(models.AnalysisSkill.name == name.strip())
+        .filter(models.AnalysisSkill.is_official.is_(True))
+    )
+    if exclude_id is not None:
+        q = q.filter(models.AnalysisSkill.id != exclude_id)
+    return q.first()
+
+
+def _analysis_skill_visibility_filter(user: models.User):
+    visible = [
+        models.AnalysisSkill.owner_id == user.id,
+        models.AnalysisSkill.is_official.is_(True),
+    ]
+    if getattr(user, "role", "") == "admin":
+        visible.append(models.AnalysisSkill.owner_id.is_(None))
+    return or_(*visible)
+
+
+def list_visible_analysis_skills(db: Session, user: models.User) -> List[models.AnalysisSkill]:
+    return (
+        db.query(models.AnalysisSkill)
+        .filter(models.AnalysisSkill.status == "active")
+        .filter(_analysis_skill_visibility_filter(user))
+        .order_by(models.AnalysisSkill.is_official.desc(), models.AnalysisSkill.updated_at.desc().nullslast())
+        .all()
+    )
+
+
+def list_all_analysis_skills(db: Session) -> List[models.AnalysisSkill]:
+    return db.query(models.AnalysisSkill).order_by(models.AnalysisSkill.updated_at.desc().nullslast()).all()
+
+
+def get_selectable_analysis_skills(
+    db: Session,
+    skill_ids: List[UUID],
+    user: models.User,
+) -> List[models.AnalysisSkill]:
+    if not skill_ids:
+        return []
+    return (
+        db.query(models.AnalysisSkill)
+        .filter(models.AnalysisSkill.id.in_(skill_ids))
+        .filter(models.AnalysisSkill.status == "active")
+        .filter(_analysis_skill_visibility_filter(user))
+        .all()
+    )
+
+
+def update_analysis_skill(
+    db: Session,
+    skill_id: UUID,
+    *,
+    name: Optional[str] = None,
+    instruction_md: Optional[str] = None,
+    status: Optional[str] = None,
+    is_official: Optional[bool] = None,
+) -> Optional[models.AnalysisSkill]:
+    skill = get_analysis_skill(db, skill_id)
+    if not skill:
+        return None
+    if name is not None:
+        skill.name = name
+    if instruction_md is not None:
+        skill.instruction_md = instruction_md
+    if status is not None:
+        skill.status = status
+    if is_official is not None:
+        skill.is_official = is_official
+    skill.updated_at = datetime.now()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise
+    db.refresh(skill)
+    return skill
 
 
 def get_user_by_username(db: Session, username: str) -> Optional[models.User]:
@@ -363,9 +869,11 @@ def create_task_run(
     task_id: UUID,
     *,
     status: str = "pending",
+    execution_mode: str = "local",
     output_dir: Optional[str] = None,
     log_path: Optional[str] = None,
     device_id: Optional[UUID] = None,
+    worker_id: Optional[UUID] = None,
     created_by: Optional[UUID] = None,
 ) -> models.TaskRun:
     last_attempt = (
@@ -378,9 +886,11 @@ def create_task_run(
         task_id=task_id,
         attempt_no=last_attempt + 1,
         status=status,
+        execution_mode=execution_mode,
         output_dir=output_dir,
         log_path=log_path,
         device_id=device_id,
+        worker_id=worker_id,
         created_by=created_by,
     )
     db.add(run)
@@ -431,6 +941,10 @@ def update_task_run(
     exit_code: Optional[int] = None,
     failure_reason: Optional[str] = None,
     goal_validation_json: Optional[dict | list] = None,
+    execution_mode: Optional[str] = None,
+    worker_id: Optional[UUID] = None,
+    claimed_at: Optional[datetime] = None,
+    heartbeat_at: Optional[datetime] = None,
     output_dir: Optional[str] = None,
     log_path: Optional[str] = None,
     device_id: Optional[UUID] = None,
@@ -450,6 +964,14 @@ def update_task_run(
         run.failure_reason = failure_reason
     if goal_validation_json is not None:
         run.goal_validation_json = goal_validation_json
+    if execution_mode is not None:
+        run.execution_mode = execution_mode
+    if worker_id is not None:
+        run.worker_id = worker_id
+    if claimed_at is not None:
+        run.claimed_at = claimed_at
+    if heartbeat_at is not None:
+        run.heartbeat_at = heartbeat_at
     if output_dir is not None:
         run.output_dir = output_dir
     if log_path is not None:
@@ -473,12 +995,53 @@ def get_device_by_serial(db: Session, serial: str) -> Optional[models.Device]:
     return db.query(models.Device).filter(models.Device.serial == serial).first()
 
 
+def get_worker(db: Session, worker_id: UUID) -> Optional[models.Worker]:
+    return db.query(models.Worker).filter(models.Worker.id == worker_id).first()
+
+
+def get_worker_by_node_key(db: Session, node_key: str) -> Optional[models.Worker]:
+    return db.query(models.Worker).filter(models.Worker.node_key == node_key).first()
+
+
+def upsert_worker(
+    db: Session,
+    *,
+    node_key: str,
+    name: Optional[str] = None,
+    status: str = "online",
+    version: Optional[str] = None,
+    notes: Optional[str] = None,
+) -> models.Worker:
+    now = datetime.now()
+    worker = get_worker_by_node_key(db, node_key)
+    if not worker:
+        worker = models.Worker(node_key=node_key, name=name or node_key, created_at=now)
+        db.add(worker)
+    worker.name = name or worker.name or node_key
+    worker.status = status
+    if version is not None:
+        worker.version = version
+    if notes is not None:
+        worker.notes = notes
+    worker.last_seen_at = now
+    worker.updated_at = now
+    db.commit()
+    db.refresh(worker)
+    return worker
+
+
+def list_workers(db: Session) -> List[models.Worker]:
+    return db.query(models.Worker).order_by(models.Worker.status.asc(), models.Worker.node_key.asc()).all()
+
+
 def upsert_device(
     db: Session,
     *,
     serial: str,
     status: str,
     name: Optional[str] = None,
+    source: str = "local",
+    worker_id: Optional[UUID] = None,
     last_seen_at: Optional[datetime] = None,
     notes: Optional[str] = None,
 ) -> models.Device:
@@ -488,6 +1051,8 @@ def upsert_device(
         db.add(device)
     device.status = status
     device.name = name or device.name or serial
+    device.source = source
+    device.worker_id = worker_id
     device.last_seen_at = last_seen_at
     device.notes = notes
     device.updated_at = datetime.now()
@@ -501,7 +1066,20 @@ def list_devices(db: Session) -> List[models.Device]:
 
 
 def acquire_device(db: Session, device_id: Optional[UUID] = None) -> Optional[models.Device]:
-    q = db.query(models.Device).filter(models.Device.status == "online")
+    q = db.query(models.Device).filter(
+        models.Device.status == "online",
+        models.Device.source == "local",
+    )
+    if device_id is not None:
+        q = q.filter(models.Device.id == device_id)
+    return q.order_by(models.Device.last_seen_at.desc().nullslast(), models.Device.serial.asc()).first()
+
+
+def acquire_worker_device(db: Session, worker_id: UUID, device_id: Optional[UUID] = None) -> Optional[models.Device]:
+    q = db.query(models.Device).filter(
+        models.Device.worker_id == worker_id,
+        models.Device.status == "online",
+    )
     if device_id is not None:
         q = q.filter(models.Device.id == device_id)
     return q.order_by(models.Device.last_seen_at.desc().nullslast(), models.Device.serial.asc()).first()
@@ -530,6 +1108,39 @@ def release_device_for_run(db: Session, task_run_id: UUID) -> Optional[models.De
     db.refresh(device)
     return device
 
+
+def claim_next_worker_task_run(db: Session, worker_id: UUID) -> Optional[models.TaskRun]:
+    run = (
+        db.query(models.TaskRun)
+        .join(models.Task, models.TaskRun.task_id == models.Task.id)
+        .outerjoin(models.Device, models.TaskRun.device_id == models.Device.id)
+        .filter(models.TaskRun.execution_mode == "worker")
+        .filter(models.TaskRun.status == "queued")
+        .filter(or_(models.TaskRun.device_id.is_(None), models.Device.worker_id == worker_id))
+        .order_by(models.TaskRun.created_at.asc())
+        .first()
+    )
+    if not run:
+        return None
+
+    device = acquire_worker_device(db, worker_id, run.device_id)
+    if not device:
+        return None
+    run.device_id = device.id
+    device.status = "busy"
+    device.current_task_run_id = run.id
+    device.updated_at = datetime.now()
+    run.worker_id = worker_id
+    run.status = "running"
+    run.claimed_at = datetime.now()
+    run.heartbeat_at = run.claimed_at
+    task = get_task(db, run.task_id)
+    if task:
+        task.status = "running"
+    db.commit()
+    db.refresh(run)
+    return run
+
 def create_embedding(db: Session, analysis_id: UUID, vector: List[float], content_type: str) -> models.Embedding:
     db_emb = db.query(models.Embedding).filter(
         models.Embedding.analysis_id == analysis_id,
@@ -544,9 +1155,35 @@ def create_embedding(db: Session, analysis_id: UUID, vector: List[float], conten
             content_type=content_type
         )
         db.add(db_emb)
-    db.commit()
+    try:
+        db.commit()
+    except SQLAlchemyError:
+        db.rollback()
+        raise
     db.refresh(db_emb)
     return db_emb
+
+
+def replace_embeddings(db: Session, analysis_id: UUID, vectors: dict[str, List[float]]) -> List[models.Embedding]:
+    db.query(models.Embedding).filter(models.Embedding.analysis_id == analysis_id).delete()
+    rows = [
+        models.Embedding(
+            analysis_id=analysis_id,
+            embedding=vector,
+            content_type=content_type,
+        )
+        for content_type, vector in vectors.items()
+    ]
+    db.add_all(rows)
+    try:
+        db.commit()
+    except SQLAlchemyError:
+        db.rollback()
+        raise
+    for row in rows:
+        db.refresh(row)
+    return rows
+
 
 def search_by_embedding(
     db: Session,
@@ -593,6 +1230,7 @@ def search_by_text(
         q = q.filter(or_(
             models.Analysis.design_analysis.ilike(pattern),
             models.Analysis.ops_analysis.ilike(pattern),
+            func.cast(models.Analysis.custom_analysis_json, String).ilike(pattern),
             models.Image.source_app.ilike(pattern),
             models.Image.scenario.ilike(pattern),
             models.Image.file_path.ilike(pattern),
@@ -600,12 +1238,20 @@ def search_by_text(
     return q.order_by(models.Analysis.analyzed_at.desc().nullslast()).offset(offset).limit(limit).all()
 
 
-def create_watch_plan(db: Session, plan: schemas.WatchPlanCreate, created_by: Optional[UUID] = None) -> models.WatchPlan:
+def create_watch_plan(
+    db: Session,
+    plan: schemas.WatchPlanCreate,
+    created_by: Optional[UUID] = None,
+    analysis_skill_snapshots: Optional[list[dict]] = None,
+) -> models.WatchPlan:
     now = datetime.now()
+    data = plan.model_dump()
+    data.pop("analysis_skill_ids", None)
     db_plan = models.WatchPlan(
-        **plan.model_dump(),
+        **data,
         status="active",
         capture_scope="first_screen",
+        analysis_skill_snapshots_json=analysis_skill_snapshots or [],
         created_by=created_by,
         updated_by=created_by,
         created_at=now,

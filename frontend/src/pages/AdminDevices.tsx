@@ -9,6 +9,11 @@ const labels: Record<string, string> = {
   disabled: '禁用',
 };
 
+const sourceLabels: Record<string, string> = {
+  local: '本机',
+  worker: 'Worker',
+};
+
 export default function AdminDevices() {
   const { showToast } = useToast();
   const [devices, setDevices] = useState<any[]>([]);
@@ -52,6 +57,7 @@ export default function AdminDevices() {
               <tr>
                 <th>序列号</th>
                 <th>名称</th>
+                <th>来源</th>
                 <th>状态</th>
                 <th>当前运行</th>
                 <th>最近心跳</th>
@@ -63,6 +69,7 @@ export default function AdminDevices() {
                 <tr key={device.id}>
                   <td><code>{device.serial}</code></td>
                   <td>{device.name || '-'}</td>
+                  <td>{sourceLabels[device.source] || device.source}{device.worker_name ? ` · ${device.worker_name}` : ''}</td>
                   <td>{labels[device.status] || device.status}</td>
                   <td>{device.current_task_run_id ? device.current_task_run_id.slice(0, 8) : '-'}</td>
                   <td>{device.last_seen_at ? new Date(device.last_seen_at).toLocaleString('zh-CN') : '-'}</td>

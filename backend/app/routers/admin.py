@@ -1,5 +1,6 @@
 import asyncio
 import os
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response, StreamingResponse
 from sqlalchemy import func
@@ -8,9 +9,11 @@ from uuid import UUID
 from typing import Optional
 from pathlib import Path
 from app.services.task_events import ensure_queue, task_event_type
-from app.services.task_planner import append_execution_rules, keyword_instruction, plan_task
+from app.services.task_planner import append_execution_rules, keyword_instruction, plan_task, _strip_manual_capture_instruction
 from app.services.task_goals import append_target_goal_checklist, build_target_goals
-from app.services.task_runner import start_task_process
+from app.services.task_executor import execution_mode, task_executor
+from app.services.request_scheduler import create_scheduled_request_task, request_is_due_now
+from app.services.jd_comparison import create_comparison_for_request
 from app.services.embedder import embedder
 from app.services.auth import data_scope_user_id, get_current_user, require_at_least
 from app.services.devices import refresh_devices
@@ -63,9 +66,9 @@ def build_autoglm_prompt(task) -> str:
         parts.append(req.description)
 
     # 5. 最终动作
-    parts.append("并截图保存到本地")
+    parts.append("到达目标页面后停留并结束任务")
 
-    instruction = append_execution_rules("，".join(parts))
+    instruction = append_execution_rules(_strip_manual_capture_instruction("，".join(parts)))
     return append_target_goal_checklist(instruction, getattr(task, "target_goals_json", None))
 
 
@@ -91,6 +94,67 @@ def _get_visible_task_run(db: Session, run_id: UUID, user: models.User) -> model
     if not run:
         raise HTTPException(status_code=404, detail="Task run not found")
     return run
+
+
+def _reopen_comparison_group_for_task(db: Session, task_id: UUID) -> None:
+    group = crud.get_comparison_group_by_task(db, task_id)
+    if not group or group.status == "running":
+        return
+    group.status = "running"
+    group.updated_at = datetime.now()
+    db.commit()
+
+
+def _start_task(
+    db: Session,
+    task_id: UUID,
+    user: models.User,
+    body: schemas.RunTaskRequest | schemas.RetryTaskRequest | None = None,
+) -> schemas.TaskOut:
+    task = _get_visible_task(db, task_id, user)
+    if task.status in ("running", "queued"):
+        raise HTTPException(status_code=400, detail="Task is already running")
+
+    active_mode = execution_mode()
+    device = _select_run_device(db, body.device_id if body else None, task, active_mode)
+    crud.update_task_status(db, task_id, "queued" if active_mode == "worker" else "running")
+    crud.set_task_run_user(db, task_id, user.id)
+    task = crud.get_task(db, task_id)
+
+    prompt = (task.generated_instruction or build_autoglm_prompt(task)) if task.mode == "autoglm" else None
+    if active_mode == "worker" and prompt and not task.generated_instruction:
+        crud.update_task_instruction(db, task.id, prompt)
+        task = crud.get_task(db, task.id)
+
+    run = crud.create_task_run(
+        db,
+        task_id,
+        status="queued" if active_mode == "worker" else "pending",
+        execution_mode=active_mode,
+        device_id=device.id if device else None,
+        created_by=user.id,
+    )
+    if device and active_mode == "local":
+        if not crud.mark_device_busy(db, device.id, run.id):
+            crud.update_task_status(db, task_id, "failed")
+            crud.update_task_run(db, run.id, status="failed", failure_reason="Device is busy")
+            raise HTTPException(status_code=400, detail="Device is busy")
+
+    try:
+        task_executor().run(task, prompt=prompt, task_run=run, created_by=user.id, device=device)
+    except FileNotFoundError as e:
+        crud.update_task_status(db, task_id, "failed")
+        crud.update_task_run(db, run.id, status="failed", failure_reason=str(e))
+        crud.release_device_for_run(db, run.id)
+        raise HTTPException(status_code=500, detail=str(e))
+    except ValueError as e:
+        crud.update_task_status(db, task_id, "failed")
+        crud.update_task_run(db, run.id, status="failed", failure_reason=str(e))
+        crud.release_device_for_run(db, run.id)
+        raise HTTPException(status_code=400, detail=str(e))
+
+    _reopen_comparison_group_for_task(db, task_id)
+    return _task_out(db, crud.get_task(db, task_id))
 
 
 @router.get("/stats")
@@ -125,7 +189,7 @@ def list_requests(status: Optional[str] = None, skip: int = 0, limit: int = 100,
     return [_request_out(db, req) for req in crud.list_requests(db, status=status, skip=skip, limit=limit, user_id=data_scope_user_id(user))]
 
 
-@router.put("/requests/{request_id}/approve", response_model=schemas.TaskOut)
+@router.put("/requests/{request_id}/approve", response_model=schemas.TaskOut | schemas.RequestOut)
 async def approve_request(
     request_id: UUID,
     body: schemas.ApproveRequest,
@@ -133,7 +197,30 @@ async def approve_request(
     user: models.User = Depends(require_at_least("operator")),
 ):
     req = _get_visible_request(db, request_id, user)
-    crud.update_request_status(db, request_id, "approved")
+    req = crud.approve_request(db, request_id, body.mode)
+
+    if req.schedule_enabled:
+        if request_is_due_now(req, datetime.now()):
+            task = create_scheduled_request_task(db, req, datetime.now().date())
+            return _task_out(db, task)
+        return _request_out(db, req)
+
+    if req.compare_jd_enabled:
+        _, tasks = await create_comparison_for_request(
+            db,
+            req,
+            mode=body.mode,
+            admin_id=body.admin_id or user.username,
+            approved_by=user.id,
+            planner=plan_task,
+        )
+        started = None
+        tasks_to_start = tasks if execution_mode() == "worker" else tasks[:1]
+        for task in tasks_to_start:
+            started = _start_task(db, task.id, user)
+        if started:
+            return started
+        return _request_out(db, req)
 
     keywords = req.keywords or []
     target_app = body.target_app or req.target_app
@@ -163,6 +250,7 @@ async def approve_request(
         created_by=UUID(str(req.user_id)) if _looks_uuid(req.user_id) else user.id,
         approved_by=user.id,
         target_goals_json=target_goals,
+        analysis_skill_snapshots=req.analysis_skill_snapshots_json or [],
     )
 
     # 将 LLM 生成的指令存入 task
@@ -173,7 +261,7 @@ async def approve_request(
     if task:
         task = crud.get_task(db, task.id)
 
-    return task
+    return _start_task(db, task.id, user)
 
 
 @router.put("/requests/{request_id}/reject", response_model=schemas.RequestOut)
@@ -193,6 +281,25 @@ def list_tasks(status: Optional[str] = None, skip: int = 0, limit: int = 100, db
     return [_task_out(db, task) for task in crud.list_tasks(db, status=status, skip=skip, limit=limit, user_id=data_scope_user_id(user))]
 
 
+@router.post("/tasks/{task_id}/blackboard", response_model=schemas.TaskOut)
+def publish_task_to_blackboard(task_id: UUID, db: Session = Depends(get_db), user: models.User = Depends(get_current_user)):
+    task = _get_visible_task(db, task_id, user)
+    post = crud.publish_task_to_blackboard(db, task.id, user.id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return _task_out(db, crud.get_task(db, task_id))
+
+
+@router.delete("/tasks/{task_id}/blackboard", response_model=schemas.TaskOut)
+def unpublish_task_from_blackboard(task_id: UUID, db: Session = Depends(get_db), user: models.User = Depends(get_current_user)):
+    task = _get_visible_task(db, task_id, user)
+    post = crud.get_blackboard_post_by_task(db, task.id)
+    if post and user.role != "admin" and post.published_by != user.id:
+        raise HTTPException(status_code=403, detail="Only publisher or admin can unpublish this task")
+    crud.unpublish_task_from_blackboard(db, task.id)
+    return _task_out(db, crud.get_task(db, task_id))
+
+
 @router.post("/tasks/{task_id}/run", response_model=schemas.TaskOut)
 def run_task(
     task_id: UUID,
@@ -200,34 +307,7 @@ def run_task(
     db: Session = Depends(get_db),
     user: models.User = Depends(require_at_least("operator")),
 ):
-    task = _get_visible_task(db, task_id, user)
-    if task.status == "running":
-        raise HTTPException(status_code=400, detail="Task is already running")
-    device = _select_and_lock_device(db, body.device_id if body else None, task)
-    crud.update_task_status(db, task_id, "running")
-    crud.set_task_run_user(db, task_id, user.id)
-    task = crud.get_task(db, task_id)
-
-    prompt = task.generated_instruction or build_autoglm_prompt(task) if task.mode == "autoglm" else None
-    run = crud.create_task_run(db, task_id, device_id=device.id if device else None, created_by=user.id)
-    if device:
-        if not crud.mark_device_busy(db, device.id, run.id):
-            crud.update_task_status(db, task_id, "failed")
-            crud.update_task_run(db, run.id, status="failed", failure_reason="Device is busy")
-            raise HTTPException(status_code=400, detail="Device is busy")
-    try:
-        start_task_process(task, prompt=prompt, task_run=run, created_by=user.id, device=device)
-    except FileNotFoundError as e:
-        crud.update_task_status(db, task_id, "failed")
-        crud.update_task_run(db, run.id, status="failed", failure_reason=str(e))
-        crud.release_device_for_run(db, run.id)
-        raise HTTPException(status_code=500, detail=str(e))
-    except ValueError as e:
-        crud.update_task_status(db, task_id, "failed")
-        crud.update_task_run(db, run.id, status="failed", failure_reason=str(e))
-        crud.release_device_for_run(db, run.id)
-        raise HTTPException(status_code=400, detail=str(e))
-    return _task_out(db, crud.get_task(db, task_id))
+    return _start_task(db, task_id, user, body)
 
 
 @router.post("/tasks/{task_id}/retry", response_model=schemas.TaskOut)
@@ -238,11 +318,11 @@ def retry_task(
     user: models.User = Depends(require_at_least("operator")),
 ):
     task = _get_visible_task(db, task_id, user)
-    if task.status == "running":
+    if task.status in ("running", "queued"):
         raise HTTPException(status_code=400, detail="Running task cannot be retried")
     if crud.count_task_runs(db, task_id) >= settings.TASK_MAX_RETRIES:
         raise HTTPException(status_code=400, detail="Max retry count reached")
-    return run_task(task_id, body or schemas.RetryTaskRequest(), db, user)
+    return _start_task(db, task_id, user, body or schemas.RetryTaskRequest())
 
 
 @router.get("/tasks/{task_id}/runs", response_model=list[schemas.TaskRunOut])
@@ -317,7 +397,7 @@ def export_task(task_id: UUID, format: str = "json", db: Session = Depends(get_d
 
 @router.get("/devices", response_model=list[schemas.DeviceOut])
 def list_devices(db: Session = Depends(get_db), _=Depends(get_current_user)):
-    return crud.list_devices(db)
+    return [_device_out(db, device) for device in crud.list_devices(db)]
 
 
 @router.post("/devices/refresh", response_model=schemas.DeviceRefreshOut)
@@ -363,15 +443,27 @@ def _looks_uuid(value: str | None) -> bool:
 def _task_out(db: Session, task: models.Task) -> schemas.TaskOut:
     latest = crud.get_latest_task_run(db, task.id)
     device = crud.get_device(db, latest.device_id) if latest and latest.device_id else None
+    worker = crud.get_worker(db, latest.worker_id) if latest and latest.worker_id else None
     data = schemas.TaskOut.model_validate(task).model_dump()
     data["latest_run_id"] = latest.id if latest else None
     data["attempt_count"] = crud.count_task_runs(db, task.id)
     data["failure_reason"] = latest.failure_reason if latest else None
+    data["execution_mode"] = latest.execution_mode if latest else None
     data["device_serial"] = device.serial if device else None
+    data["worker_name"] = worker.name if worker else None
     data["created_by_name"] = _user_name(db, task.created_by)
     data["approved_by_name"] = _user_name(db, task.approved_by)
     data["run_by_name"] = _user_name(db, task.run_by)
+    data["blackboard_post_id"] = task.blackboard_post.id if task.blackboard_post else None
+    data["blackboard_published_at"] = task.blackboard_post.published_at if task.blackboard_post else None
     return schemas.TaskOut.model_validate(data)
+
+
+def _device_out(db: Session, device: models.Device) -> schemas.DeviceOut:
+    data = schemas.DeviceOut.model_validate(device).model_dump()
+    worker = crud.get_worker(db, device.worker_id) if device.worker_id else None
+    data["worker_name"] = worker.name if worker else None
+    return schemas.DeviceOut.model_validate(data)
 
 
 def _request_out(db: Session, req: models.Request) -> schemas.RequestOut:
@@ -389,7 +481,14 @@ def _user_name(db: Session, user_id: UUID | None) -> str | None:
     return user.display_name or user.username
 
 
-def _select_and_lock_device(db: Session, device_id: UUID | None, task: models.Task):
+def _select_run_device(db: Session, device_id: UUID | None, task: models.Task, active_mode: str):
+    if active_mode == "worker":
+        if not device_id:
+            return None
+        device = crud.get_device(db, device_id)
+        if not device:
+            raise HTTPException(status_code=400, detail="Selected device is unavailable")
+        return device
     if task.mode not in ("autoglm", "uiautomator2") and not device_id:
         return None
     refresh_devices(db)

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import RequestForm from '../components/RequestForm';
 import WatchPlanForm from '../components/WatchPlanForm';
 import { useAuth } from '../auth';
@@ -7,8 +7,27 @@ import { useAuth } from '../auth';
 type HomeTab = 'collect' | 'watch';
 
 export default function HomePage() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<HomeTab>('collect');
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      setShowLoginPrompt(true);
+    }
+  }, [loading, user]);
+
+  useEffect(() => {
+    if (!showLoginPrompt) return undefined;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowLoginPrompt(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showLoginPrompt]);
+
+  const loginState = { from: location.pathname };
 
   return (
     <div className="animate-fade-in">
@@ -68,16 +87,62 @@ export default function HomePage() {
         </button>
       </div>
 
-      {!user ? (
-        <div className="empty-state">
-          <p>请先登录账号再提交需求或创建持续观察计划</p>
-          <Link className="link-button btn-sm" to="/login">登录</Link>
+      {loading ? (
+        <div className="skeleton home-auth-loading" aria-label="正在检查登录状态" />
+      ) : !user ? (
+        <div className="login-required-panel">
+          <button type="button" onClick={() => setShowLoginPrompt(true)}>
+            登录后使用
+          </button>
         </div>
       ) : activeTab === 'collect' ? (
         <RequestForm key="collect" />
       ) : (
         <WatchPlanForm key="watch" homePanel />
       )}
+
+      {showLoginPrompt && !loading && !user ? (
+        <div
+          className="login-prompt-layer"
+          role="presentation"
+          onClick={() => setShowLoginPrompt(false)}
+        >
+          <div
+            className="login-prompt-dialog animate-fade-in-scale"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="login-prompt-title"
+            aria-describedby="login-prompt-desc"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="login-prompt-close"
+              aria-label="关闭登录提示"
+              onClick={() => setShowLoginPrompt(false)}
+            >
+              ×
+            </button>
+            <p className="login-prompt-kicker">需要登录</p>
+            <h2 id="login-prompt-title">先登录账号，再提交分析需求</h2>
+            <p id="login-prompt-desc">
+              登录后可以提交竞品搜集需求，也可以创建固定页面的持续观察计划。
+            </p>
+            <div className="login-prompt-actions">
+              <Link className="link-button" to="/login" state={loginState}>
+                去登录
+              </Link>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setShowLoginPrompt(false)}
+              >
+                稍后再说
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

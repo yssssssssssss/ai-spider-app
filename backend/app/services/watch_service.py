@@ -273,14 +273,37 @@ def retry_watch_run(run_id: UUID):
         db.close()
 
 
+def watch_plan_is_due_on(plan, run_date: date) -> bool:
+    start_date = plan.schedule_start_date or (plan.created_at.date() if plan.created_at else run_date)
+    end_date = plan.schedule_end_date
+    cycle = plan.schedule_cycle or "daily"
+    if run_date < start_date:
+        return False
+    if end_date and run_date > end_date:
+        return False
+    if cycle == "daily":
+        return True
+    if cycle == "weekly":
+        return run_date.weekday() == start_date.weekday()
+    if cycle == "monthly":
+        return run_date.day == start_date.day
+    return False
+
+
+def watch_plan_is_due_now(plan, now: datetime) -> bool:
+    if plan.schedule_time > now.time():
+        return False
+    if plan.created_at and plan.created_at.date() == now.date() and plan.created_at.time() > plan.schedule_time:
+        return False
+    return watch_plan_is_due_on(plan, now.date())
+
+
 def run_due_watch_plans(db, now: datetime | None = None, *, start_process: bool = True) -> int:
     now = now or datetime.now()
     created = 0
     plans = crud.list_watch_plans(db, status="active", limit=1000)
     for plan in plans:
-        if plan.schedule_time > now.time():
-            continue
-        if plan.created_at and plan.created_at.date() == now.date() and plan.created_at.time() > plan.schedule_time:
+        if not watch_plan_is_due_now(plan, now):
             continue
         run = crud.get_watch_run_by_date(db, plan.id, now.date())
         if run:

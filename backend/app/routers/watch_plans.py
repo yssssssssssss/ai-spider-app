@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas, models
 from app.database import get_db
+from app.services.analysis_skills import build_skill_snapshots
 from app.services.auth import data_scope_user_id, get_current_user, require_at_least
 from app.services import exporter
 from app.services.watch_service import start_watch_run
@@ -48,7 +49,11 @@ def _watch_plan_out(plan, db: Session) -> schemas.WatchPlanOut:
         "focus_question": plan.focus_question,
         "capture_scope": plan.capture_scope,
         "schedule_time": plan.schedule_time,
+        "schedule_start_date": plan.schedule_start_date,
+        "schedule_end_date": plan.schedule_end_date,
+        "schedule_cycle": plan.schedule_cycle,
         "status": plan.status,
+        "analysis_skill_snapshots_json": plan.analysis_skill_snapshots_json,
         "pause_reason": plan.pause_reason,
         "last_run_at": plan.last_run_at,
         "created_by": plan.created_by,
@@ -95,7 +100,8 @@ def list_watch_plans(status: str | None = None, skip: int = 0, limit: int = 100,
 
 @router.post("/watch-plans", response_model=schemas.WatchPlanOut)
 def create_watch_plan(body: schemas.WatchPlanCreate, db: Session = Depends(get_db), user: models.User = Depends(require_at_least("operator"))):
-    return crud.create_watch_plan(db, body, created_by=user.id)
+    snapshots = build_skill_snapshots(db, body.analysis_skill_ids, user)
+    return crud.create_watch_plan(db, body, created_by=user.id, analysis_skill_snapshots=snapshots)
 
 
 @router.get("/watch-plans/{plan_id}", response_model=schemas.WatchPlanDetailOut)
