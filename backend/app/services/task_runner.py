@@ -2,18 +2,20 @@ import os
 import re
 import subprocess
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from app import crud
 from app.config import settings
 from app.database import SessionLocal
 from app.services.collector_bridge import start_collection_watcher
+from app.services.long_image_intent import build_long_image_navigation_prompt, is_long_image_candidate
 from app.services.task_events import ensure_queue
 
 
 LONG_CAPTURE_MODE = "product_detail_long_image"
-LONG_CAPTURE_TRIGGERS = ("长图", "拼接", "拼长图", "滚动", "多屏", "每一屏", "全页")
-PRODUCT_DETAIL_TRIGGERS = ("商品详情", "详情页", "商品页")
+WATCH_TASK_PREFIX = "[持续观察]"
+WATCH_MAX_STEPS = 8
+PRODUCT_DETAIL_TRIGGERS = ("商详", "商品详情", "商品页")
 LONG_CAPTURE_NAVIGATION_RULE = (
     "执行约束：你只负责进入商品详情页首屏并停留结束；"
     "不要滚动详情页，不要执行多屏截图，不要尝试拼接长图；"
@@ -42,7 +44,12 @@ def product_detail_long_capture_count(task, prompt: str | None = None) -> int | 
     text = _task_capture_text(task, prompt)
     if not any(marker in text for marker in PRODUCT_DETAIL_TRIGGERS):
         return None
-    if not any(marker in text for marker in LONG_CAPTURE_TRIGGERS):
+    return long_capture_count(task, prompt)
+
+
+def long_capture_count(task, prompt: str | None = None) -> int | None:
+    text = _task_capture_text(task, prompt)
+    if not is_long_image_candidate(text):
         return None
 
     match = re.search(r"(\d{1,2})\s*(?:屏|页|张)", text)
@@ -56,10 +63,24 @@ def apply_product_detail_long_capture_rule(instruction: str) -> str:
     return f"{instruction.rstrip('。')}。{LONG_CAPTURE_NAVIGATION_RULE}"
 
 
+def prepare_autoglm_instruction(task, prompt: str | None) -> tuple[str, int | None]:
+    instruction = prompt or task.generated_instruction
+    if not instruction:
+        raise ValueError("AutoGLM prompt is required")
+    capture_count = long_capture_count(task, instruction)
+    if capture_count:
+        return build_long_image_navigation_prompt(task, instruction), capture_count
+    return instruction, None
+
+
 def _safe_device_dir_name(device) -> str:
     if not device:
         return ""
     return "".join(ch if ch.isalnum() or ch in ("-", "_", ".") else "_" for ch in device.serial)
+
+
+def _is_watch_task(task) -> bool:
+    return str(getattr(task, "name", "") or "").startswith(WATCH_TASK_PREFIX)
 
 
 def _prepare_run(task, task_run=None, created_by=None, device=None):
@@ -77,7 +98,7 @@ def _prepare_run(task, task_run=None, created_by=None, device=None):
             db,
             run.id,
             status="running",
-            started_at=datetime.now(UTC).replace(tzinfo=None),
+            started_at=datetime.now(timezone.utc).replace(tzinfo=None),
             output_dir=os.path.relpath(output_dir, settings.PROJECT_ROOT),
             log_path=os.path.relpath(log_path, settings.PROJECT_ROOT),
             device_id=device_id,
@@ -97,12 +118,8 @@ def start_task_process(task, prompt: str | None = None, *, task_run=None, create
         script_path = os.path.join(project_root, "run_autoglm.py")
         if not os.path.exists(script_path):
             raise FileNotFoundError("AutoGLM script not found")
-        instruction = prompt or task.generated_instruction
-        if not instruction:
-            raise ValueError("AutoGLM prompt is required")
-        long_capture_count = product_detail_long_capture_count(task, instruction)
-        if long_capture_count:
-            instruction = apply_product_detail_long_capture_rule(instruction)
+        instruction, long_capture_count = prepare_autoglm_instruction(task, prompt)
+        is_watch_task = _is_watch_task(task)
         run, output_dir, log_path = _prepare_run(
             task,
             task_run=task_run,
@@ -127,7 +144,7 @@ def start_task_process(task, prompt: str | None = None, *, task_run=None, create
                 "--output-dir",
                 output_dir,
                 "--max-steps",
-                str(settings.AUTOGLM_MAX_STEPS),
+                str(WATCH_MAX_STEPS if is_watch_task else settings.AUTOGLM_MAX_STEPS),
             ]
             if long_capture_count:
                 command.extend([
@@ -137,6 +154,8 @@ def start_task_process(task, prompt: str | None = None, *, task_run=None, create
                     str(long_capture_count),
                     "--no-capture",
                 ])
+            elif is_watch_task:
+                command.extend(["--no-capture", "--final-capture"])
             process = subprocess.Popen(
                 command,
                 cwd=project_root,

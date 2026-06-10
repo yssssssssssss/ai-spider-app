@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 
 from app import crud, models
 
+WORKER_DEVICE_NOTE_PREFIX = "worker:"
+
 
 def parse_adb_devices(output: str) -> list[dict[str, str]]:
     devices = []
@@ -43,6 +45,8 @@ def refresh_devices(db: Session) -> tuple[list[models.Device], bool]:
         crud.upsert_device(db, serial=serial, status=status, last_seen_at=now, notes=notes)
 
     for device in crud.list_devices(db):
+        if device.notes and device.notes.startswith(WORKER_DEVICE_NOTE_PREFIX):
+            continue
         if device.serial not in seen and device.status not in ("disabled", "busy"):
             crud.upsert_device(db, serial=device.serial, status="offline", last_seen_at=device.last_seen_at, notes="not listed by adb")
     return crud.list_devices(db), True

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from uuid import UUID
 import os
@@ -19,6 +19,7 @@ NEAR_DUPLICATE_SIZE = (16, 16)
 NEAR_DUPLICATE_MAX_PIXEL_DELTA = 6.0
 NEAR_DUPLICATE_MAX_HASH_DISTANCE = 24
 ANALYZED_STATUSES = ("success", "partial")
+WATCH_TASK_PREFIX = "[持续观察]"
 
 
 def _current_user_id(user) -> UUID | None:
@@ -101,6 +102,21 @@ def _find_near_duplicate_image(db: Session, image: models.Image) -> models.Image
             return candidate
     return None
 
+
+def _is_watch_task(task) -> bool:
+    return bool(task) and str(task.name or "").startswith(WATCH_TASK_PREFIX)
+
+
+def _watch_focus_question(task) -> str | None:
+    if not task:
+        return None
+    for run in getattr(task, "watch_runs", []) or []:
+        plan = getattr(run, "plan", None)
+        focus = getattr(plan, "focus_question", None)
+        if focus:
+            return focus
+    return None
+
 def _analysis_context(image) -> dict:
     task = image.task
     request = task.request if task else None
@@ -109,11 +125,13 @@ def _analysis_context(image) -> dict:
         keywords = request.keywords
     elif task and task.keyword:
         keywords = [task.keyword]
+    is_watch = _is_watch_task(task)
     return {
         "target_app": image.source_app or (task.target_app if task else None) or (request.target_app if request else None),
         "target_scenario": image.scenario or (task.target_scenario if task else None) or (request.target_scenario if request else None),
         "keywords": keywords,
-        "focus_question": request.description if request else None,
+        "focus_question": _watch_focus_question(task) if is_watch else (request.description if request else None),
+        "prompt_profile": "watch" if is_watch else "default",
     }
 
 
@@ -122,6 +140,17 @@ def _record_analysis(db: Session, image: models.Image, design: str, ops: str, st
     if image.task_id:
         refresh_task_run_goal_validation(db, image.task_id, image.task_run_id)
     return analysis
+
+
+def _allow_watch_homepage_target_fallback(image: models.Image, reason: str) -> bool:
+    task = image.task
+    if not _is_watch_task(task):
+        return False
+    scenario = str(image.scenario or task.target_scenario or "")
+    if "首页" not in scenario:
+        return False
+    reason_text = str(reason or "")
+    return "搜索结果" in reason_text or "搜索框" in reason_text
 
 
 async def _analyze_and_embed(image_id: UUID):
@@ -144,7 +173,7 @@ async def _analyze_and_embed(image_id: UUID):
         context = _analysis_context(image)
         try:
             is_target, reason = await analyzer.is_target_page(image.file_path, context)
-            if not is_target:
+            if not is_target and not _allow_watch_homepage_target_fallback(image, reason):
                 _record_analysis(db, image, "", f"非目标页面，跳过分析: {reason}", status="skipped")
                 return
             design, ops, status = await analyzer.analyze(image.file_path, context=context)
@@ -152,20 +181,22 @@ async def _analyze_and_embed(image_id: UUID):
             _record_analysis(db, image, "", f"分析失败: {e}", status="failed")
             return
         analysis = _record_analysis(db, image, design or "", ops or "", status=status)
+        analysis_id = analysis.id
         combined_text = f"{design or ''}\n{ops or ''}".strip()
         try:
             if combined_text:
                 vector = await embedder.embed_single(combined_text)
-                crud.create_embedding(db, analysis.id, vector, "combined")
+                crud.create_embedding(db, analysis_id, vector, "combined")
             if design:
                 v_design = await embedder.embed_single(design)
-                crud.create_embedding(db, analysis.id, v_design, "design")
+                crud.create_embedding(db, analysis_id, v_design, "design")
             if ops:
                 v_ops = await embedder.embed_single(ops)
-                crud.create_embedding(db, analysis.id, v_ops, "ops")
-            crud.update_embedding_status(db, analysis.id, "success")
+                crud.create_embedding(db, analysis_id, v_ops, "ops")
+            crud.update_embedding_status(db, analysis_id, "success")
         except Exception as e:
-            crud.update_embedding_status(db, analysis.id, "failed", str(e))
+            db.rollback()
+            crud.update_embedding_status(db, analysis_id, "failed", str(e))
             print(f"⚠️ 向量写入失败 image={image_id}: {e}")
     finally:
         db.close()
@@ -237,6 +268,8 @@ def get_image(image_id: UUID, db: Session = Depends(get_db), user: models.User =
 def get_image_file(image_id: UUID, db: Session = Depends(get_db), user: models.User = Depends(get_current_user)):
     """直接返回图片文件，避免前端处理静态路径"""
     img = _get_owned_image(db, image_id, user)
+    if img.oss_url:
+        return RedirectResponse(img.oss_url)
     file_path = analyzer._resolve_image_path(img.file_path)
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Image file not found on disk")

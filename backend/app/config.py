@@ -54,6 +54,7 @@ class Settings(BaseSettings):
     AUTH_DEFAULT_ADMIN_DISPLAY_NAME: str = os.getenv("AUTH_DEFAULT_ADMIN_DISPLAY_NAME", "管理员")
     AUTH_REGISTRATION_INVITE_CODE: str = os.getenv("AUTH_REGISTRATION_INVITE_CODE", "1234")
     TASK_MAX_RETRIES: int = int(os.getenv("TASK_MAX_RETRIES", "3"))
+    WORKER_API_TOKEN: str = os.getenv("WORKER_API_TOKEN", "")
 
     # 京东云 OSS 配置
     JD_OSS_REGION: str = os.getenv("JD_OSS_REGION", "cn-south-1")

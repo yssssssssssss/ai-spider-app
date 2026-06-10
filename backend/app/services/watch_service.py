@@ -1,4 +1,5 @@
 import os
+import calendar
 import threading
 import time
 from datetime import date, datetime
@@ -17,6 +18,31 @@ VALID_ANALYSIS_STATUSES = {"success", "partial"}
 WATCH_ADMIN_ID = "watch-scheduler"
 
 _scheduler_started = False
+
+
+def _monthly_due_day(start_day: int, year: int, month: int) -> int:
+    return min(start_day, calendar.monthrange(year, month)[1])
+
+
+def _is_watch_plan_due(plan, now: datetime) -> bool:
+    today = now.date()
+    if plan.schedule_time > now.time():
+        return False
+
+    start_date = plan.schedule_start_date or (plan.created_at.date() if plan.created_at else today)
+    if today < start_date:
+        return False
+    if plan.schedule_end_date and today > plan.schedule_end_date:
+        return False
+
+    cycle = (plan.schedule_cycle or "daily").lower()
+    if cycle == "daily":
+        return True
+    if cycle == "weekly":
+        return today.weekday() == start_date.weekday()
+    if cycle == "monthly":
+        return today.day == _monthly_due_day(start_date.day, today.year, today.month)
+    return True
 
 
 def build_watch_prompt(plan) -> str:
@@ -140,6 +166,8 @@ def _finalize_success(db, run):
         valid_snapshot_count=1,
         completed_at=now,
     )
+    run.failure_reason = None
+    db.commit()
     plan = crud.get_watch_plan(db, run.watch_plan_id)
     if plan:
         plan.last_run_at = now
@@ -278,7 +306,7 @@ def run_due_watch_plans(db, now: datetime | None = None, *, start_process: bool 
     created = 0
     plans = crud.list_watch_plans(db, status="active", limit=1000)
     for plan in plans:
-        if plan.schedule_time > now.time():
+        if not _is_watch_plan_due(plan, now):
             continue
         if plan.created_at and plan.created_at.date() == now.date() and plan.created_at.time() > plan.schedule_time:
             continue

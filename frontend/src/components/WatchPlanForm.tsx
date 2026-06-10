@@ -3,6 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { createWatchPlan } from '../api';
 import { useToast } from './Toast';
 
+function localDateInputValue(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+const today = localDateInputValue();
+
 const initialForm = {
   name: '',
   target_app: '淘宝',
@@ -10,6 +19,9 @@ const initialForm = {
   entry_instruction: '',
   focus_question: '',
   schedule_time: '10:00',
+  schedule_cycle: 'daily',
+  schedule_start_date: today,
+  schedule_end_date: '',
 };
 
 export default function WatchPlanForm({ homePanel = false }: { homePanel?: boolean }) {
@@ -34,6 +46,8 @@ export default function WatchPlanForm({ homePanel = false }: { homePanel?: boole
         entry_instruction: form.entry_instruction.trim(),
         focus_question: form.focus_question.trim() || null,
         schedule_time: form.schedule_time.length === 5 ? `${form.schedule_time}:00` : form.schedule_time,
+        schedule_start_date: form.schedule_start_date || null,
+        schedule_end_date: form.schedule_end_date || null,
       };
       const { data } = await createWatchPlan(payload);
       showToast('观察计划已创建', 'success');
@@ -51,7 +65,7 @@ export default function WatchPlanForm({ homePanel = false }: { homePanel?: boole
         <div>
           <h2 style={{ marginBottom: 8 }}>新建观察</h2>
           <p style={{ marginBottom: 32, color: 'var(--text-secondary)' }}>
-            创建一个每天自动采集的固定页面首屏观察计划
+            创建一个按周期自动采集的固定页面首屏观察计划
           </p>
         </div>
       )}
@@ -92,6 +106,35 @@ export default function WatchPlanForm({ homePanel = false }: { homePanel?: boole
               value={form.schedule_time}
               onChange={event => update('schedule_time', event.target.value)}
               required
+            />
+          </label>
+          <label>
+            <span>执行周期</span>
+            <select
+              value={form.schedule_cycle}
+              onChange={event => update('schedule_cycle', event.target.value)}
+              required
+            >
+              <option value="daily">每天</option>
+              <option value="weekly">每周</option>
+              <option value="monthly">每月</option>
+            </select>
+          </label>
+          <label>
+            <span>开始日期</span>
+            <input
+              type="date"
+              value={form.schedule_start_date}
+              onChange={event => update('schedule_start_date', event.target.value)}
+              required
+            />
+          </label>
+          <label>
+            <span>结束日期</span>
+            <input
+              type="date"
+              value={form.schedule_end_date}
+              onChange={event => update('schedule_end_date', event.target.value)}
             />
           </label>
         </div>

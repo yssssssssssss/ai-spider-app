@@ -1,5 +1,7 @@
 import asyncio
 import os
+import re
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response, StreamingResponse
 from sqlalchemy import func
@@ -10,7 +12,7 @@ from pathlib import Path
 from app.services.task_events import ensure_queue, task_event_type
 from app.services.task_planner import append_execution_rules, keyword_instruction, plan_task
 from app.services.task_goals import append_target_goal_checklist, build_target_goals
-from app.services.task_runner import start_task_process
+from app.services.task_queue import TaskQueueError, start_or_enqueue_task
 from app.services.embedder import embedder
 from app.services.auth import data_scope_user_id, get_current_user, require_at_least
 from app.services.devices import refresh_devices
@@ -25,10 +27,45 @@ EXPORT_MEDIA_TYPES = {
     "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "zip": "application/zip",
 }
+TARGET_APP_SPLIT_PATTERN = re.compile(r"(?:\s*(?:、|，|,|/|\\|;|；|\+|和|及|与)\s*)+")
 
 
 def _is_visible_task_image(image) -> bool:
     return not os.path.basename(image.file_path).startswith("_temp_")
+
+
+def split_target_apps(target_app: str | None) -> list[str]:
+    if not target_app:
+        return []
+    apps: list[str] = []
+    for part in TARGET_APP_SPLIT_PATTERN.split(str(target_app)):
+        app = part.strip().strip(" 　,，、/\\;；+")
+        app = re.sub(r"(?:App|APP|app|应用)$", "", app).strip()
+        if app and app not in apps:
+            apps.append(app)
+    return apps
+
+
+def _task_name_part(value: str | None, fallback: str) -> str:
+    part = re.sub(r"\s+", "", str(value or "").strip())
+    part = part.strip("-")
+    return part or fallback
+
+
+def _next_daily_image_task_name(db: Session, target_app: str | None, keyword: str | None) -> str:
+    date_key = datetime.now().strftime("%Y%m%d")
+    daily_count = (
+        db.query(func.count(models.Task.id))
+        .filter(models.Task.name.like(f"%-{date_key}-%"))
+        .filter(~models.Task.name.startswith("[持续观察]"))
+        .scalar()
+        or 0
+    )
+    return (
+        f"{_task_name_part(target_app, '未命名目标')}-"
+        f"{_task_name_part(keyword, '无关键词')}-"
+        f"{date_key}-{daily_count + 1:03d}"
+    )
 
 
 def build_autoglm_prompt(task) -> str:
@@ -137,43 +174,46 @@ async def approve_request(
 
     keywords = req.keywords or []
     target_app = body.target_app or req.target_app
+    target_apps = split_target_apps(target_app) or [target_app]
     target_scenario = body.target_scenario or req.target_scenario
-    target_goals = build_target_goals(target_app, target_scenario, keywords, req.description)
-    generated_instruction = None
-    try:
-        generated_instruction = await plan_task(
-            target_app=target_app,
+    created_tasks = []
+
+    for app_name in target_apps:
+        target_goals = build_target_goals(app_name, target_scenario, keywords, req.description)
+        generated_instruction = None
+        try:
+            generated_instruction = await plan_task(
+                target_app=app_name,
+                target_scenario=target_scenario,
+                keywords=keywords,
+                description=req.description,
+            )
+            generated_instruction = append_target_goal_checklist(generated_instruction, target_goals)
+        except Exception as e:
+            print(f"⚠️ LLM 指令生成异常: {e}")
+
+        task_keyword = body.keyword or (keywords[0] if keywords else "")
+        task = crud.create_task(
+            db,
+            name=_next_daily_image_task_name(db, app_name, task_keyword),
+            keyword=task_keyword,
+            target_app=app_name,
             target_scenario=target_scenario,
-            keywords=keywords,
-            description=req.description,
+            request_id=request_id,
+            admin_id=body.admin_id or user.username,
+            mode=body.mode,
+            created_by=UUID(str(req.user_id)) if _looks_uuid(req.user_id) else user.id,
+            approved_by=user.id,
+            target_goals_json=target_goals,
         )
-        generated_instruction = append_target_goal_checklist(generated_instruction, target_goals)
-    except Exception as e:
-        print(f"⚠️ LLM 指令生成异常: {e}")
 
-    task = crud.create_task(
-        db,
-        name=f"Task from request {request_id}",
-        keyword=body.keyword or (keywords[0] if keywords else ""),
-        target_app=target_app,
-        target_scenario=target_scenario,
-        request_id=request_id,
-        admin_id=body.admin_id or user.username,
-        mode=body.mode,
-        created_by=UUID(str(req.user_id)) if _looks_uuid(req.user_id) else user.id,
-        approved_by=user.id,
-        target_goals_json=target_goals,
-    )
+        # 将 LLM 生成的指令存入 task
+        if generated_instruction and task:
+            crud.update_task_instruction(db, task.id, generated_instruction)
+            task = crud.get_task(db, task.id)
+        created_tasks.append(task)
 
-    # 将 LLM 生成的指令存入 task
-    if generated_instruction and task:
-        crud.update_task_instruction(db, task.id, generated_instruction)
-
-    # 重新加载 task 以包含更新后的字段
-    if task:
-        task = crud.get_task(db, task.id)
-
-    return task
+    return created_tasks[0]
 
 
 @router.put("/requests/{request_id}/reject", response_model=schemas.RequestOut)
@@ -193,6 +233,23 @@ def list_tasks(status: Optional[str] = None, skip: int = 0, limit: int = 100, db
     return [_task_out(db, task) for task in crud.list_tasks(db, status=status, skip=skip, limit=limit, user_id=data_scope_user_id(user))]
 
 
+@router.patch("/tasks/{task_id}", response_model=schemas.TaskOut)
+def update_task(
+    task_id: UUID,
+    body: schemas.TaskUpdate,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_at_least("operator")),
+):
+    task = _get_visible_task(db, task_id, user)
+    name = body.name.strip() if body.name is not None else None
+    if not name:
+        raise HTTPException(status_code=400, detail="Task name is required")
+    if len(name) > 120:
+        raise HTTPException(status_code=400, detail="Task name is too long")
+    crud.update_task_name(db, task.id, name)
+    return _task_out(db, crud.get_task(db, task.id))
+
+
 @router.post("/tasks/{task_id}/run", response_model=schemas.TaskOut)
 def run_task(
     task_id: UUID,
@@ -201,31 +258,19 @@ def run_task(
     user: models.User = Depends(require_at_least("operator")),
 ):
     task = _get_visible_task(db, task_id, user)
-    if task.status == "running":
-        raise HTTPException(status_code=400, detail="Task is already running")
-    device = _select_and_lock_device(db, body.device_id if body else None, task)
-    crud.update_task_status(db, task_id, "running")
-    crud.set_task_run_user(db, task_id, user.id)
-    task = crud.get_task(db, task_id)
-
     prompt = task.generated_instruction or build_autoglm_prompt(task) if task.mode == "autoglm" else None
-    run = crud.create_task_run(db, task_id, device_id=device.id if device else None, created_by=user.id)
-    if device:
-        if not crud.mark_device_busy(db, device.id, run.id):
-            crud.update_task_status(db, task_id, "failed")
-            crud.update_task_run(db, run.id, status="failed", failure_reason="Device is busy")
-            raise HTTPException(status_code=400, detail="Device is busy")
     try:
-        start_task_process(task, prompt=prompt, task_run=run, created_by=user.id, device=device)
+        start_or_enqueue_task(
+            db,
+            task,
+            created_by=user.id,
+            requested_device_id=body.device_id if body else None,
+            prompt=prompt,
+        )
     except FileNotFoundError as e:
         crud.update_task_status(db, task_id, "failed")
-        crud.update_task_run(db, run.id, status="failed", failure_reason=str(e))
-        crud.release_device_for_run(db, run.id)
         raise HTTPException(status_code=500, detail=str(e))
-    except ValueError as e:
-        crud.update_task_status(db, task_id, "failed")
-        crud.update_task_run(db, run.id, status="failed", failure_reason=str(e))
-        crud.release_device_for_run(db, run.id)
+    except (TaskQueueError, ValueError) as e:
         raise HTTPException(status_code=400, detail=str(e))
     return _task_out(db, crud.get_task(db, task_id))
 
@@ -371,6 +416,9 @@ def _task_out(db: Session, task: models.Task) -> schemas.TaskOut:
     data["created_by_name"] = _user_name(db, task.created_by)
     data["approved_by_name"] = _user_name(db, task.approved_by)
     data["run_by_name"] = _user_name(db, task.run_by)
+    if _is_goal_validation_only_failure(task, latest):
+        data["status"] = "completed"
+        data["completed_at"] = latest.completed_at or task.completed_at
     return schemas.TaskOut.model_validate(data)
 
 
@@ -380,6 +428,15 @@ def _request_out(db: Session, req: models.Request) -> schemas.RequestOut:
     return schemas.RequestOut.model_validate(data)
 
 
+def _is_goal_validation_only_failure(task: models.Task, run: models.TaskRun | None) -> bool:
+    if not run or task.status != "failed" or run.status != "failed":
+        return False
+    validation = run.goal_validation_json if isinstance(run.goal_validation_json, dict) else {}
+    if validation.get("status") != "missing":
+        return False
+    return any(_is_visible_task_image(image) for image in run.images)
+
+
 def _user_name(db: Session, user_id: UUID | None) -> str | None:
     if not user_id:
         return None
@@ -387,17 +444,6 @@ def _user_name(db: Session, user_id: UUID | None) -> str | None:
     if not user:
         return None
     return user.display_name or user.username
-
-
-def _select_and_lock_device(db: Session, device_id: UUID | None, task: models.Task):
-    if task.mode not in ("autoglm", "uiautomator2") and not device_id:
-        return None
-    refresh_devices(db)
-    device = crud.acquire_device(db, device_id)
-    if not device:
-        detail = "Selected device is unavailable" if device_id else "No available device"
-        raise HTTPException(status_code=400, detail=detail)
-    return device
 
 
 def _safe_log_path(log_path: str | None) -> Path | None:

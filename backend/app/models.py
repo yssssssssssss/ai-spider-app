@@ -1,5 +1,5 @@
 import uuid
-from datetime import UTC, datetime, time
+from datetime import datetime, time, timezone
 from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Index, Integer, String, Text, Time, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB, UUID, ARRAY as PGArray
 from sqlalchemy.orm import relationship
@@ -9,7 +9,7 @@ from app.config import settings
 
 
 def utc_now():
-    return datetime.now(UTC).replace(tzinfo=None)
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class Image(Base):
@@ -187,6 +187,9 @@ class WatchPlan(Base):
     focus_question = Column(Text)
     capture_scope = Column(String, nullable=False, default="first_screen")
     schedule_time = Column(Time, nullable=False, default=lambda: time(10, 0))
+    schedule_cycle = Column(String, nullable=False, default="daily")
+    schedule_start_date = Column(Date, nullable=True)
+    schedule_end_date = Column(Date, nullable=True)
     status = Column(String, nullable=False, default="active")
     pause_reason = Column(Text)
     last_run_at = Column(DateTime, nullable=True)

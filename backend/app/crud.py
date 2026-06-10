@@ -152,7 +152,7 @@ def list_requests(
         q = q.filter(models.Request.user_id == str(user_id))
     if status:
         q = q.filter(models.Request.status == status)
-    return q.offset(skip).limit(limit).all()
+    return q.order_by(models.Request.created_at.desc()).offset(skip).limit(limit).all()
 
 def update_request_status(db: Session, request_id: UUID, status: str) -> Optional[models.Request]:
     req = db.query(models.Request).filter(models.Request.id == request_id).first()
@@ -216,14 +216,32 @@ def list_tasks(
     limit: int = 100,
     user_id: Optional[UUID] = None,
 ) -> List[models.Task]:
+    latest_run_at = (
+        db.query(
+            models.TaskRun.task_id,
+            func.max(
+                func.coalesce(
+                    models.TaskRun.completed_at,
+                    models.TaskRun.started_at,
+                    models.TaskRun.created_at,
+                )
+            ).label("latest_run_at"),
+        )
+        .group_by(models.TaskRun.task_id)
+        .subquery()
+    )
     q = db.query(models.Task)
+    q = q.outerjoin(latest_run_at, latest_run_at.c.task_id == models.Task.id)
     if user_id is not None:
         q = q.filter(models.Task.created_by == user_id)
     if status:
         q = q.filter(models.Task.status == status)
     return q.order_by(
-        models.Task.completed_at.desc().nullslast(),
-        models.Task.approved_at.desc().nullslast(),
+        func.coalesce(
+            latest_run_at.c.latest_run_at,
+            models.Task.completed_at,
+            models.Task.approved_at,
+        ).desc().nullslast(),
     ).offset(skip).limit(limit).all()
 
 def update_task_status(db: Session, task_id: UUID, status: str) -> Optional[models.Task]:
@@ -232,6 +250,15 @@ def update_task_status(db: Session, task_id: UUID, status: str) -> Optional[mode
         task.status = status
         if status == "completed":
             task.completed_at = func.now()
+        db.commit()
+        db.refresh(task)
+    return task
+
+
+def update_task_name(db: Session, task_id: UUID, name: str) -> Optional[models.Task]:
+    task = db.query(models.Task).filter(models.Task.id == task_id).first()
+    if task:
+        task.name = name
         db.commit()
         db.refresh(task)
     return task

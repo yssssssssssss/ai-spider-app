@@ -945,12 +945,14 @@ tr:hover td {
 .goal-chip {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
   min-height: 28px;
   padding: 0 10px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   color: var(--text-secondary);
   background: var(--bg-card);
+  white-space: nowrap;
 }
 
 .goal-chip-matched {
@@ -989,16 +991,20 @@ tr:hover td {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex: 0 0 auto;
   padding: 4px 12px;
   border-radius: var(--radius-pill);
   font-size: 0.75rem;
   font-weight: 500;
+  line-height: 1;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .badge::before {
   content: '';
   width: 6px;
+  flex: 0 0 6px;
   height: 6px;
   border-radius: 50%;
   background: currentColor;

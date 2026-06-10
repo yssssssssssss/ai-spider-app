@@ -1,5 +1,5 @@
 from datetime import date, datetime, time
-from typing import List, Optional
+from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
 from uuid import UUID
 
@@ -42,6 +42,30 @@ class RequestCreate(BaseModel):
     target_scenario: Optional[str] = None
     keywords: List[str] = []
     description: Optional[str] = None
+
+
+class LongImageIntentParseRequest(BaseModel):
+    text: str = ""
+    target_app: Optional[str] = None
+    target_scenario: Optional[str] = None
+    keywords: List[str] = []
+    description: Optional[str] = None
+
+
+class LongImageIntentOut(BaseModel):
+    intent: str
+    confidence: float
+    scene_type: str
+    apps: List[str] = []
+    keyword: str = ""
+    capture_count: int = 10
+    selection_rule: str = "first_normal_product"
+    exclude_entry_types: List[str] = []
+    dedupe_overlap: bool = True
+    stitch: bool = True
+    keep_raw_images: bool = True
+    missing_fields: List[str] = []
+
 
 class RequestOut(OrmModel):
     id: UUID
@@ -147,6 +171,10 @@ class TaskRunOut(OrmModel):
     created_at: datetime
 
 
+class TaskUpdate(BaseModel):
+    name: Optional[str] = None
+
+
 class RetryTaskRequest(BaseModel):
     device_id: Optional[UUID] = None
 
@@ -199,6 +227,9 @@ class WatchPlanCreate(BaseModel):
     entry_instruction: str
     focus_question: Optional[str] = None
     schedule_time: time = time(10, 0)
+    schedule_cycle: Literal["daily", "weekly", "monthly"] = "daily"
+    schedule_start_date: Optional[date] = None
+    schedule_end_date: Optional[date] = None
 
 
 class WatchPlanUpdate(BaseModel):
@@ -208,6 +239,9 @@ class WatchPlanUpdate(BaseModel):
     entry_instruction: Optional[str] = None
     focus_question: Optional[str] = None
     schedule_time: Optional[time] = None
+    schedule_cycle: Optional[Literal["daily", "weekly", "monthly"]] = None
+    schedule_start_date: Optional[date] = None
+    schedule_end_date: Optional[date] = None
     status: Optional[str] = None
 
 
@@ -220,6 +254,9 @@ class WatchPlanOut(OrmModel):
     focus_question: Optional[str] = None
     capture_scope: str
     schedule_time: time
+    schedule_cycle: Literal["daily", "weekly", "monthly"] = "daily"
+    schedule_start_date: Optional[date] = None
+    schedule_end_date: Optional[date] = None
     status: str
     pause_reason: Optional[str] = None
     last_run_at: Optional[datetime] = None

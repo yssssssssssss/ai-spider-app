@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import requests, search, admin, images, watch_plans, auth
+from app.routers import requests, search, admin, images, watch_plans, auth, worker
 from app.config import settings
 from app.database import ensure_schema
 from app.services.watch_service import start_watch_scheduler
@@ -27,6 +27,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(images.router, prefix="/api")
 app.include_router(watch_plans.router, prefix="/api")
+app.include_router(worker.router, prefix="/api")
 
 @app.on_event("startup")
 def startup():

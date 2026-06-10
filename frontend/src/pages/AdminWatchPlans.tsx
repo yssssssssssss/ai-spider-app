@@ -42,6 +42,19 @@ function formatSchedule(value?: string) {
   return value.slice(0, 5);
 }
 
+function cycleLabel(value?: string) {
+  const labels: Record<string, string> = {
+    daily: '每天',
+    weekly: '每周',
+    monthly: '每月',
+  };
+  return labels[value || 'daily'] || '每天';
+}
+
+function formatPlanSchedule(plan: any) {
+  return `${cycleLabel(plan.schedule_cycle)} ${formatSchedule(plan.schedule_time)}`;
+}
+
 export default function AdminWatchPlans() {
   const { showToast } = useToast();
   const { hasRole } = useAuth();
@@ -144,7 +157,7 @@ export default function AdminWatchPlans() {
                     </div>
 	                  </td>
 	                  <td>{plan.target_app} / {plan.target_page}</td>
-	                  <td>{formatSchedule(plan.schedule_time)}</td>
+	                  <td>{formatPlanSchedule(plan)}</td>
 	                  <td>{plan.created_by_name || '-'}</td>
 	                  <td>
 	                    <div className="table-title-cell">

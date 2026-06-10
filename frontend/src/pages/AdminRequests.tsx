@@ -148,17 +148,10 @@ export default function AdminRequests() {
                   <td><StatusBadge status={r.status} /></td>
                   <td style={{ textAlign: 'right' }}>
                     {r.status === 'pending' && canReview && (
-                      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
                         <button
                           className="btn-sm"
-                          onClick={() => handleApprove(r.id, 'uiautomator2')}
-                          disabled={actingId === r.id}
-                        >
-                          {actingId === r.id ? '处理中...' : '规则采集'}
-                        </button>
-                        <button
-                          className="btn-sm"
-                          style={{ background: '#a855f7' }}
+                          style={{ background: '#a855f7', whiteSpace: 'nowrap' }}
                           onClick={() => handleApprove(r.id, 'autoglm')}
                           disabled={actingId === r.id}
                         >
@@ -166,6 +159,7 @@ export default function AdminRequests() {
                         </button>
                         <button
                           className="btn-sm btn-danger"
+                          style={{ whiteSpace: 'nowrap' }}
                           onClick={() => handleReject(r.id)}
                           disabled={actingId === r.id}
                         >

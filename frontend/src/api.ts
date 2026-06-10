@@ -61,6 +61,7 @@ export const updateUser = (id: string, data: any) => api.patch(`/admin/users/${i
 export const getRegistrationInviteCode = () => api.get('/admin/settings/registration-invite-code');
 export const updateRegistrationInviteCode = (data: any) => api.patch('/admin/settings/registration-invite-code', data);
 export const createRequest = (data: any) => api.post('/requests', data);
+export const parseLongImageIntent = (data: any) => api.post('/requests/long-image-intent', data);
 export const getRequest = (id: string) => api.get(`/requests/${id}`);
 export const searchImages = (data: any) => api.post('/search', data);
 export const listAdminRequests = (params?: any) => api.get('/admin/requests', { params });
@@ -68,6 +69,7 @@ export const getAdminStats = () => api.get('/admin/stats');
 export const approveRequest = (id: string, data: any) => api.put(`/admin/requests/${id}/approve`, data);
 export const rejectRequest = (id: string, data: any) => api.put(`/admin/requests/${id}/reject`, data);
 export const listAdminTasks = (params?: any) => api.get('/admin/tasks', { params });
+export const updateTask = (id: string, data: any) => api.patch(`/admin/tasks/${id}`, data);
 export const runTask = (id: string, data?: any) => api.post(`/admin/tasks/${id}/run`, data || {});
 export const retryTask = (id: string, data?: any) => api.post(`/admin/tasks/${id}/retry`, data || {});
 export const listTaskRuns = (id: string) => api.get(`/admin/tasks/${id}/runs`);

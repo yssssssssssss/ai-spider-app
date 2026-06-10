@@ -143,9 +143,6 @@ def refresh_task_run_goal_validation(db, task_id: UUID, run_id: UUID | None):
     update_kwargs: dict[str, Any] = {"goal_validation_json": validation}
     failure_reason = missing_goal_failure_reason(validation)
     if was_completed and failure_reason:
-        update_kwargs["status"] = "failed"
         update_kwargs["failure_reason"] = failure_reason
     crud.update_task_run(db, run_id, **update_kwargs)
-    if was_completed and failure_reason:
-        crud.update_task_status(db, task_id, "failed")
     return validation

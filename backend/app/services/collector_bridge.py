@@ -7,7 +7,7 @@ import time
 import threading
 import asyncio
 from uuid import UUID
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from app.database import SessionLocal
 from app import crud, schemas
 from app.services.goal_validator import missing_goal_failure_reason, validate_task_run_goals
@@ -36,7 +36,7 @@ def _trigger_analysis(image_id: UUID):
 
 
 def _finish_run(db, task_uuid: UUID, run_uuid: UUID | None, status: str, *, exit_code: int | None = None, failure_reason: str | None = None):
-    now = datetime.now(UTC).replace(tzinfo=None)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     task = crud.get_task(db, task_uuid)
     goal_validation = None
     final_status = status
@@ -46,7 +46,6 @@ def _finish_run(db, task_uuid: UUID, run_uuid: UUID | None, status: str, *, exit
         goal_validation = validate_task_run_goals(task, images)
         missing_reason = missing_goal_failure_reason(goal_validation)
         if missing_reason:
-            final_status = "failed"
             final_failure_reason = missing_reason
 
     crud.update_task_status(db, task_uuid, "completed" if final_status == "completed" else "failed")
@@ -61,6 +60,12 @@ def _finish_run(db, task_uuid: UUID, run_uuid: UUID | None, status: str, *, exit
             goal_validation_json=goal_validation,
         )
         crud.release_device_for_run(db, run_uuid)
+    try:
+        from app.services.task_queue import start_next_queued_task
+
+        start_next_queued_task()
+    except Exception as e:
+        print(f"⚠️ 启动下一条排队任务失败: {e}")
 
 
 def _watch_and_upload(
@@ -91,12 +96,14 @@ def _watch_and_upload(
     if not os.path.exists(data_dir):
         os.makedirs(data_dir, exist_ok=True)
 
-    # 记录启动时已存在的文件，避免重复入库
+    # output_dir is run-scoped. Treat files already there as collectable so a
+    # fast child process cannot beat the watcher startup and skip analysis.
     known_files = set()
-    for root, _, files in os.walk(data_dir):
-        for f in files:
-            if _is_collectable_image_file(f):
-                known_files.add(os.path.join(root, f))
+    if output_dir is None:
+        for root, _, files in os.walk(data_dir):
+            for f in files:
+                if _is_collectable_image_file(f):
+                    known_files.add(os.path.join(root, f))
 
     start_time = time.time()
     last_new_file_time = start_time
@@ -153,7 +160,7 @@ def _watch_and_upload(
                         oss_key=oss_key,
                         source_app=(task.target_app if task else None),
                         scenario=(task.target_scenario if task else None),
-                        captured_at=datetime.now(UTC).replace(tzinfo=None),
+                        captured_at=datetime.now(timezone.utc).replace(tzinfo=None),
                         task_id=task_uuid,
                         task_run_id=run_uuid,
                         device_id=device_uuid,

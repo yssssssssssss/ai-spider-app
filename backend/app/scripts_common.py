@@ -3,7 +3,7 @@
 供 step1-down_img.py、step2-cut_img.py、run_workflow*.py、run_hybrid.py 等调用
 """
 import os
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 
 def normalize_image_path(file_path: str) -> str:
@@ -37,7 +37,7 @@ def save_image_to_db(file_path: str, oss_url: str = None, oss_key: str = None,
                 oss_key=oss_key,
                 source_app=source_app,
                 scenario=scenario,
-                captured_at=datetime.now(UTC).replace(tzinfo=None),
+                captured_at=datetime.now(timezone.utc).replace(tzinfo=None),
                 task_id=task_id,
                 task_run_id=task_run_id,
                 device_id=device_id,

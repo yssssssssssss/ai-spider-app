@@ -8,6 +8,9 @@ from typing import Sequence
 
 from PIL import Image, ImageChops, ImageStat
 
+SAFE_SWIPE_START_RATIO = 0.70
+SAFE_SWIPE_END_RATIO = 0.28
+
 
 @dataclass(frozen=True)
 class StitchResult:
@@ -189,18 +192,21 @@ def _capture_screen(device_id: str | None, output_path: str) -> str:
     return str(output)
 
 
-def _swipe_one_screen(device_id: str | None, width: int, height: int) -> None:
+def _safe_swipe_points(width: int, height: int) -> tuple[int, int, int, int]:
     x = width // 2
-    start_y = int(height * 0.82)
-    end_y = int(height * 0.22)
+    return x, int(height * SAFE_SWIPE_START_RATIO), x, int(height * SAFE_SWIPE_END_RATIO)
+
+
+def _swipe_one_screen(device_id: str | None, width: int, height: int) -> None:
+    start_x, start_y, end_x, end_y = _safe_swipe_points(width, height)
     _run_adb(
         device_id,
         "shell",
         "input",
         "swipe",
-        str(x),
+        str(start_x),
         str(start_y),
-        str(x),
+        str(end_x),
         str(end_y),
         "650",
     )

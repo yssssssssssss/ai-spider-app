@@ -237,6 +237,10 @@ def ensure_schema():
         if "watch_plans" in tables:
             _ensure_column(conn, inspector, "watch_plans", "created_by", "UUID")
             _ensure_column(conn, inspector, "watch_plans", "updated_by", "UUID")
+            _ensure_column(conn, inspector, "watch_plans", "schedule_cycle", "VARCHAR DEFAULT 'daily'")
+            _ensure_column(conn, inspector, "watch_plans", "schedule_start_date", "DATE")
+            _ensure_column(conn, inspector, "watch_plans", "schedule_end_date", "DATE")
+            conn.execute(text("UPDATE watch_plans SET schedule_cycle = 'daily' WHERE schedule_cycle IS NULL OR schedule_cycle = ''"))
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_watch_plans_created_by ON watch_plans(created_by)"))
         if "devices" in tables:
             conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_devices_serial ON devices(serial)"))

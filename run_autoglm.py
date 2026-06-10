@@ -9,6 +9,10 @@ import os
 import sys
 import argparse
 import base64
+import re
+import subprocess
+import time
+import xml.etree.ElementTree as ET
 from datetime import datetime
 from PIL import Image, ImageOps, UnidentifiedImageError
 
@@ -24,6 +28,7 @@ from phone_agent import PhoneAgent
 from phone_agent.agent import AgentConfig
 from phone_agent.model import ModelConfig
 from phone_agent.device_factory import DeviceType, set_device_type
+from phone_agent.config.apps import get_package_name
 
 import config as app_config
 
@@ -49,8 +54,40 @@ AUTO_SCREENSHOT_STOP_RULE = (
     "到达用户要求的目标页面并停留后，必须立即结束任务；"
     "不要返回桌面，不要继续点击、长按、滑动或探索无关页面。"
 )
+LOGIN_PAGE_STOP_MESSAGE = "检测到登录页，停止任务"
+LOGIN_PAGE_STOP_RULE = (
+    "安全约束：如果当前页面是登录页、注册页、验证码页、账号密码页、手机号授权页或短信验证页，"
+    "禁止输入账号、密码、手机号、验证码，也不要尝试登录；"
+    f"必须立即执行 finish(message=\"{LOGIN_PAGE_STOP_MESSAGE}\")。"
+)
+LOGIN_PAGE_MARKERS = (
+    "登录",
+    "登陆",
+    "注册",
+    "验证码",
+    "短信验证",
+    "账号",
+    "密码",
+    "手机号",
+    "手机号码",
+    "一键登录",
+    "授权登录",
+    "请先登录",
+)
+LOGIN_PAGE_NEGATION_MARKERS = (
+    "未出现登录",
+    "未遇到登录",
+    "没有登录页",
+    "无需登录",
+    "不需要登录",
+    "不是登录页",
+    "非登录页",
+)
 PRODUCT_DETAIL_LONG_CAPTURE_MODE = "product_detail_long_image"
 MAX_AUTOGLM_STEPS = 30
+UI_BOUNDS_PATTERN = re.compile(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]")
+SEARCH_SUBMIT_TEXTS = ("搜索", "搜一下", "Search", "search")
+SEARCH_SUBMIT_EXCLUDES = ("搜索框", "输入", "关键词", "历史搜索", "搜索历史", "搜索发现")
 
 
 def _append_auto_screenshot_stop_rule(task: str) -> str:
@@ -59,14 +96,216 @@ def _append_auto_screenshot_stop_rule(task: str) -> str:
     return f"{task}。{AUTO_SCREENSHOT_STOP_RULE}"
 
 
+def _append_login_page_stop_rule(task: str) -> str:
+    if LOGIN_PAGE_STOP_RULE in task:
+        return task
+    return f"{task}。{LOGIN_PAGE_STOP_RULE}"
+
+
 def _requires_popup_close_flow(task: str) -> bool:
     return bool(task) and "截图" in task and any(marker in task for marker in POPUP_CLOSE_MARKERS)
+
+
+def _text_indicates_login_page(text: str | None) -> bool:
+    if not text:
+        return False
+    if any(marker in text for marker in LOGIN_PAGE_NEGATION_MARKERS):
+        return False
+    return any(marker in text for marker in LOGIN_PAGE_MARKERS)
+
+
+def _step_indicates_login_page(step_result) -> bool:
+    action = getattr(step_result, "action", None) or {}
+    action_name = action.get("action")
+    action_message = action.get("message")
+    if action_name == "Take_over" and _text_indicates_login_page(action_message):
+        return True
+    return _text_indicates_login_page(getattr(step_result, "message", None))
+
+
+def _stop_if_login_page(step_result, source_app: str | None, device_id: str | None, exit_app: bool) -> None:
+    if not _step_indicates_login_page(step_result):
+        return
+    print(f"🛑 {LOGIN_PAGE_STOP_MESSAGE}")
+    if exit_app:
+        _force_stop_app(source_app, device_id)
+    raise RuntimeError(LOGIN_PAGE_STOP_MESSAGE)
 
 
 def _should_run_post_capture(step_result, post_capture_mode: str | None) -> bool:
     if post_capture_mode != PRODUCT_DETAIL_LONG_CAPTURE_MODE:
         return False
+    if _step_indicates_login_page(step_result):
+        return False
     return bool(getattr(step_result, "success", False)) and bool(getattr(step_result, "finished", False))
+
+
+def _target_app_from_task(task: str | None) -> str | None:
+    if not task:
+        return None
+    for app_name in ("淘宝", "天猫", "拼多多", "京东", "小红书", "抖音"):
+        if app_name in task:
+            return app_name
+    return None
+
+
+def _adb_command(device_id: str | None, *args: str, timeout: int = 8):
+    command = ["adb"]
+    if device_id:
+        command.extend(["-s", device_id])
+    command.extend(args)
+    return subprocess.run(command, capture_output=True, text=True, timeout=timeout)
+
+
+def _dump_ui_xml(device_id: str | None) -> str | None:
+    try:
+        dump_result = _adb_command(device_id, "shell", "uiautomator", "dump", "/sdcard/window.xml")
+        if dump_result.returncode != 0:
+            return None
+        result = _adb_command(device_id, "exec-out", "cat", "/sdcard/window.xml")
+    except Exception as e:
+        print(f"  ⚠️ 读取页面控件失败: {e}")
+        return None
+    if result.returncode != 0 or not result.stdout.strip():
+        return None
+    return result.stdout
+
+
+def _parse_ui_bounds(bounds: str | None) -> tuple[int, int, int, int] | None:
+    if not bounds:
+        return None
+    match = UI_BOUNDS_PATTERN.fullmatch(bounds.strip())
+    if not match:
+        return None
+    x1, y1, x2, y2 = (int(value) for value in match.groups())
+    if x2 <= x1 or y2 <= y1:
+        return None
+    return x1, y1, x2, y2
+
+
+def _is_search_submit_node(attrs: dict[str, str]) -> bool:
+    if attrs.get("enabled") == "false" or "EditText" in attrs.get("class", ""):
+        return False
+    labels = [attrs.get("text", "").strip(), attrs.get("content-desc", "").strip()]
+    if any(label in SEARCH_SUBMIT_TEXTS for label in labels):
+        return True
+    if any("搜索" in label and len(label) <= 5 and not any(block in label for block in SEARCH_SUBMIT_EXCLUDES) for label in labels):
+        return True
+    resource_id = attrs.get("resource-id", "").lower()
+    return "search" in resource_id and ("button" in resource_id or "btn" in resource_id)
+
+
+def _search_submit_score(attrs: dict[str, str]) -> int:
+    labels = [attrs.get("text", "").strip(), attrs.get("content-desc", "").strip()]
+    score = 0
+    if any(label in SEARCH_SUBMIT_TEXTS for label in labels):
+        score += 100
+    if attrs.get("clickable") == "true":
+        score += 20
+    if "Button" in attrs.get("class", ""):
+        score += 10
+    resource_id = attrs.get("resource-id", "").lower()
+    if "search" in resource_id and ("button" in resource_id or "btn" in resource_id):
+        score += 30
+    return score
+
+
+def _find_search_submit_point(ui_xml: str | None) -> tuple[int, int] | None:
+    if not ui_xml:
+        return None
+    try:
+        root = ET.fromstring(ui_xml)
+    except ET.ParseError:
+        return None
+
+    candidates: list[tuple[int, int, tuple[int, int]]] = []
+    for node in root.iter():
+        attrs = node.attrib
+        bounds = _parse_ui_bounds(attrs.get("bounds"))
+        if not bounds or not _is_search_submit_node(attrs):
+            continue
+        x1, y1, x2, y2 = bounds
+        point = ((x1 + x2) // 2, (y1 + y2) // 2)
+        candidates.append((_search_submit_score(attrs), y1, point))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: (-item[0], item[1]))
+    return candidates[0][2]
+
+
+def _tap_screen(device_id: str | None, x: int, y: int) -> bool:
+    try:
+        result = _adb_command(device_id, "shell", "input", "tap", str(x), str(y), timeout=5)
+        return result.returncode == 0
+    except Exception as e:
+        print(f"  ⚠️ 点击搜索按钮失败: {e}")
+        return False
+
+
+def _press_search_enter(device_id: str | None) -> bool:
+    try:
+        result = _adb_command(device_id, "shell", "input", "keyevent", "KEYCODE_ENTER", timeout=5)
+        return result.returncode == 0
+    except Exception as e:
+        print(f"  ⚠️ 回车提交搜索失败: {e}")
+        return False
+
+
+def _step_action_name(step_result) -> str | None:
+    action = getattr(step_result, "action", None) or {}
+    if isinstance(action, dict):
+        return action.get("action")
+    return getattr(action, "action", None)
+
+
+def _should_submit_search_after_type(task: str | None, step_result) -> bool:
+    if not getattr(step_result, "success", False):
+        return False
+    if _step_indicates_login_page(step_result):
+        return False
+    task_text = task or ""
+    if "搜索" not in task_text and "search" not in task_text.lower():
+        return False
+    return _step_action_name(step_result) in ("Type", "Type_Name")
+
+
+def _submit_search_after_type(task: str | None, step_result, device_id: str | None) -> bool:
+    if not _should_submit_search_after_type(task, step_result):
+        return False
+
+    point = _find_search_submit_point(_dump_ui_xml(device_id))
+    if point and _tap_screen(device_id, point[0], point[1]):
+        print(f"  🔎 已点击搜索按钮: ({point[0]}, {point[1]})")
+        time.sleep(0.8)
+        return True
+
+    if _press_search_enter(device_id):
+        print("  🔎 未找到搜索按钮，已用回车提交搜索")
+        time.sleep(0.8)
+        return True
+    return False
+
+
+def _force_stop_app(app_name: str | None, device_id: str | None = None) -> bool:
+    if not app_name:
+        return False
+
+    package = get_package_name(app_name)
+    if not package:
+        print(f"  ⚠️ 未找到 App 包名，跳过退出: {app_name}")
+        return False
+
+    command = ["adb"]
+    if device_id:
+        command.extend(["-s", device_id])
+    command.extend(["shell", "am", "force-stop", package])
+    try:
+        subprocess.run(command, capture_output=True, timeout=10, check=True)
+        print(f"  🚪 已退出 App: {app_name} ({package})")
+        return True
+    except Exception as e:
+        print(f"  ⚠️ 退出 App 失败: {app_name}: {e}")
+        return False
 
 
 def _screenshots_are_near_duplicate(left_path: str, right_path: str) -> bool:
@@ -185,7 +424,6 @@ def _capture_and_save(
 ):
     """通过 ADB 直接从设备截图并保存"""
     try:
-        import subprocess
         temp_path = os.path.join(output_dir, f"_temp_step_{step_idx}.png")
         adb_prefix = ["adb"]
         if device_id:
@@ -287,6 +525,8 @@ def run_with_autoglm(
     db_device_id: str = None,
     post_capture_mode: str = None,
     long_screenshot_count: int = 10,
+    final_capture: bool = False,
+    exit_app: bool = True,
 ):
     """
     使用 AutoGLM 执行自然语言任务，每一步自动截图并上传 OSS 入库
@@ -304,6 +544,7 @@ def run_with_autoglm(
         raise ValueError(f"Unsupported post capture mode: {post_capture_mode}")
 
     max_steps = max(1, min(max_steps, MAX_AUTOGLM_STEPS))
+    source_app = _target_app_from_task(task)
 
     # 设置设备类型为 ADB (Android)
     set_device_type(DeviceType.ADB)
@@ -335,25 +576,35 @@ def run_with_autoglm(
         agent_config=agent_config,
     )
 
-    task = _append_auto_screenshot_stop_rule(task)
+    task = _append_login_page_stop_rule(_append_auto_screenshot_stop_rule(task))
+    capture_screenshots = capture_screenshots and not final_capture
 
     print(f"🚀 任务: {task}")
     print(f"📁 截图目录: {output_dir}")
     if agent_config.device_id:
         print(f"📱 设备: {agent_config.device_id}")
     print(f"🔢 最大步数: {max_steps}")
+    if final_capture:
+        print("📸 截图模式: 仅采集最终停留页")
     print("-" * 50)
 
     # 使用 step() 逐步执行，每步截图
     popup_flow = PopupFlowStateMachine(task)
+    if not capture_screenshots:
+        popup_flow.enabled = False
+    search_submitted = False
     step_result = agent.step(task=task)
     step_idx = 0
+    _stop_if_login_page(step_result, source_app, agent_config.device_id, exit_app)
+    if not search_submitted and _submit_search_after_type(task, step_result, agent_config.device_id):
+        search_submitted = True
 
     if capture_screenshots and step_result.success:
         screenshot_path = _save_screenshot_from_agent(
             agent,
             step_idx,
             output_dir,
+            source_app=source_app,
             task_id=task_id,
             task_run_id=task_run_id,
             db_device_id=db_device_id,
@@ -375,12 +626,16 @@ def run_with_autoglm(
             break
         else:
             step_result = agent.step()
+        _stop_if_login_page(step_result, source_app, agent_config.device_id, exit_app)
+        if not search_submitted and _submit_search_after_type(task, step_result, agent_config.device_id):
+            search_submitted = True
 
         if capture_screenshots and step_result.success:
             screenshot_path = _save_screenshot_from_agent(
                 agent,
                 step_idx,
                 output_dir,
+                source_app=source_app,
                 task_id=task_id,
                 task_run_id=task_run_id,
                 db_device_id=db_device_id,
@@ -391,6 +646,18 @@ def run_with_autoglm(
     print("-" * 50)
     print(f"✅ AutoGLM 导航完成: {step_result.message or 'done'}")
     print(f"🔢 AutoGLM 执行步数: {step_idx}")
+    if final_capture:
+        if not getattr(step_result, "success", False):
+            raise RuntimeError(f"AutoGLM navigation failed before final capture: {step_result.message or 'unknown error'}")
+        _save_screenshot_from_agent(
+            agent,
+            step_idx,
+            output_dir,
+            source_app=source_app,
+            task_id=task_id,
+            task_run_id=task_run_id,
+            db_device_id=db_device_id,
+        )
     if post_capture_mode == PRODUCT_DETAIL_LONG_CAPTURE_MODE:
         if not _should_run_post_capture(step_result, post_capture_mode):
             raise RuntimeError(f"AutoGLM navigation did not finish successfully: {step_result.message or 'unknown error'}")
@@ -401,6 +668,8 @@ def run_with_autoglm(
             screen_count=long_screenshot_count,
         )
         print(f"🧩 长图已生成: {capture_result.stitched_path}")
+    if exit_app:
+        _force_stop_app(source_app, agent_config.device_id)
     print(f"✅ 任务完成，结果目录: {output_dir}")
     return step_result.message or "done"
 
@@ -420,7 +689,9 @@ def main():
     parser.add_argument("--db-device-id", default=None, help="后台设备记录 ID")
     parser.add_argument("--post-capture-mode", default=None, choices=[PRODUCT_DETAIL_LONG_CAPTURE_MODE], help="到达目标页后的代码采集模式")
     parser.add_argument("--long-screenshot-count", type=int, default=10, help="商品详情长图采集屏数")
+    parser.add_argument("--final-capture", action="store_true", help="仅在任务结束时采集最终停留页截图")
     parser.add_argument("--no-capture", action="store_true", help="不自动截图（仅执行任务）")
+    parser.add_argument("--keep-app-open", action="store_true", help="任务结束后不强制退出目标 App")
     parser.add_argument("--check", action="store_true", help="检查系统要求")
 
     args = parser.parse_args()
@@ -460,6 +731,8 @@ def main():
         db_device_id=args.db_device_id,
         post_capture_mode=args.post_capture_mode,
         long_screenshot_count=args.long_screenshot_count,
+        final_capture=args.final_capture,
+        exit_app=not args.keep_app_open,
     )
 
 

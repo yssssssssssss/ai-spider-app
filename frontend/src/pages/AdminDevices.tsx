@@ -26,8 +26,18 @@ export default function AdminDevices() {
 
   const refresh = async () => {
     const { data } = await refreshDevices();
-    setDevices(data.devices || []);
-    showToast(data.adb_available ? '设备状态已刷新' : '未检测到 adb，已展示现有设备记录', data.adb_available ? 'success' : 'warning');
+    const nextDevices = data.devices || [];
+    setDevices(nextDevices);
+    const hasWorkerDevice = nextDevices.some((device: any) => (
+      device.status === 'online' && String(device.notes || '').startsWith('worker:')
+    ));
+    if (data.adb_available) {
+      showToast('设备状态已刷新', 'success');
+    } else if (hasWorkerDevice) {
+      showToast('本地设备机在线，已刷新设备状态', 'success');
+    } else {
+      showToast('未检测到本机 adb，已展示现有设备记录', 'warning');
+    }
   };
 
   useEffect(() => { load(); }, []);

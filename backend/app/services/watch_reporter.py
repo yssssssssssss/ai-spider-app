@@ -50,7 +50,6 @@ class WatchReporter:
                         "昨日变化": previous_summary.changes_from_previous_json if previous_summary else {},
                     }, ensure_ascii=False)},
                 ],
-                temperature=0.2,
                 max_tokens=1200,
             )
             parsed = _json_from_text(response.choices[0].message.content or "")
@@ -86,7 +85,6 @@ class WatchReporter:
                         ],
                     }, ensure_ascii=False)},
                 ],
-                temperature=0.2,
                 max_tokens=1400,
             )
             parsed = _json_from_text(response.choices[0].message.content or "")

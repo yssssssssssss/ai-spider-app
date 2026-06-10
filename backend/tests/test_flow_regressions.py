@@ -1,12 +1,13 @@
 import asyncio
 import json
 import os
+import shutil
 import subprocess
 import sys
 import unittest
 import base64
 import tempfile
-from datetime import UTC, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from io import BytesIO
 from pathlib import Path
 from types import SimpleNamespace
@@ -19,7 +20,7 @@ sys.path.insert(0, BACKEND_DIR)
 
 
 def utc_now():
-    return datetime.now(UTC).replace(tzinfo=None)
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class FlowRegressionTests(unittest.TestCase):
@@ -72,6 +73,19 @@ class FlowRegressionTests(unittest.TestCase):
             with Image.open(output_path) as stitched:
                 self.assertEqual(stitched.size, (6, 10))
 
+    def test_long_screenshot_swipe_uses_safe_content_area(self):
+        from unittest.mock import patch
+
+        from app.services import long_screenshot
+
+        with patch.object(long_screenshot, "_run_adb") as run_adb:
+            long_screenshot._swipe_one_screen("device-1", 1080, 2400)
+
+        args = run_adb.call_args.args
+        self.assertEqual(args, ("device-1", "shell", "input", "swipe", "540", "1680", "540", "672", "650"))
+        self.assertLess(int(args[5]), int(2400 * 0.75))
+        self.assertGreater(int(args[7]), int(2400 * 0.20))
+
     def test_task_runner_detects_product_detail_long_capture(self):
         from app.services.task_runner import product_detail_long_capture_count
 
@@ -107,6 +121,276 @@ class FlowRegressionTests(unittest.TestCase):
         self.assertIn("不要滚动详情页", instruction)
         self.assertIn("长图拼接由平台自动处理", instruction)
 
+    def test_long_image_intent_parser_extracts_product_detail_request(self):
+        from app.services.long_image_intent import parse_long_image_intent
+
+        intent = parse_long_image_intent(
+            "打开淘宝和拼多多，搜索美的M60冰箱520，点击第一个商品，针对商详截取10屏并拼成长图"
+        )
+
+        self.assertEqual(intent.intent, "long_image_capture")
+        self.assertEqual(intent.scene_type, "product_detail")
+        self.assertEqual(intent.keyword, "美的M60冰箱520")
+        self.assertEqual(intent.capture_count, 10)
+        self.assertIn("淘宝", intent.apps)
+        self.assertIn("拼多多", intent.apps)
+        self.assertIn("live", intent.exclude_entry_types)
+        self.assertEqual(intent.missing_fields, [])
+
+    def test_long_image_intent_parser_handles_chinese_quotes(self):
+        from app.services.long_image_intent import parse_long_image_intent
+
+        intent = parse_long_image_intent(
+            "打开淘宝，搜索‘美的M60冰箱520’，然后点击第一个商品，针对商品详情截10屏"
+        )
+
+        self.assertEqual(intent.intent, "long_image_capture")
+        self.assertEqual(intent.keyword, "美的M60冰箱520")
+        self.assertEqual(intent.capture_count, 10)
+
+    def test_long_image_intent_parser_ignores_plain_detail_screenshot(self):
+        from app.services.long_image_intent import parse_long_image_intent
+
+        intent = parse_long_image_intent("打开淘宝，搜索手机，进入商品详情页首屏截图")
+
+        self.assertEqual(intent.intent, "unknown")
+        self.assertEqual(intent.confidence, 0.0)
+
+    def test_long_image_intent_parser_keeps_activity_detail_generic(self):
+        from app.services.long_image_intent import parse_long_image_intent
+
+        intent = parse_long_image_intent("打开淘宝活动详情页长截图")
+
+        self.assertEqual(intent.intent, "long_image_capture")
+        self.assertEqual(intent.scene_type, "custom_page")
+
+    def test_long_image_navigation_prompt_excludes_post_capture_work(self):
+        from app.services.long_image_intent import build_long_image_navigation_prompt
+
+        task = SimpleNamespace(
+            target_app="拼多多",
+            keyword="美的M60冰箱520",
+            target_scenario="商品详情页滚动10屏并拼接长图",
+            request=SimpleNamespace(description="每一屏截图，重复区域裁切掉"),
+        )
+
+        prompt = build_long_image_navigation_prompt(
+            task,
+            "打开拼多多App，搜索美的M60冰箱520，点击第一个商品，滚动10屏逐屏截图并拼接长图，重复区域裁切掉",
+        )
+
+        self.assertIn("打开拼多多App", prompt)
+        self.assertIn("在搜索框输入“美的M60冰箱520”后点击“搜索”按钮", prompt)
+        self.assertIn("第一个普通商品", prompt)
+        self.assertIn("商品详情页首屏", prompt)
+        self.assertIn("避开直播、广告、客服入口", prompt)
+        self.assertNotIn("逐屏截图", prompt)
+        self.assertNotIn("拼接", prompt)
+        self.assertNotIn("裁切", prompt)
+
+    def test_task_runner_prepares_clean_navigation_prompt_for_long_capture(self):
+        from app.services.task_runner import prepare_autoglm_instruction
+
+        task = SimpleNamespace(
+            target_app="天猫",
+            keyword="美的M60冰箱520",
+            target_scenario="商品详情页滚动10屏并拼接长图",
+            generated_instruction="打开天猫App，搜索美的M60冰箱520，点击第一个商品，滚动10屏逐屏截图并拼接长图",
+            request=SimpleNamespace(description="重复区域裁切掉"),
+        )
+
+        instruction, count = prepare_autoglm_instruction(task, task.generated_instruction)
+
+        self.assertEqual(count, 10)
+        self.assertIn("打开天猫App", instruction)
+        self.assertIn("在搜索框输入“美的M60冰箱520”后点击“搜索”按钮", instruction)
+        self.assertIn("商品详情页首屏", instruction)
+        self.assertIn("第一个普通商品", instruction)
+        self.assertNotIn("逐屏截图", instruction)
+        self.assertNotIn("拼接", instruction)
+        self.assertNotIn("裁切", instruction)
+
+    def test_task_runner_prepares_generic_long_image_prompt(self):
+        from app.services.task_runner import prepare_autoglm_instruction
+
+        task = SimpleNamespace(
+            target_app="淘宝",
+            keyword="手机",
+            target_scenario="搜索结果页滚动10屏并拼接长图",
+            generated_instruction="打开淘宝App，搜索手机，进入搜索结果页，截取10屏并拼成长图",
+            request=SimpleNamespace(description="重复区域裁切掉"),
+        )
+
+        instruction, count = prepare_autoglm_instruction(task, task.generated_instruction)
+
+        self.assertEqual(count, 10)
+        self.assertIn("打开淘宝App", instruction)
+        self.assertIn("在搜索框输入“手机”后点击“搜索”按钮", instruction)
+        self.assertIn("进入搜索结果页首屏", instruction)
+        self.assertNotIn("第一个普通商品", instruction)
+        self.assertNotIn("拼接", instruction)
+        self.assertNotIn("裁切", instruction)
+
+    def test_task_runner_uses_final_capture_for_watch_tasks(self):
+        from unittest.mock import patch
+
+        from app import crud, models
+        from app.database import SessionLocal
+        from app.services import task_runner
+
+        commands = []
+
+        class FakeLogFile:
+            def close(self):
+                pass
+
+        class FakePopen:
+            def __init__(self, command, **kwargs):
+                commands.append(command)
+
+            def poll(self):
+                return 0
+
+        db = SessionLocal()
+        task = None
+        try:
+            task = crud.create_task(
+                db,
+                name="[持续观察] watch 2026-06-10",
+                keyword="",
+                target_app="淘宝",
+                target_scenario="首页",
+                mode="autoglm",
+            )
+            crud.update_task_instruction(db, task.id, "打开淘宝首页后停留")
+            task = crud.get_task(db, task.id)
+
+            with (
+                patch.object(task_runner.subprocess, "Popen", FakePopen),
+                patch.object(task_runner, "start_collection_watcher"),
+                patch.object(task_runner, "ensure_queue"),
+                patch("builtins.open", return_value=FakeLogFile()),
+            ):
+                task_runner.start_task_process(task, prompt=task.generated_instruction)
+
+            command = commands[0]
+            self.assertIn("--no-capture", command)
+            self.assertIn("--final-capture", command)
+            self.assertEqual(command[command.index("--max-steps") + 1], str(task_runner.WATCH_MAX_STEPS))
+        finally:
+            if task:
+                db.delete(task)
+            db.commit()
+            db.close()
+
+    def test_task_runner_keeps_long_capture_mode_for_long_image_tasks(self):
+        from unittest.mock import patch
+
+        from app import crud
+        from app.database import SessionLocal
+        from app.services import task_runner
+
+        commands = []
+
+        class FakeLogFile:
+            def close(self):
+                pass
+
+        class FakePopen:
+            def __init__(self, command, **kwargs):
+                commands.append(command)
+
+            def poll(self):
+                return 0
+
+        db = SessionLocal()
+        task = None
+        try:
+            task = crud.create_task(
+                db,
+                name="商品长图",
+                keyword="手机",
+                target_app="淘宝",
+                target_scenario="商品详情页长图",
+                mode="autoglm",
+            )
+            crud.update_task_instruction(db, task.id, "打开淘宝App，搜索手机，进入商品详情页，截取10屏并拼成长图")
+            task = crud.get_task(db, task.id)
+
+            with (
+                patch.object(task_runner.subprocess, "Popen", FakePopen),
+                patch.object(task_runner, "start_collection_watcher"),
+                patch.object(task_runner, "ensure_queue"),
+                patch("builtins.open", return_value=FakeLogFile()),
+            ):
+                task_runner.start_task_process(task, prompt=task.generated_instruction)
+
+            command = commands[0]
+            self.assertIn("--post-capture-mode", command)
+            self.assertIn(task_runner.LONG_CAPTURE_MODE, command)
+            self.assertIn("--no-capture", command)
+            self.assertNotIn("--final-capture", command)
+        finally:
+            if task:
+                db.delete(task)
+            db.commit()
+            db.close()
+
+    def test_collector_processes_existing_files_in_run_output_dir(self):
+        from unittest.mock import patch
+
+        from app import crud
+        from app.database import SessionLocal
+        from app.services import collector_bridge
+
+        class DoneProcess:
+            def poll(self):
+                return 0
+
+        db = SessionLocal()
+        task = run = image = output_dir = image_path = None
+        try:
+            task = crud.create_task(db, name="watch-final-capture", keyword="", target_app="淘宝", target_scenario="首页")
+            run = crud.create_task_run(db, task.id, status="running")
+            output_dir = Path(PROJECT_ROOT, "data", "collector-existing", str(run.id))
+            output_dir.mkdir(parents=True, exist_ok=True)
+            image_path = output_dir / "final.png"
+            image_path.write_bytes(base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="))
+
+            with (
+                patch.object(collector_bridge.oss_uploader, "upload", return_value={"success": False}),
+                patch.object(collector_bridge, "_trigger_analysis"),
+                patch.object(collector_bridge, "push_event"),
+                patch.object(collector_bridge.time, "sleep", return_value=None),
+            ):
+                collector_bridge._watch_and_upload(
+                    str(task.id),
+                    PROJECT_ROOT,
+                    process=DoneProcess(),
+                    interval=0,
+                    timeout=2,
+                    idle_threshold=0,
+                    output_dir=str(output_dir),
+                    task_run_id=str(run.id),
+                )
+
+            db.refresh(task)
+            images = list(task.images)
+            self.assertEqual(len(images), 1)
+            image = images[0]
+            self.assertEqual(image.task_run_id, run.id)
+            db.expire_all()
+            self.assertEqual(crud.get_task_run(db, run.id).status, "completed")
+        finally:
+            if task:
+                db.delete(task)
+            db.commit()
+            db.close()
+            if image_path and image_path.exists():
+                image_path.unlink()
+            if output_dir:
+                shutil.rmtree(output_dir.parent, ignore_errors=True)
+
     def test_autoglm_runner_exposes_product_detail_long_capture_hook(self):
         source = Path(PROJECT_ROOT, "run_autoglm.py").read_text(encoding="utf-8")
         config_source = Path(PROJECT_ROOT, "backend", "app", "config.py").read_text(encoding="utf-8")
@@ -114,6 +398,8 @@ class FlowRegressionTests(unittest.TestCase):
         self.assertIn("--post-capture-mode", source)
         self.assertIn("product_detail_long_image", source)
         self.assertIn("capture_product_detail_long_image", source)
+        self.assertIn("--final-capture", source)
+        self.assertIn("am\", \"force-stop", source)
         self.assertIn("MAX_AUTOGLM_STEPS = 30", source)
         self.assertIn('os.getenv("AUTOGLM_MAX_STEPS", "30")', config_source)
 
@@ -132,6 +418,87 @@ class FlowRegressionTests(unittest.TestCase):
         self.assertFalse(module._should_run_post_capture(failed, module.PRODUCT_DETAIL_LONG_CAPTURE_MODE))
         self.assertFalse(module._should_run_post_capture(unfinished, module.PRODUCT_DETAIL_LONG_CAPTURE_MODE))
         self.assertTrue(module._should_run_post_capture(finished, module.PRODUCT_DETAIL_LONG_CAPTURE_MODE))
+
+    def test_autoglm_runner_stops_on_login_page_before_long_capture(self):
+        import importlib.util
+
+        sys.path.insert(0, PROJECT_ROOT)
+        spec = importlib.util.spec_from_file_location("run_autoglm_module", os.path.join(PROJECT_ROOT, "run_autoglm.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        takeover = SimpleNamespace(
+            success=True,
+            finished=False,
+            action={"action": "Take_over", "message": "请登录后继续"},
+            message="请登录后继续",
+        )
+        finished_login = SimpleNamespace(
+            success=True,
+            finished=True,
+            action={"_metadata": "finish", "message": module.LOGIN_PAGE_STOP_MESSAGE},
+            message=module.LOGIN_PAGE_STOP_MESSAGE,
+        )
+        finished_target = SimpleNamespace(success=True, finished=True, action={"_metadata": "finish"}, message="done")
+        no_login = SimpleNamespace(success=True, finished=True, action={"_metadata": "finish"}, message="未遇到登录页，已完成")
+
+        self.assertTrue(module._step_indicates_login_page(takeover))
+        self.assertTrue(module._step_indicates_login_page(finished_login))
+        self.assertFalse(module._step_indicates_login_page(no_login))
+        self.assertFalse(module._should_run_post_capture(finished_login, module.PRODUCT_DETAIL_LONG_CAPTURE_MODE))
+        self.assertTrue(module._should_run_post_capture(finished_target, module.PRODUCT_DETAIL_LONG_CAPTURE_MODE))
+        self.assertIn(module.LOGIN_PAGE_STOP_RULE, module._append_login_page_stop_rule("打开淘宝"))
+
+    def test_autoglm_runner_finds_target_app_for_cleanup(self):
+        import importlib.util
+
+        sys.path.insert(0, PROJECT_ROOT)
+        spec = importlib.util.spec_from_file_location("run_autoglm_module", os.path.join(PROJECT_ROOT, "run_autoglm.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        self.assertEqual(module._target_app_from_task("打开拼多多App，进入百亿补贴"), "拼多多")
+        self.assertIsNone(module._target_app_from_task("打开目标App进入首页"))
+
+    def test_autoglm_runner_finds_search_submit_button_from_ui_xml(self):
+        import importlib.util
+
+        sys.path.insert(0, PROJECT_ROOT)
+        spec = importlib.util.spec_from_file_location("run_autoglm_module", os.path.join(PROJECT_ROOT, "run_autoglm.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        ui_xml = """<?xml version="1.0" encoding="UTF-8"?>
+        <hierarchy>
+          <node text="搜索" class="android.widget.EditText" clickable="true" enabled="true" bounds="[20,88][800,180]" />
+          <node text="搜索" class="android.widget.TextView" clickable="true" enabled="true" bounds="[900,88][1040,180]" />
+          <node text="搜索" class="android.widget.TextView" clickable="true" enabled="true" bounds="[450,2100][630,2200]" />
+        </hierarchy>"""
+
+        self.assertEqual(module._find_search_submit_point(ui_xml), (970, 134))
+
+    def test_autoglm_runner_falls_back_to_enter_when_search_button_missing(self):
+        import importlib.util
+        from unittest.mock import patch
+
+        sys.path.insert(0, PROJECT_ROOT)
+        spec = importlib.util.spec_from_file_location("run_autoglm_module", os.path.join(PROJECT_ROOT, "run_autoglm.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        step_result = SimpleNamespace(success=True, action={"action": "Type"}, message=None)
+        task = "打开淘宝App，在搜索框输入'手机'后点击“搜索”按钮"
+
+        with (
+            patch.object(module, "_dump_ui_xml", return_value="<hierarchy />"),
+            patch.object(module, "_tap_screen") as tap_screen,
+            patch.object(module, "_press_search_enter", return_value=True) as press_enter,
+            patch.object(module.time, "sleep"),
+        ):
+            self.assertTrue(module._submit_search_after_type(task, step_result, "device-1"))
+
+        tap_screen.assert_not_called()
+        press_enter.assert_called_once_with("device-1")
 
     def test_manage_clean_accepts_explicit_dry_run_flag(self):
         result = subprocess.run(
@@ -326,6 +693,54 @@ class FlowRegressionTests(unittest.TestCase):
         self.assertIn(".image-detail-image", styles)
         self.assertIn("width: clamp(360px, 38vw, 520px)", styles)
 
+    def test_status_badges_do_not_wrap(self):
+        styles = Path(PROJECT_ROOT, "frontend", "src", "styles", "index.css").read_text(encoding="utf-8")
+
+        self.assertRegex(styles, r"\.badge\s*\{[^}]*white-space:\s*nowrap")
+        self.assertRegex(styles, r"\.badge::before\s*\{[^}]*flex:\s*0 0 6px")
+        self.assertRegex(styles, r"\.goal-chip\s*\{[^}]*white-space:\s*nowrap")
+
+    def test_request_form_reveals_long_image_confirmation_area(self):
+        source = Path(PROJECT_ROOT, "frontend", "src", "components", "RequestForm.tsx").read_text(encoding="utf-8")
+        api_source = Path(PROJECT_ROOT, "frontend", "src", "api.ts").read_text(encoding="utf-8")
+
+        self.assertIn("isLongImageCandidate", source)
+        self.assertIn("isProductDetailLongImage", source)
+        self.assertIn("parseLongImageIntent", api_source)
+        self.assertIn("parseLongImageIntent", source)
+        self.assertIn("naturalInput", source)
+        self.assertIn("inferApps", source)
+        self.assertIn("target_app: inferApps(text) || inferApp(text)", source)
+        self.assertIn("需求输入", source)
+        self.assertIn("long-image-panel", source)
+        self.assertIn("补充长图细节", source)
+        self.assertIn("通用页面长图", source)
+        self.assertIn("截图屏数", source)
+        self.assertIn("排除入口", source)
+        self.assertNotIn("推荐填写", source)
+        self.assertNotIn("applyExample", source)
+
+    def test_admin_tasks_supports_queued_status_multiple_event_sources_and_rename(self):
+        source = Path(PROJECT_ROOT, "frontend", "src", "pages", "AdminTasks.tsx").read_text(encoding="utf-8")
+        api_source = Path(PROJECT_ROOT, "frontend", "src", "api.ts").read_text(encoding="utf-8")
+
+        self.assertIn("queued: 'badge-pending'", source)
+        self.assertIn("queued: '排队中'", source)
+        self.assertIn("eventSourcesRef", source)
+        self.assertIn("eventSourcesRef.current[id]", source)
+        self.assertIn("payload.type === 'started'", source)
+        self.assertIn("任务已加入队列", source)
+        self.assertIn("selectedTaskIds", source)
+        self.assertIn("handleRunSelected", source)
+        self.assertIn("启动选中", source)
+        self.assertIn("editingTaskId", source)
+        self.assertIn("saveTaskName", source)
+        self.assertIn("任务名称已更新", source)
+        self.assertIn("改名", source)
+        self.assertIn("updateTask", source)
+        self.assertIn("updateTask", api_source)
+        self.assertIn("api.patch(`/admin/tasks/${id}`", api_source)
+
     def test_frontend_does_not_expose_redundant_image_management_tab(self):
         app_source = Path(PROJECT_ROOT, "frontend", "src", "App.tsx").read_text(encoding="utf-8")
         api_source = Path(PROJECT_ROOT, "frontend", "src", "api.ts").read_text(encoding="utf-8")
@@ -469,6 +884,208 @@ class FlowRegressionTests(unittest.TestCase):
                 db.delete(user)
             db.commit()
             db.close()
+
+    def test_worker_devices_endpoint_requires_token_and_updates_devices(self):
+        from fastapi.testclient import TestClient
+        from app import crud
+        from app.config import settings
+        from app.database import SessionLocal
+        from app.main import app
+
+        db = SessionLocal()
+        old_token = settings.WORKER_API_TOKEN
+        node_key = f"node-{uuid4().hex}"
+        serial = f"device-{uuid4().hex}"
+        try:
+            settings.WORKER_API_TOKEN = "worker-test-token"
+            client = TestClient(app)
+
+            unauthorized = client.post(
+                "/api/worker/heartbeat",
+                json={"node_key": node_key, "status": "online"},
+            )
+            self.assertEqual(unauthorized.status_code, 401)
+
+            headers = {"X-Worker-Token": "worker-test-token"}
+            self.assertEqual(
+                client.post("/api/worker/register", json={"node_key": node_key, "name": "Local Worker"}, headers=headers).status_code,
+                200,
+            )
+            self.assertEqual(
+                client.post("/api/worker/heartbeat", json={"node_key": node_key, "status": "online"}, headers=headers).status_code,
+                200,
+            )
+
+            report = client.post(
+                "/api/worker/devices",
+                json={
+                    "node_key": node_key,
+                    "devices": [{"serial": serial, "status": "online", "notes": "device"}],
+                },
+                headers=headers,
+            )
+            self.assertEqual(report.status_code, 200)
+            db.expire_all()
+            device = crud.get_device_by_serial(db, serial)
+            self.assertIsNotNone(device)
+            self.assertEqual(device.status, "online")
+            self.assertTrue(device.notes.startswith(f"worker:{node_key}"))
+
+            empty_report = client.post(
+                "/api/worker/devices",
+                json={"node_key": node_key, "devices": []},
+                headers=headers,
+            )
+            self.assertEqual(empty_report.status_code, 200)
+            db.expire_all()
+            device = crud.get_device_by_serial(db, serial)
+            self.assertEqual(device.status, "offline")
+            self.assertIn("not reported by worker", device.notes)
+        finally:
+            settings.WORKER_API_TOKEN = old_token
+            device = crud.get_device_by_serial(db, serial)
+            if device:
+                db.delete(device)
+            db.commit()
+            db.close()
+
+    def test_server_adb_refresh_keeps_worker_devices_online(self):
+        from unittest.mock import patch
+
+        from app import crud
+        from app.database import SessionLocal
+        from app.services import devices
+
+        db = SessionLocal()
+        worker_serial = f"worker-device-{uuid4().hex}"
+        adb_serial = f"adb-device-{uuid4().hex}"
+        try:
+            crud.upsert_device(
+                db,
+                serial=worker_serial,
+                status="online",
+                last_seen_at=utc_now(),
+                notes="worker:local-device device",
+            )
+            crud.upsert_device(
+                db,
+                serial=adb_serial,
+                status="online",
+                last_seen_at=utc_now(),
+                notes="device",
+            )
+
+            fake_result = SimpleNamespace(returncode=0, stdout="List of devices attached\n")
+            with (
+                patch.object(devices.shutil, "which", return_value="/usr/bin/adb"),
+                patch.object(devices.subprocess, "run", return_value=fake_result),
+            ):
+                devices.refresh_devices(db)
+
+            db.expire_all()
+            self.assertEqual(crud.get_device_by_serial(db, worker_serial).status, "online")
+            self.assertEqual(crud.get_device_by_serial(db, adb_serial).status, "offline")
+        finally:
+            for serial in (worker_serial, adb_serial):
+                device = crud.get_device_by_serial(db, serial)
+                if device:
+                    db.delete(device)
+            db.commit()
+            db.close()
+
+    def test_image_file_endpoint_redirects_to_oss_when_disk_file_missing(self):
+        from fastapi.testclient import TestClient
+
+        from app import crud, schemas
+        from app.database import SessionLocal
+        from app.main import app
+        from app.services.auth import create_access_token, hash_password
+
+        db = SessionLocal()
+        user = image = None
+        oss_url = "https://example.com/image.png"
+        try:
+            user = crud.create_user(
+                db,
+                username=f"image-oss-{uuid4().hex}",
+                password_hash=hash_password("secret-password"),
+                role="admin",
+            )
+            image = crud.create_image(db, schemas.ImageCreate(
+                file_path=f"data/missing-{uuid4().hex}.png",
+                oss_url=oss_url,
+            ))
+            token = create_access_token(user)
+            client = TestClient(app)
+
+            response = client.get(
+                f"/api/images/{image.id}/file",
+                headers={"Authorization": f"Bearer {token}"},
+                follow_redirects=False,
+            )
+
+            self.assertEqual(response.status_code, 307)
+            self.assertEqual(response.headers["location"], oss_url)
+        finally:
+            if image:
+                db.delete(image)
+            if user:
+                db.delete(user)
+            db.commit()
+            db.close()
+
+    def test_image_file_endpoint_prefers_oss_over_disk_file(self):
+        from fastapi.testclient import TestClient
+
+        from app import crud, schemas
+        from app.database import SessionLocal
+        from app.main import app
+        from app.services.auth import create_access_token, hash_password
+
+        db = SessionLocal()
+        user = image = None
+        image_path = Path(PROJECT_ROOT, "data", f"oss-preferred-{uuid4().hex}.png")
+        oss_url = "https://example.com/preferred.png"
+        try:
+            image_path.parent.mkdir(parents=True, exist_ok=True)
+            image_path.write_bytes(base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="))
+            user = crud.create_user(
+                db,
+                username=f"image-oss-preferred-{uuid4().hex}",
+                password_hash=hash_password("secret-password"),
+                role="admin",
+            )
+            image = crud.create_image(db, schemas.ImageCreate(
+                file_path=os.path.relpath(image_path, PROJECT_ROOT),
+                oss_url=oss_url,
+            ))
+            token = create_access_token(user)
+            client = TestClient(app)
+
+            response = client.get(
+                f"/api/images/{image.id}/file",
+                headers={"Authorization": f"Bearer {token}"},
+                follow_redirects=False,
+            )
+
+            self.assertEqual(response.status_code, 307)
+            self.assertEqual(response.headers["location"], oss_url)
+        finally:
+            if image:
+                db.delete(image)
+            if user:
+                db.delete(user)
+            db.commit()
+            db.close()
+            if image_path.exists():
+                image_path.unlink()
+
+    def test_admin_devices_refresh_message_handles_worker_devices(self):
+        source = Path(PROJECT_ROOT, "frontend", "src", "pages", "AdminDevices.tsx").read_text(encoding="utf-8")
+
+        self.assertIn("hasWorkerDevice", source)
+        self.assertIn("本地设备机在线，已刷新设备状态", source)
+        self.assertIn("未检测到本机 adb", source)
 
     def test_user_update_can_disable_user(self):
         from app import crud
@@ -770,6 +1387,7 @@ class FlowRegressionTests(unittest.TestCase):
             task = crud.get_task(db, UUID(body["id"]))
             self.assertEqual(body["created_by"], str(submitter.id))
             self.assertEqual(body["approved_by"], str(admin.id))
+            self.assertRegex(body["name"], r"^拼多多-百亿补贴-\d{8}-\d{3}$")
 
             submitter_tasks = client.get("/api/admin/tasks", headers=submitter_headers).json()
             self.assertIn(body["id"], [row["id"] for row in submitter_tasks])
@@ -782,6 +1400,156 @@ class FlowRegressionTests(unittest.TestCase):
             for user in (admin, submitter):
                 if user:
                     db.delete(user)
+            db.commit()
+            db.close()
+
+    def test_image_task_default_name_uses_target_keyword_date_and_daily_sequence(self):
+        from app import crud, models
+        from app.database import SessionLocal
+        from app.routers import admin as admin_router
+
+        db = SessionLocal()
+        task = watch_task = None
+        date_key = admin_router.datetime.now().strftime("%Y%m%d")
+        try:
+            before = (
+                db.query(models.Task)
+                .filter(models.Task.name.like(f"%-{date_key}-%"))
+                .filter(~models.Task.name.startswith("[持续观察]"))
+                .count()
+            )
+            watch_task = crud.create_task(
+                db,
+                name=f"[持续观察] 淘宝首页 {date_key}-999",
+                keyword="",
+                target_app="淘宝",
+                target_scenario="首页",
+            )
+
+            first_name = admin_router._next_daily_image_task_name(db, "淘宝", "iPhone17")
+            self.assertEqual(first_name, f"淘宝-iPhone17-{date_key}-{before + 1:03d}")
+
+            task = crud.create_task(
+                db,
+                name=first_name,
+                keyword="iPhone17",
+                target_app="淘宝",
+                target_scenario="搜索结果页",
+            )
+            second_name = admin_router._next_daily_image_task_name(db, "京东", "iPhone17")
+            self.assertEqual(second_name, f"京东-iPhone17-{date_key}-{before + 2:03d}")
+        finally:
+            for row in (task, watch_task):
+                if row:
+                    db.delete(row)
+            db.commit()
+            db.close()
+
+    def test_admin_can_rename_task(self):
+        from fastapi.testclient import TestClient
+        from app import crud
+        from app.database import SessionLocal
+        from app.main import app
+        from app.services.auth import create_access_token, hash_password
+
+        db = SessionLocal()
+        admin = task = None
+        try:
+            admin = crud.create_user(
+                db,
+                username=f"rename-admin-{uuid4().hex}",
+                password_hash=hash_password("secret-password"),
+                role="admin",
+            )
+            task = crud.create_task(
+                db,
+                name="Task from request old",
+                keyword="COCOBELLA",
+                target_app="淘宝",
+                target_scenario="搜索结果页",
+                created_by=admin.id,
+                approved_by=admin.id,
+            )
+            client = TestClient(app)
+            headers = {"Authorization": f"Bearer {create_access_token(admin)}"}
+
+            response = client.patch(
+                f"/api/admin/tasks/{task.id}",
+                headers=headers,
+                json={"name": "  COCOBELLA 淘宝搜索结果页  "},
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()["name"], "COCOBELLA 淘宝搜索结果页")
+            db.expire_all()
+            self.assertEqual(crud.get_task(db, task.id).name, "COCOBELLA 淘宝搜索结果页")
+
+            blank = client.patch(
+                f"/api/admin/tasks/{task.id}",
+                headers=headers,
+                json={"name": "   "},
+            )
+            self.assertEqual(blank.status_code, 400)
+        finally:
+            if task:
+                db.delete(task)
+            if admin:
+                db.delete(admin)
+            db.commit()
+            db.close()
+
+    def test_admin_approve_splits_multiple_target_apps_into_tasks(self):
+        from fastapi.testclient import TestClient
+        from app import crud, models, schemas
+        from app.database import SessionLocal
+        from app.main import app
+        from app.routers import admin as admin_router
+        from app.services.auth import create_access_token, hash_password
+
+        planned_apps = []
+
+        async def fake_plan_task(**kwargs):
+            planned_apps.append(kwargs["target_app"])
+            return f"打开{kwargs['target_app']}App，在搜索框输入'冰箱'后点击“搜索”按钮，进入搜索结果页并截图"
+
+        db = SessionLocal()
+        suffix = uuid4().hex
+        admin = request = None
+        old_plan_task = admin_router.plan_task
+        admin_router.plan_task = fake_plan_task
+        try:
+            admin = crud.create_user(
+                db,
+                username=f"multi-app-admin-{suffix}",
+                password_hash=hash_password("secret-password"),
+                role="admin",
+            )
+            request = crud.create_request(
+                db,
+                schemas.RequestCreate(target_app="淘宝、天猫、拼多多", target_scenario="搜索结果页", keywords=["冰箱"]),
+                user_id=str(admin.id),
+            )
+
+            response = TestClient(app).put(
+                f"/api/admin/requests/{request.id}/approve",
+                headers={"Authorization": f"Bearer {create_access_token(admin)}"},
+                json={"admin_id": admin.username, "mode": "autoglm"},
+            )
+
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()["target_app"], "淘宝")
+            db.expire_all()
+            tasks = db.query(models.Task).filter(models.Task.request_id == request.id).all()
+            self.assertEqual(sorted(task.target_app for task in tasks), ["天猫", "拼多多", "淘宝"])
+            self.assertEqual(sorted(planned_apps), ["天猫", "拼多多", "淘宝"])
+            self.assertTrue(all("点击“搜索”按钮" in (task.generated_instruction or "") for task in tasks))
+        finally:
+            admin_router.plan_task = old_plan_task
+            if request:
+                for task in db.query(models.Task).filter(models.Task.request_id == request.id).all():
+                    db.delete(task)
+                db.delete(request)
+            if admin:
+                db.delete(admin)
             db.commit()
             db.close()
 
@@ -900,6 +1668,61 @@ class FlowRegressionTests(unittest.TestCase):
         finally:
             if task:
                 db.delete(task)
+            if device:
+                db.delete(device)
+            db.commit()
+            db.close()
+
+    def test_task_queue_runs_one_task_and_starts_next_queued_task(self):
+        from unittest.mock import patch
+
+        from app import crud
+        from app.database import SessionLocal
+        from app.services import task_queue, task_runner
+
+        started = []
+        db = SessionLocal()
+        first = second = device = None
+        try:
+            device = crud.upsert_device(db, serial=f"queue-device-{uuid4().hex}", status="online")
+            first = crud.create_task(db, name="queue-first", keyword="", target_app="淘宝", target_scenario="首页")
+            second = crud.create_task(db, name="queue-second", keyword="", target_app="天猫", target_scenario="首页")
+
+            def fake_start(task, **_kwargs):
+                started.append(task.id)
+
+            with (
+                patch.object(task_queue, "refresh_devices"),
+                patch.object(task_runner, "start_task_process", side_effect=fake_start),
+            ):
+                first_decision = task_queue.start_or_enqueue_task(db, first, created_by=None)
+                second_decision = task_queue.start_or_enqueue_task(db, second, created_by=None)
+
+                self.assertEqual(first_decision.status, "running")
+                self.assertEqual(second_decision.status, "queued")
+                self.assertEqual(started, [first.id])
+                self.assertEqual(crud.get_task(db, first.id).status, "running")
+                self.assertEqual(crud.get_task(db, second.id).status, "queued")
+                self.assertEqual(crud.get_latest_task_run(db, second.id).status, "queued")
+
+                first_run = crud.get_latest_task_run(db, first.id)
+                crud.update_task_status(db, first.id, "completed")
+                crud.update_task_run(db, first_run.id, status="completed")
+                crud.release_device_for_run(db, first_run.id)
+
+                task_queue.start_next_queued_task()
+
+            db.expire_all()
+            self.assertEqual(crud.get_task(db, second.id).status, "running")
+            self.assertEqual(crud.get_latest_task_run(db, second.id).status, "running")
+            self.assertEqual(started, [first.id, second.id])
+        finally:
+            for task in (first, second):
+                if task:
+                    latest = crud.get_latest_task_run(db, task.id)
+                    if latest:
+                        crud.release_device_for_run(db, latest.id)
+                    db.delete(task)
             if device:
                 db.delete(device)
             db.commit()
@@ -1162,6 +1985,7 @@ class FlowRegressionTests(unittest.TestCase):
             self.assertEqual(analysis.status, "skipped")
             self.assertIn("不是目标弹窗", analysis.ops_analysis)
             self.assertEqual(fake_analyzer.context["focus_question"], "只看红色弹窗利益点")
+            self.assertEqual(fake_analyzer.context["prompt_profile"], "default")
         finally:
             images_router.analyzer = old_analyzer
             if image:
@@ -1173,6 +1997,67 @@ class FlowRegressionTests(unittest.TestCase):
                 db.delete(task)
             if request:
                 db.delete(request)
+            db.commit()
+            db.close()
+
+    def test_watch_homepage_analysis_allows_search_result_misclassification(self):
+        from app import crud, schemas
+        from app.database import SessionLocal
+        from app.routers import images as images_router
+
+        class FakeAnalyzer:
+            def __init__(self):
+                self.context = None
+
+            async def is_target_page(self, image_path, context):
+                self.context = context
+                return False, "页面为搜索结果页，顶部有明确搜索框"
+
+            async def analyze(self, image_path, context=None):
+                return "设计分析", "运营分析", "success"
+
+        class FakeEmbedder:
+            async def embed_single(self, text):
+                return [0.0] * 4
+
+        old_analyzer = images_router.analyzer
+        old_embedder = images_router.embedder
+        fake_analyzer = FakeAnalyzer()
+        images_router.analyzer = fake_analyzer
+        images_router.embedder = FakeEmbedder()
+
+        db = SessionLocal()
+        task = image = None
+        try:
+            task = crud.create_task(
+                db,
+                name="[持续观察] 淘宝首页",
+                keyword="",
+                target_app="淘宝",
+                target_scenario="首页",
+            )
+            image = crud.create_image(db, schemas.ImageCreate(
+                file_path="data/watch-homepage-fallback.png",
+                task_id=task.id,
+                scenario="首页",
+            ))
+
+            asyncio.run(images_router._analyze_and_embed(image.id))
+            analysis = crud.get_analysis_by_image(db, image.id)
+
+            self.assertEqual(analysis.status, "success")
+            self.assertEqual(analysis.design_analysis, "设计分析")
+            self.assertEqual(fake_analyzer.context["prompt_profile"], "watch")
+        finally:
+            images_router.analyzer = old_analyzer
+            images_router.embedder = old_embedder
+            if image:
+                analysis = crud.get_analysis_by_image(db, image.id)
+                if analysis:
+                    db.delete(analysis)
+                db.delete(image)
+            if task:
+                db.delete(task)
             db.commit()
             db.close()
 
@@ -1413,7 +2298,7 @@ class FlowRegressionTests(unittest.TestCase):
             db.commit()
             db.close()
 
-    def test_finish_run_marks_missing_required_goal_as_failed(self):
+    def test_finish_run_keeps_completed_status_when_goal_validation_misses(self):
         from app import crud, schemas
         from app.database import SessionLocal
         from app.services.collector_bridge import _finish_run
@@ -1444,8 +2329,8 @@ class FlowRegressionTests(unittest.TestCase):
             db.refresh(task)
             db.refresh(run)
 
-            self.assertEqual(task.status, "failed")
-            self.assertEqual(run.status, "failed")
+            self.assertEqual(task.status, "completed")
+            self.assertEqual(run.status, "completed")
             self.assertIn("缺少目标页截图：百亿补贴", run.failure_reason)
             self.assertEqual(run.goal_validation_json["status"], "missing")
         finally:
@@ -1461,7 +2346,7 @@ class FlowRegressionTests(unittest.TestCase):
             db.commit()
             db.close()
 
-    def test_goal_refresh_can_fail_completed_run_after_analysis_finishes(self):
+    def test_goal_refresh_records_missing_goal_without_failing_completed_run(self):
         from app import crud, schemas
         from app.database import SessionLocal
         from app.services.goal_validator import refresh_task_run_goal_validation
@@ -1493,8 +2378,8 @@ class FlowRegressionTests(unittest.TestCase):
             db.refresh(task)
             db.refresh(run)
 
-            self.assertEqual(task.status, "failed")
-            self.assertEqual(run.status, "failed")
+            self.assertEqual(task.status, "completed")
+            self.assertEqual(run.status, "completed")
             self.assertIn("百亿补贴", run.failure_reason)
         finally:
             if image:
@@ -1509,17 +2394,67 @@ class FlowRegressionTests(unittest.TestCase):
             db.commit()
             db.close()
 
+    def test_task_out_displays_legacy_goal_validation_failure_as_completed(self):
+        from app import crud, schemas
+        from app.database import SessionLocal
+        from app.routers.admin import _task_out
+        from app.services.task_goals import build_target_goals
+
+        db = SessionLocal()
+        task = image = run = None
+        try:
+            task = crud.create_task(
+                db,
+                name="legacy-goal-failure",
+                keyword="",
+                target_app="拼多多",
+                target_scenario="限时秒杀，百亿补贴",
+                target_goals_json=build_target_goals("拼多多", "限时秒杀，百亿补贴", [], None),
+            )
+            run = crud.create_task_run(db, task.id, status="failed")
+            run = crud.update_task_run(
+                db,
+                run.id,
+                completed_at=utc_now(),
+                failure_reason="缺少目标页截图：百亿补贴",
+                goal_validation_json={"status": "missing", "missing": ["百亿补贴"]},
+            )
+            image = crud.create_image(db, schemas.ImageCreate(
+                file_path=f"data/legacy-goal-failure-{uuid4().hex}.png",
+                task_id=task.id,
+                task_run_id=run.id,
+            ))
+            crud.update_task_status(db, task.id, "failed")
+            task = crud.get_task(db, task.id)
+
+            out = _task_out(db, task)
+
+            self.assertEqual(out.status, "completed")
+            self.assertEqual(out.completed_at, run.completed_at)
+            self.assertEqual(out.failure_reason, "缺少目标页截图：百亿补贴")
+        finally:
+            if image:
+                db.delete(image)
+            if run:
+                db.delete(run)
+            if task:
+                db.delete(task)
+            db.commit()
+            db.close()
+
     def test_keyword_instruction_searches_only_for_search_scenes(self):
         from app.services.task_planner import keyword_instruction, requires_popup_close_flow, append_execution_rules
 
-        self.assertEqual(keyword_instruction(["蓝牙耳机", "618"], "搜索结果页"), "搜索'蓝牙耳机、618'")
-        self.assertEqual(keyword_instruction(["智能手表"], "商品详情页"), "搜索'智能手表'")
+        self.assertEqual(keyword_instruction(["蓝牙耳机", "618"], "搜索结果页"), "在搜索框输入'蓝牙耳机、618'后点击“搜索”按钮")
+        self.assertEqual(keyword_instruction(["智能手表"], "商品详情页"), "在搜索框输入'智能手表'后点击“搜索”按钮")
         self.assertEqual(keyword_instruction(["红包", "限时优惠"], "大促弹窗"), "重点关注'红包、限时优惠'相关内容")
         self.assertTrue(requires_popup_close_flow("如果有弹窗先截图，然后关闭弹窗后再截图"))
 
         prompt = append_execution_rules("打开淘宝秒杀，如果有弹窗先截图，然后关闭弹窗后再截图")
 
         self.assertIn("未完成弹窗页截图和关闭后页面截图前，禁止结束任务", prompt)
+        search_prompt = append_execution_rules("打开淘宝App，搜索手机，进入商品详情页，并截图保存到本地")
+        self.assertIn("输入完成后必须点击页面上的“搜索”按钮", search_prompt)
 
     def test_text_search_finds_analysis_when_embedding_is_unavailable(self):
         from app import crud, schemas
@@ -2000,6 +2935,57 @@ class FlowRegressionTests(unittest.TestCase):
             db.commit()
             db.close()
 
+    def test_list_tasks_orders_by_latest_task_time(self):
+        from app import crud
+        from app.database import SessionLocal
+
+        db = SessionLocal()
+        old_completed = new_pending = None
+        try:
+            old_completed = crud.create_task(db, name="old completed task", keyword="", target_app="淘宝", target_scenario="百亿补贴")
+            new_pending = crud.create_task(db, name="new pending task", keyword="", target_app="淘宝", target_scenario="淘宝秒杀")
+
+            old_completed.approved_at = utc_now() + timedelta(days=1)
+            old_completed.completed_at = utc_now() + timedelta(days=2)
+            new_pending.approved_at = utc_now() + timedelta(days=3)
+            db.commit()
+
+            tasks = crud.list_tasks(db, limit=2)
+
+            self.assertEqual(tasks[0].id, new_pending.id)
+            self.assertEqual(tasks[1].id, old_completed.id)
+        finally:
+            for task in (new_pending, old_completed):
+                if task:
+                    db.delete(task)
+            db.commit()
+            db.close()
+
+    def test_list_requests_orders_latest_created_first(self):
+        from app import crud, schemas
+        from app.database import SessionLocal
+
+        db = SessionLocal()
+        old_request = new_request = None
+        try:
+            old_request = crud.create_request(db, schemas.RequestCreate(target_app="淘宝", target_scenario="百亿补贴"))
+            new_request = crud.create_request(db, schemas.RequestCreate(target_app="京东", target_scenario="秒杀"))
+
+            old_request.created_at = utc_now() + timedelta(days=1)
+            new_request.created_at = utc_now() + timedelta(days=2)
+            db.commit()
+
+            requests = crud.list_requests(db, limit=2)
+
+            self.assertEqual(requests[0].id, new_request.id)
+            self.assertEqual(requests[1].id, old_request.id)
+        finally:
+            for request in (new_request, old_request):
+                if request:
+                    db.delete(request)
+            db.commit()
+            db.close()
+
     def test_admin_stats_counts_records_without_list_fetching(self):
         from app import crud, schemas
         from app.database import SessionLocal
@@ -2222,6 +3208,224 @@ class FlowRegressionTests(unittest.TestCase):
                 db.delete(plan)
             db.commit()
             db.close()
+
+    def test_weekly_watch_scheduler_runs_only_on_start_weekday(self):
+        from app import crud, schemas
+        from app.database import SessionLocal
+        from app.services.watch_service import run_due_watch_plans
+
+        db = SessionLocal()
+        plan = monday_task = None
+        try:
+            start = date(2026, 6, 1)  # Monday
+            plan = crud.create_watch_plan(db, schemas.WatchPlanCreate(
+                name="weekly watch",
+                target_app="淘宝",
+                target_page="百亿补贴",
+                entry_instruction="打开淘宝，进入百亿补贴",
+                schedule_time=time(10, 0),
+                schedule_cycle="weekly",
+                schedule_start_date=start,
+            ))
+            plan.created_at = datetime(2026, 5, 31, 9, 0, 0)
+            db.commit()
+
+            self.assertEqual(
+                run_due_watch_plans(db, now=datetime(2026, 6, 2, 10, 1, 0), start_process=False),
+                0,
+            )
+            self.assertIsNone(crud.get_watch_run_by_date(db, plan.id, date(2026, 6, 2)))
+
+            self.assertEqual(
+                run_due_watch_plans(db, now=datetime(2026, 6, 8, 10, 1, 0), start_process=False),
+                1,
+            )
+            run = crud.get_watch_run_by_date(db, plan.id, date(2026, 6, 8))
+            monday_task = crud.get_task(db, run.task_id)
+            self.assertEqual(run.status, "running")
+            self.assertEqual(monday_task.mode, "autoglm")
+        finally:
+            if plan:
+                db.delete(plan)
+                db.flush()
+            if monday_task:
+                db.delete(monday_task)
+            db.commit()
+            db.close()
+
+    def test_monthly_watch_scheduler_uses_last_day_for_short_months(self):
+        from app import crud, schemas
+        from app.database import SessionLocal
+        from app.services.watch_service import run_due_watch_plans
+
+        db = SessionLocal()
+        plan = task = None
+        try:
+            plan = crud.create_watch_plan(db, schemas.WatchPlanCreate(
+                name="monthly watch",
+                target_app="淘宝",
+                target_page="百亿补贴",
+                entry_instruction="打开淘宝，进入百亿补贴",
+                schedule_time=time(10, 0),
+                schedule_cycle="monthly",
+                schedule_start_date=date(2026, 1, 31),
+            ))
+            plan.created_at = datetime(2026, 1, 1, 9, 0, 0)
+            db.commit()
+
+            self.assertEqual(
+                run_due_watch_plans(db, now=datetime(2026, 2, 27, 10, 1, 0), start_process=False),
+                0,
+            )
+            self.assertEqual(
+                run_due_watch_plans(db, now=datetime(2026, 2, 28, 10, 1, 0), start_process=False),
+                1,
+            )
+
+            run = crud.get_watch_run_by_date(db, plan.id, date(2026, 2, 28))
+            task = crud.get_task(db, run.task_id)
+            self.assertEqual(run.status, "running")
+            self.assertEqual(task.mode, "autoglm")
+        finally:
+            if plan:
+                db.delete(plan)
+                db.flush()
+            if task:
+                db.delete(task)
+            db.commit()
+            db.close()
+
+    def test_watch_finalize_success_clears_previous_failure_reason(self):
+        from app import crud, schemas
+        from app.database import SessionLocal
+        from app.services import watch_service
+
+        old_wait = watch_service._wait_for_analyses
+        old_reporter = watch_service.watch_reporter
+        db = SessionLocal()
+        plan = task = image = None
+        try:
+            plan = crud.create_watch_plan(db, schemas.WatchPlanCreate(
+                name="clear failure watch",
+                target_app="淘宝",
+                target_page="首页",
+                entry_instruction="打开淘宝首页",
+            ))
+            task = crud.create_task(db, name="[持续观察] clear", keyword="", target_app="淘宝", target_scenario="首页")
+            image = crud.create_image(db, schemas.ImageCreate(file_path="data/clear-failure-watch.png", task_id=task.id))
+            crud.create_analysis(db, image.id, "设计分析", "运营分析")
+            run = crud.create_watch_run(db, plan.id, date(2026, 6, 10))
+            crud.update_watch_run(db, run.id, status="running", task_id=task.id, failure_reason="旧失败原因")
+
+            class FakeReporter:
+                def summarize_daily(self, plan, run, primary_image, previous_summary=None):
+                    return {
+                        "summary": "日报",
+                        "design_summary": "设计",
+                        "ops_summary": "运营",
+                        "key_modules_json": [],
+                        "promotions_json": [],
+                        "changes_from_previous_json": {},
+                    }
+
+                def summarize_period(self, *args, **kwargs):
+                    return {"report": "周期", "structured_json": {}}
+
+            watch_service._wait_for_analyses = lambda db_arg, task_id, timeout_seconds=180: crud.get_task(db_arg, task.id)
+            watch_service.watch_reporter = FakeReporter()
+
+            watch_service._finalize_success(db, crud.get_watch_run(db, run.id))
+
+            db.expire_all()
+            run = crud.get_watch_run(db, run.id)
+            self.assertEqual(run.status, "success")
+            self.assertIsNone(run.failure_reason)
+        finally:
+            watch_service._wait_for_analyses = old_wait
+            watch_service.watch_reporter = old_reporter
+            if plan:
+                db.delete(plan)
+            if task:
+                db.delete(task)
+            db.commit()
+            db.close()
+
+    def test_watch_plan_form_exposes_cycle_and_date_fields(self):
+        source = Path(PROJECT_ROOT, "frontend", "src", "components", "WatchPlanForm.tsx").read_text(encoding="utf-8")
+
+        self.assertIn("schedule_cycle", source)
+        self.assertIn("schedule_start_date", source)
+        self.assertIn("schedule_end_date", source)
+        self.assertIn("执行周期", source)
+        self.assertIn("每天", source)
+        self.assertIn("每周", source)
+        self.assertIn("每月", source)
+        self.assertIn('type="date"', source)
+
+    def test_watch_reporter_omits_temperature_for_compatible_models(self):
+        from unittest.mock import patch
+
+        from app.services import watch_reporter
+
+        calls = []
+
+        class FakeCompletions:
+            def create(self, **kwargs):
+                calls.append(kwargs)
+                message = SimpleNamespace(content='{"summary":"s","design_summary":"d","ops_summary":"o"}')
+                return SimpleNamespace(choices=[SimpleNamespace(message=message)])
+
+        fake_client = SimpleNamespace(
+            chat=SimpleNamespace(
+                completions=FakeCompletions(),
+            ),
+        )
+        plan = SimpleNamespace(name="watch", target_app="淘宝", target_page="首页", focus_question="")
+        run = SimpleNamespace(run_date=date(2026, 6, 10))
+        image = SimpleNamespace(analysis=SimpleNamespace(design_analysis="design", ops_analysis="ops"))
+
+        with patch.object(watch_reporter, "_planner_client", return_value=(fake_client, "fake-model")):
+            result = watch_reporter.WatchReporter().summarize_daily(plan, run, image)
+
+        self.assertEqual(result["summary"], "s")
+        self.assertNotIn("temperature", calls[0])
+
+    def test_target_page_prompt_allows_watch_focus_as_analysis_direction(self):
+        from app.services.llm_analyzer import TARGET_PAGE_PROMPT, WATCH_TARGET_PAGE_PROMPT
+
+        self.assertIn("关注问题只作为后续分析方向", WATCH_TARGET_PAGE_PROMPT)
+        self.assertIn("不要仅因为页面有搜索框或商品列表就判定为搜索结果页", WATCH_TARGET_PAGE_PROMPT)
+        self.assertNotIn("关注问题只作为后续分析方向", TARGET_PAGE_PROMPT)
+
+    def test_llm_analyzer_uses_independent_prompt_profiles(self):
+        from app.services.llm_analyzer import LLMAnalyzer
+
+        analyzer = LLMAnalyzer()
+        default_context = {
+            "target_app": "淘宝",
+            "target_scenario": "大促弹窗",
+            "keywords": ["红包"],
+            "focus_question": "只看红色弹窗利益点",
+            "prompt_profile": "default",
+        }
+        watch_context = {
+            "target_app": "淘宝",
+            "target_scenario": "首页信息流首屏",
+            "focus_question": "关注618利益点",
+            "prompt_profile": "watch",
+        }
+
+        default_target_prompt = analyzer._build_target_page_prompt(default_context)
+        watch_target_prompt = analyzer._build_target_page_prompt(watch_context)
+        default_analysis_prompt = analyzer._build_analysis_prompt(default_context)
+        watch_analysis_prompt = analyzer._build_analysis_prompt(watch_context)
+
+        self.assertIn("画面内容和关键词/关注点、关注问题明显相关", default_target_prompt)
+        self.assertNotIn("不要仅因为页面有搜索框或商品列表", default_target_prompt)
+        self.assertIn("固定页面观察目标", watch_target_prompt)
+        self.assertIn("不要仅因为页面有搜索框或商品列表", watch_target_prompt)
+        self.assertIn("电商截图分析器", default_analysis_prompt)
+        self.assertIn("固定页面持续观察截图分析器", watch_analysis_prompt)
 
 
 if __name__ == "__main__":
