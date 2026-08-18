@@ -270,6 +270,19 @@ class WorkerArtifactOut(BaseModel):
     oss_url: Optional[str] = None
 
 
+class WorkerPromotionDetectionOut(BaseModel):
+    promo_present: bool
+    promo_state: Literal["expanded", "collapsed", "none", "uncertain"]
+    promo_bbox_norm: Optional[List[int]] = None
+    promo_description: str = ""
+    close_button_present: bool
+    close_button_bbox_norm: Optional[List[int]] = None
+    close_button_description: str = ""
+    confidence: float
+    image_width: int
+    image_height: int
+
+
 class ComparisonAssetCreate(BaseModel):
     image_id: UUID
     notes: Optional[str] = None

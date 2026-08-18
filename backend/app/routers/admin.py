@@ -181,16 +181,24 @@ async def approve_request(
     for app_name in target_apps:
         target_goals = build_target_goals(app_name, target_scenario, keywords, req.description)
         generated_instruction = None
-        try:
-            generated_instruction = await plan_task(
-                target_app=app_name,
-                target_scenario=target_scenario,
-                keywords=keywords,
-                description=req.description,
+        if body.mode == "scroll_promo":
+            generated_instruction = (
+                f"打开{app_name or '目标'}App并等待首页加载，执行一次1秒页面上滑；"
+                "从滑动过程中按10FPS提取候选帧，筛选后最多保留6张；"
+                "逐帧识别右下角促销贴片、判断展开或收起状态、定位关闭按钮，"
+                "只生成红色线框标注，不自动点击关闭按钮。"
             )
-            generated_instruction = append_target_goal_checklist(generated_instruction, target_goals)
-        except Exception as e:
-            print(f"⚠️ LLM 指令生成异常: {e}")
+        else:
+            try:
+                generated_instruction = await plan_task(
+                    target_app=app_name,
+                    target_scenario=target_scenario,
+                    keywords=keywords,
+                    description=req.description,
+                )
+                generated_instruction = append_target_goal_checklist(generated_instruction, target_goals)
+            except Exception as e:
+                print(f"⚠️ LLM 指令生成异常: {e}")
 
         task_keyword = body.keyword or (keywords[0] if keywords else "")
         task = crud.create_task(

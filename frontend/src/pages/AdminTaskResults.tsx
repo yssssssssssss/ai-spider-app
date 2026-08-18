@@ -13,6 +13,7 @@ import { useAuth } from '../auth';
 import { useToast } from '../components/Toast';
 
 function isVisibleTaskResult(result: any) {
+  if (String(result?.image?.scenario || '').includes('促销贴片')) return true;
   return result?.analysis?.status !== 'skipped';
 }
 

@@ -134,6 +134,28 @@ def _force_stop_target_app(task: dict[str, Any], device_serial: str, log_path: P
 
 def _build_command(repo_root: Path, task: dict[str, Any], run_id: str, task_id: str, device_serial: str, output_dir: Path) -> list[str]:
     mode = task.get("mode") or "uiautomator2"
+    if mode == "scroll_promo":
+        package = _target_app_package(task)
+        if not package:
+            raise ValueError(f"unsupported target app for scroll promo task: {task.get('target_app')}")
+        return [
+            sys.executable,
+            str(repo_root / "run_scroll_promo_chain.py"),
+            "--app",
+            str(task.get("target_app") or "京东"),
+            "--package",
+            package,
+            "--device-id",
+            device_serial,
+            "--output-dir",
+            str(output_dir),
+            "--swipes",
+            os.getenv("SCROLL_PROMO_SWIPE_COUNT", "1"),
+            "--max-frames",
+            os.getenv("SCROLL_PROMO_MAX_FRAMES", "6"),
+            "--fps",
+            os.getenv("SCROLL_PROMO_FPS", "10"),
+        ]
     if mode == "autoglm":
         prompt = (
             task.get("generated_instruction")

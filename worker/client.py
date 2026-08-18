@@ -7,6 +7,7 @@ import httpx
 
 
 ARTIFACT_UPLOAD_TIMEOUT_SECONDS = 180.0
+PROMOTION_DETECTION_TIMEOUT_SECONDS = 180.0
 
 
 class WorkerClient:
@@ -65,6 +66,17 @@ class WorkerClient:
             f"/task-runs/{run_id}/fail",
             {"node_key": node_key, "exit_code": exit_code, "failure_reason": failure_reason},
         )
+
+    def detect_promotion(self, path: Path) -> dict[str, Any]:
+        with path.open("rb") as handle:
+            response = self.client.post(
+                f"{self.base_url}/promotion-detect",
+                files={"file": (path.name, handle, _guess_mime(path))},
+                headers=self.headers,
+                timeout=PROMOTION_DETECTION_TIMEOUT_SECONDS,
+            )
+        response.raise_for_status()
+        return response.json()
 
     def upload_log(self, run_id: str, node_key: str, text: str) -> dict[str, Any]:
         response = self.client.post(

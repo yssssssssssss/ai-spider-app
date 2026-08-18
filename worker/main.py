@@ -72,7 +72,7 @@ def parse_args():
     parser.add_argument("--name", default=os.getenv("WORKER_NAME") or socket.gethostname(), help="Display name")
     parser.add_argument("--repo-root", default=os.getenv("WORKER_REPO_ROOT") or Path(__file__).resolve().parents[1], help="Project root")
     parser.add_argument("--poll-seconds", type=int, default=int(os.getenv("WORKER_POLL_SECONDS", "5")), help="Fallback poll interval")
-    parser.add_argument("--capabilities", default=os.getenv("WORKER_CAPABILITIES", "uiautomator2,autoglm"), help="Comma-separated task modes")
+    parser.add_argument("--capabilities", default=os.getenv("WORKER_CAPABILITIES", "uiautomator2,autoglm,scroll_promo"), help="Comma-separated task modes")
     parser.add_argument("--once", action="store_true", help="Run a single poll/claim cycle")
     args = parser.parse_args()
     if not args.base_url:

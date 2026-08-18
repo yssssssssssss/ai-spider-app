@@ -25,6 +25,14 @@ python3 -m venv .venv-worker
 .venv-worker/bin/python -m pip install -r worker/requirements.txt
 ```
 
+滑动过程帧使用 `scrcpy` 录屏和 `ffmpeg` 提帧。macOS 安装：
+
+```bash
+brew install scrcpy ffmpeg
+```
+
+如果 `scrcpy` 不可用，任务会自动降级为滑动期间并发 `screencap`，但过程帧数量会明显减少。
+
 创建本地配置。该文件被 Git 忽略，不要提交真实密钥：
 
 ```bash
@@ -40,6 +48,12 @@ chmod 600 .env.worker.local
 - `PHONE_AGENT_BASE_URL`
 - `PHONE_AGENT_API_KEY`
 - `PHONE_AGENT_MODEL`
+
+滑动贴片检测默认参数：
+
+- `SCROLL_PROMO_SWIPE_COUNT=1`
+- `SCROLL_PROMO_MAX_FRAMES=6`
+- `SCROLL_PROMO_FPS=10`
 
 确认本机能看到手机：
 

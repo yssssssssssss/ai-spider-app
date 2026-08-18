@@ -239,15 +239,17 @@ class LLMAnalyzer:
         return bool(parsed.get("is_target")), str(parsed.get("reason") or "")
 
     def _chat_payload(self, provider: dict[str, str], prompt: str, base64_image: str) -> dict:
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64_image}"}},
-                ],
-            }
-        ]
+        return self._chat_images_payload(provider, prompt, [base64_image])
+
+    def _chat_images_payload(self, provider: dict[str, str], prompt: str, base64_images: list[str]) -> dict:
+        if not base64_images:
+            raise ValueError("At least one image is required")
+        content = [{"type": "text", "text": prompt}]
+        content.extend(
+            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image}"}}
+            for image in base64_images
+        )
+        messages = [{"role": "user", "content": content}]
         payload = {
             "model": provider["model"],
             "messages": messages,
@@ -269,16 +271,37 @@ class LLMAnalyzer:
             response=response,
         )
 
-    async def _chat_with_provider(self, provider: dict[str, str], prompt: str, base64_image: str) -> str:
+    async def _chat_images_with_provider(self, provider: dict[str, str], prompt: str, base64_images: list[str]) -> str:
         async with httpx.AsyncClient() as client:
             resp = await client.post(
                 f"{provider['base_url']}/chat/completions",
                 headers={"Authorization": f"Bearer {provider['api_key']}"},
-                json=self._chat_payload(provider, prompt, base64_image),
+                json=self._chat_images_payload(provider, prompt, base64_images),
                 timeout=120.0,
             )
             self._raise_for_status_with_detail(resp)
             return self._response_content(resp.text)
+
+    async def complete_images(self, prompt: str, images: list[str], preferred_provider: str | None = None) -> str:
+        if not self.providers:
+            raise RuntimeError("VLM_API_KEY, PHONE_AGENT_API_KEY or OPENAI_API_KEY not configured")
+        providers = list(self.providers)
+        if preferred_provider:
+            providers.sort(key=lambda provider: provider.get("name") != preferred_provider)
+        last_error = None
+        for index, provider in enumerate(providers):
+            try:
+                return await self._chat_images_with_provider(provider, prompt, images)
+            except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
+                last_error = exc
+                if index < len(providers) - 1:
+                    print(f"⚠️ {provider['name']} 图片请求失败，尝试下一个服务: {exc}")
+                    continue
+                raise
+        raise RuntimeError(f"Image request failed: {last_error}")
+
+    async def _chat_with_provider(self, provider: dict[str, str], prompt: str, base64_image: str) -> str:
+        return await self._chat_images_with_provider(provider, prompt, [base64_image])
 
     async def _complete_with_fallback(self, prompt: str, base64_image: str) -> str:
         last_error = None

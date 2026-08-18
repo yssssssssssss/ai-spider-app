@@ -41,7 +41,12 @@ export default function AdminRequests({ embedded = false }: { embedded?: boolean
     setActingId(id);
     try {
       await approveRequest(id, { admin_id: user?.username, mode });
-      showToast(mode === 'autoglm' ? '已创建 AI 采集任务' : '已创建规则采集任务', 'success');
+      const message = mode === 'scroll_promo'
+        ? '已创建滑动贴片检测任务'
+        : mode === 'autoglm'
+          ? '已创建 AI 采集任务'
+          : '已创建规则采集任务';
+      showToast(message, 'success');
       load();
     } catch {
       // api 拦截器已弹出错误 Toast
@@ -159,6 +164,14 @@ export default function AdminRequests({ embedded = false }: { embedded?: boolean
                   <td style={{ textAlign: 'right' }}>
                     {r.status === 'pending' && canReview && (
                       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
+                        <button
+                          className="btn-sm"
+                          style={{ background: '#dc2626', whiteSpace: 'nowrap' }}
+                          onClick={() => handleApprove(r.id, 'scroll_promo')}
+                          disabled={actingId === r.id}
+                        >
+                          {actingId === r.id ? '处理中...' : '滑动贴片'}
+                        </button>
                         <button
                           className="btn-sm"
                           style={{ background: '#a855f7', whiteSpace: 'nowrap' }}

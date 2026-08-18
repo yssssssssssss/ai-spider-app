@@ -11,6 +11,7 @@ from app import crud, models, schemas
 from app.config import settings
 from app.database import get_db
 from app.services import worker_dispatch
+from app.services.promotion_detector import promotion_detector
 
 
 router = APIRouter(prefix="/worker", tags=["worker"])
@@ -138,6 +139,22 @@ def report_worker_devices(
         devices=[schemas.DeviceOut.model_validate(device) for device in crud.list_devices(db)],
         adb_available=True,
     )
+
+
+@router.post("/promotion-detect", response_model=schemas.WorkerPromotionDetectionOut)
+async def detect_promotion_overlay(
+    file: UploadFile = File(...),
+    _: None = Depends(require_worker_token),
+):
+    content = await file.read()
+    if len(content) > 15 * 1024 * 1024:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="image too large")
+    try:
+        return (await promotion_detector.detect_png(content)).to_dict()
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"promotion detection failed: {exc}") from exc
 
 
 @router.post("/task-runs/claim", response_model=schemas.WorkerClaimOut)

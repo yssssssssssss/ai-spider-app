@@ -9,7 +9,7 @@ from app import crud, models
 from app.database import SessionLocal
 from app.services.devices import refresh_devices
 from app.services.task_events import push_event, task_event
-from app.services.worker_dispatch import has_available_worker_device, is_worker_device
+from app.services.worker_dispatch import PHONE_TASK_MODES, has_available_worker_device, is_worker_device
 
 
 TASK_STATUS_QUEUED = "queued"
@@ -54,7 +54,7 @@ def _next_queued_run(db: Session) -> models.TaskRun | None:
 
 
 def _is_phone_task(task: models.Task) -> bool:
-    return task.mode in ("autoglm", "uiautomator2")
+    return task.mode in PHONE_TASK_MODES
 
 
 def _select_local_device(db: Session, task: models.Task, device_id: UUID | None):
@@ -127,6 +127,8 @@ def _start_task_run(
     task = _store_prompt_if_needed(db, task, prompt)
     device_id = requested_device_id or (run.device_id if run else None)
     device = _select_local_device(db, task, device_id)
+    if task.mode == "scroll_promo" and not device:
+        raise TaskQueueError("No available worker device")
     if task.mode in ("autoglm", "uiautomator2") and not device:
         raise TaskQueueError("Selected device is unavailable" if device_id else "No available device")
 

@@ -17,7 +17,7 @@ TASK_STATUS_QUEUED = "queued"
 TASK_STATUS_RUNNING = "running"
 TASK_STATUS_COMPLETED = "completed"
 TASK_STATUS_FAILED = "failed"
-PHONE_TASK_MODES = {"autoglm", "uiautomator2"}
+PHONE_TASK_MODES = {"autoglm", "uiautomator2", "scroll_promo"}
 ALLOWED_IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp"}
 
 
