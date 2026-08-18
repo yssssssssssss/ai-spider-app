@@ -1,0 +1,4 @@
+[submodule "Open-AutoGLM"]
+	path = Open-AutoGLM
+	url = https://github.com/yssssssssssss/Open-AutoGLM.git
+	branch = main
