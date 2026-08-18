@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { exportTaskUrl, getTaskImages, getTaskRunLogs, listTaskRuns } from '../api';
+import {
+  addComparisonBasketItem,
+  createComparisonAssetFromImage,
+  exportTaskUrl,
+  getTaskImages,
+  getTaskRunLogs,
+  listTaskRuns,
+} from '../api';
 import ImageCard from '../components/ImageCard';
 import { useAuth } from '../auth';
 import { useToast } from '../components/Toast';
@@ -25,6 +32,8 @@ export default function AdminTaskResults() {
   const [runId, setRunId] = useState('');
   const [logs, setLogs] = useState('');
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [selectedImageIds, setSelectedImageIds] = useState<string[]>([]);
+  const [addingCompare, setAddingCompare] = useState(false);
   const [loading, setLoading] = useState(true);
   const visibleTaskImages = taskImages.filter(isVisibleTaskResult);
   const currentRun = runs.find(run => run.id === runId) || runs[0];
@@ -60,6 +69,31 @@ export default function AdminTaskResults() {
   const loadLogs = async (id: string) => {
     const { data } = await getTaskRunLogs(id);
     setLogs(data.logs || '');
+  };
+
+  const toggleImage = (id: string) => {
+    setSelectedImageIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+  };
+
+  const selectAllVisible = () => {
+    setSelectedImageIds(visibleTaskImages.map(result => result.image.id));
+  };
+
+  const addSelectedToCompare = async () => {
+    if (!selectedImageIds.length) return;
+    setAddingCompare(true);
+    try {
+      for (const imageId of selectedImageIds) {
+        const { data: asset } = await createComparisonAssetFromImage({ image_id: imageId });
+        await addComparisonBasketItem({ asset_id: asset.id });
+      }
+      showToast(`已加入对比篮 ${selectedImageIds.length} 张截图`, 'success');
+      setSelectedImageIds([]);
+    } catch {
+      // api 拦截器已弹出错误 Toast
+    } finally {
+      setAddingCompare(false);
+    }
   };
 
   const download = async (format: 'json' | 'xlsx' | 'zip') => {
@@ -98,6 +132,9 @@ export default function AdminTaskResults() {
           )}
           <Link className="btn-secondary btn-sm link-button" to="/admin/tasks">
             返回任务列表
+          </Link>
+          <Link className="btn-sm link-button" to="/compare">
+            对比工作台
           </Link>
         </div>
       </div>
@@ -144,6 +181,26 @@ export default function AdminTaskResults() {
         </div>
       )}
 
+      {!loading && visibleTaskImages.length > 0 && (
+        <div className="compare-select-toolbar">
+          <div>
+            <strong>已选 {selectedImageIds.length} 张</strong>
+            <span>选择截图加入对比篮</span>
+          </div>
+          <div className="compare-toolbar-actions">
+            <button type="button" className="btn-secondary btn-sm" onClick={selectAllVisible}>
+              全选本页
+            </button>
+            <button type="button" className="btn-secondary btn-sm" onClick={() => setSelectedImageIds([])} disabled={!selectedImageIds.length}>
+              取消选择
+            </button>
+            <button type="button" className="btn-sm" onClick={addSelectedToCompare} disabled={!selectedImageIds.length || addingCompare}>
+              {addingCompare ? '加入中...' : '加入对比篮'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="skeleton" style={{ height: 220, borderRadius: 'var(--radius-md)' }} />
       ) : visibleTaskImages.length === 0 ? (
@@ -159,7 +216,19 @@ export default function AdminTaskResults() {
           }}
         >
           {visibleTaskImages.map((result, index) => (
-            <ImageCard key={result.image?.id || index} result={result} />
+            <div key={result.image?.id || index} className={`compare-select-card ${selectedImageIds.includes(result.image?.id) ? 'selected' : ''}`}>
+              <button
+                type="button"
+                className="compare-select-toggle"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  toggleImage(result.image.id);
+                }}
+              >
+                {selectedImageIds.includes(result.image?.id) ? '已选' : '选择'}
+              </button>
+              <ImageCard result={result} />
+            </div>
           ))}
         </div>
       )}

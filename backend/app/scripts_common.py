@@ -6,6 +6,22 @@ import os
 from datetime import datetime, timezone
 
 
+CAPTURE_SINK_LOCAL_FILES = "local_files"
+CAPTURE_SINK_CLOUD = "cloud"
+VALID_CAPTURE_SINKS = {CAPTURE_SINK_CLOUD, CAPTURE_SINK_LOCAL_FILES}
+
+
+def capture_sink() -> str:
+    value = os.getenv("CAPTURE_SINK", CAPTURE_SINK_CLOUD).strip().lower().replace("-", "_")
+    if value not in VALID_CAPTURE_SINKS:
+        raise ValueError(f"Unsupported CAPTURE_SINK: {value}")
+    return value
+
+
+def is_local_file_sink() -> bool:
+    return capture_sink() == CAPTURE_SINK_LOCAL_FILES
+
+
 def normalize_image_path(file_path: str) -> str:
     from app.config import settings
 
@@ -25,6 +41,9 @@ def save_image_to_db(file_path: str, oss_url: str = None, oss_key: str = None,
     Returns:
         创建的 Image 对象，或 None
     """
+    if is_local_file_sink():
+        print("  ℹ️ CAPTURE_SINK=local_files，跳过本地数据库写入")
+        return None
     try:
         from app.database import SessionLocal
         from app import crud, schemas

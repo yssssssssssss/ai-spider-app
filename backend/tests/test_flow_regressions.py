@@ -477,6 +477,79 @@ class FlowRegressionTests(unittest.TestCase):
 
         self.assertEqual(module._find_search_submit_point(ui_xml), (970, 134))
 
+    def test_autoglm_capture_policy_saves_changes_and_reuses_saved_target(self):
+        import importlib.util
+        from unittest.mock import patch
+
+        from PIL import Image
+
+        sys.path.insert(0, PROJECT_ROOT)
+        spec = importlib.util.spec_from_file_location("run_autoglm_module", os.path.join(PROJECT_ROOT, "run_autoglm.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        def encoded(color):
+            buffer = BytesIO()
+            Image.new("RGB", (32, 32), color).save(buffer, format="PNG")
+            return base64.b64encode(buffer.getvalue()).decode("ascii")
+
+        red = encoded((255, 0, 0))
+        blue = encoded((0, 0, 255))
+        agent = SimpleNamespace(last_screenshot=SimpleNamespace(base64_data=red, original_base64_data=red))
+        policy = module.ScreenCapturePolicy(enabled=True, capture_changes=True)
+
+        with patch.object(module, "_process_screenshot_bytes", return_value="changed.png") as save:
+            self.assertIsNone(policy.capture(agent, 0, "/tmp", "淘宝"))
+            self.assertIsNone(policy.capture(agent, 1, "/tmp", "淘宝"))
+            agent.last_screenshot = SimpleNamespace(base64_data=blue, original_base64_data=blue)
+            self.assertEqual(policy.capture(agent, 2, "/tmp", "淘宝"), "changed.png")
+            self.assertEqual(policy.capture(agent, 3, "/tmp", "淘宝", force=True), "changed.png")
+
+        save.assert_called_once()
+
+    def test_adb_screenshot_preserves_physical_dimensions_and_original_image(self):
+        from unittest.mock import patch
+
+        from PIL import Image
+
+        open_autoglm = os.path.join(PROJECT_ROOT, "Open-AutoGLM")
+        sys.path.insert(0, open_autoglm)
+        from phone_agent.adb import screenshot as screenshot_module
+
+        def fake_run(command, **_kwargs):
+            if "pull" in command:
+                Image.new("RGB", (1080, 2400), (10, 20, 30)).save(command[-1])
+            return SimpleNamespace(stdout="", stderr="", returncode=0)
+
+        with patch.object(screenshot_module.subprocess, "run", side_effect=fake_run):
+            screenshot = screenshot_module.get_screenshot("device-1")
+
+        self.assertEqual((screenshot.width, screenshot.height), (921, 2048))
+        self.assertEqual((screenshot.physical_width, screenshot.physical_height), (1080, 2400))
+        with Image.open(BytesIO(base64.b64decode(screenshot.original_base64_data))) as original:
+            self.assertEqual(original.size, (1080, 2400))
+
+    def test_autoglm_runner_repairs_failed_type_before_search_submit(self):
+        import importlib.util
+        from unittest.mock import patch
+
+        sys.path.insert(0, PROJECT_ROOT)
+        spec = importlib.util.spec_from_file_location("run_autoglm_module", os.path.join(PROJECT_ROOT, "run_autoglm.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        step_result = SimpleNamespace(success=True, action={"action": "Type", "text": "凯乐石"}, message=None)
+        stale_xml = '<hierarchy><node text="冰箱" resource-id="searchEdit" class="android.widget.EditText" focused="true" /></hierarchy>'
+        repaired_xml = '<hierarchy><node text="凯乐石" resource-id="searchEdit" class="android.widget.EditText" focused="true" /></hierarchy>'
+
+        with (
+            patch.object(module, "_dump_ui_xml", side_effect=[stale_xml, repaired_xml]),
+            patch.object(module, "_set_focused_text_with_uiautomator2", return_value=True) as set_text,
+        ):
+            self.assertTrue(module._ensure_typed_text(step_result, "device-1"))
+
+        set_text.assert_called_once_with("凯乐石", "device-1", stale_xml)
+
     def test_autoglm_runner_falls_back_to_enter_when_search_button_missing(self):
         import importlib.util
         from unittest.mock import patch
@@ -993,6 +1066,273 @@ class FlowRegressionTests(unittest.TestCase):
             db.commit()
             db.close()
 
+    def test_worker_claims_queued_run_without_starting_cloud_process(self):
+        from unittest.mock import patch
+
+        from fastapi.testclient import TestClient
+        from app import crud
+        from app.config import settings
+        from app.database import SessionLocal, ensure_schema
+        from app.main import app
+        from app.services.task_queue import start_or_enqueue_task
+
+        ensure_schema()
+        db = SessionLocal()
+        old_token = settings.WORKER_API_TOKEN
+        old_stale = settings.WORKER_DEVICE_STALE_SECONDS
+        node_key = f"node-{uuid4().hex}"
+        serial = f"worker-device-{uuid4().hex}"
+        task = device = None
+        try:
+            settings.WORKER_API_TOKEN = "worker-test-token"
+            settings.WORKER_DEVICE_STALE_SECONDS = 300
+            device = crud.upsert_device(
+                db,
+                serial=serial,
+                status="online",
+                last_seen_at=utc_now(),
+                notes=f"worker:{node_key} device",
+            )
+            task = crud.create_task(
+                db,
+                name="worker claim",
+                keyword="phone",
+                target_app="淘宝",
+                target_scenario="搜索结果页",
+                mode="uiautomator2",
+            )
+
+            with (
+                patch("app.services.task_queue.refresh_devices", return_value=([], True)),
+                patch("app.services.task_runner.start_task_process") as start_process,
+            ):
+                decision = start_or_enqueue_task(db, task, created_by=None)
+
+            self.assertEqual(decision.status, "queued")
+            start_process.assert_not_called()
+
+            client = TestClient(app)
+            response = client.post(
+                "/api/worker/task-runs/claim",
+                json={"node_key": node_key, "device_serials": [serial], "capabilities": ["uiautomator2"]},
+                headers={"X-Worker-Token": "worker-test-token"},
+            )
+
+            self.assertEqual(response.status_code, 200)
+            payload = response.json()
+            self.assertTrue(payload["claimed"])
+            self.assertEqual(payload["device"]["serial"], serial)
+            db.expire_all()
+            run = crud.get_task_run(db, UUID(payload["run"]["id"]))
+            self.assertEqual(run.status, "running")
+            self.assertEqual(run.worker_node_key, node_key)
+            self.assertEqual(crud.get_device_by_serial(db, serial).status, "busy")
+        finally:
+            settings.WORKER_API_TOKEN = old_token
+            settings.WORKER_DEVICE_STALE_SECONDS = old_stale
+            if task:
+                crud.delete_task(db, task.id)
+                shutil.rmtree(Path(PROJECT_ROOT, "data", "tasks", str(task.id)), ignore_errors=True)
+                shutil.rmtree(Path(PROJECT_ROOT, "logs", "tasks", str(task.id)), ignore_errors=True)
+            device = crud.get_device_by_serial(db, serial)
+            if device:
+                db.delete(device)
+            db.commit()
+            db.close()
+
+    def test_worker_artifact_upload_dedupes_and_finish_closes_run(self):
+        from unittest.mock import patch
+
+        from fastapi.testclient import TestClient
+        from app import crud
+        from app.config import settings
+        from app.database import SessionLocal, ensure_schema
+        from app.main import app
+
+        ensure_schema()
+        db = SessionLocal()
+        old_token = settings.WORKER_API_TOKEN
+        old_stale = settings.WORKER_DEVICE_STALE_SECONDS
+        node_key = f"node-{uuid4().hex}"
+        other_node = f"node-{uuid4().hex}"
+        serial = f"worker-device-{uuid4().hex}"
+        task = None
+        png_bytes = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")
+        try:
+            settings.WORKER_API_TOKEN = "worker-test-token"
+            settings.WORKER_DEVICE_STALE_SECONDS = 300
+            crud.upsert_device(
+                db,
+                serial=serial,
+                status="online",
+                last_seen_at=utc_now(),
+                notes=f"worker:{node_key} device",
+            )
+            task = crud.create_task(
+                db,
+                name="worker artifact",
+                keyword="phone",
+                target_app="淘宝",
+                target_scenario="搜索结果页",
+                mode="uiautomator2",
+            )
+            run = crud.create_task_run(db, task.id, status="queued")
+            crud.update_task_status(db, task.id, "queued")
+
+            client = TestClient(app)
+            headers = {"X-Worker-Token": "worker-test-token"}
+            claim = client.post(
+                "/api/worker/task-runs/claim",
+                json={"node_key": node_key, "device_serials": [serial], "capabilities": ["uiautomator2"]},
+                headers=headers,
+            )
+            self.assertEqual(claim.status_code, 200)
+            run_id = claim.json()["run"]["id"]
+
+            forbidden = client.post(
+                f"/api/worker/task-runs/{run_id}/finish",
+                json={"node_key": other_node, "exit_code": 0, "screenshot_count": 1},
+                headers=headers,
+            )
+            self.assertEqual(forbidden.status_code, 403)
+
+            other_upload = client.post(
+                f"/api/worker/task-runs/{run_id}/artifacts",
+                data={"node_key": other_node},
+                files={"file": ("screen.png", png_bytes, "image/png")},
+                headers=headers,
+            )
+            self.assertEqual(other_upload.status_code, 403)
+
+            bad_type = client.post(
+                f"/api/worker/task-runs/{run_id}/artifacts",
+                data={"node_key": node_key},
+                files={"file": ("screen.txt", b"not an image", "text/plain")},
+                headers=headers,
+            )
+            self.assertEqual(bad_type.status_code, 400)
+
+            with (
+                patch("app.services.oss_uploader.oss_uploader.upload", return_value={"success": False, "error": "offline"}),
+                patch("app.services.collector_bridge._trigger_analysis"),
+            ):
+                first = client.post(
+                    f"/api/worker/task-runs/{run_id}/artifacts",
+                    data={"node_key": node_key, "source_app": "淘宝", "scenario": "搜索结果页"},
+                    files={"file": ("screen.png", png_bytes, "image/png")},
+                    headers=headers,
+                )
+                second = client.post(
+                    f"/api/worker/task-runs/{run_id}/artifacts",
+                    data={"node_key": node_key, "source_app": "淘宝", "scenario": "搜索结果页"},
+                    files={"file": ("screen.png", png_bytes, "image/png")},
+                    headers=headers,
+                )
+
+            self.assertEqual(first.status_code, 200)
+            self.assertEqual(second.status_code, 200)
+            self.assertFalse(first.json()["duplicate"])
+            self.assertTrue(second.json()["duplicate"])
+            db.expire_all()
+            run = crud.get_task_run(db, UUID(run_id))
+            self.assertEqual(run.artifact_count, 1)
+
+            finish = client.post(
+                f"/api/worker/task-runs/{run_id}/finish",
+                json={"node_key": node_key, "exit_code": 0, "screenshot_count": 1},
+                headers=headers,
+            )
+            self.assertEqual(finish.status_code, 200)
+            self.assertEqual(finish.json()["status"], "completed")
+            db.expire_all()
+            self.assertEqual(crud.get_task(db, task.id).status, "completed")
+            self.assertEqual(crud.get_device_by_serial(db, serial).status, "online")
+        finally:
+            settings.WORKER_API_TOKEN = old_token
+            settings.WORKER_DEVICE_STALE_SECONDS = old_stale
+            if task:
+                for image in list(db.query(crud.models.Image).filter(crud.models.Image.task_id == task.id).all()):
+                    db.delete(image)
+                db.commit()
+                crud.delete_task(db, task.id)
+                shutil.rmtree(Path(PROJECT_ROOT, "data", "tasks", str(task.id)), ignore_errors=True)
+                shutil.rmtree(Path(PROJECT_ROOT, "logs", "tasks", str(task.id)), ignore_errors=True)
+            device = crud.get_device_by_serial(db, serial)
+            if device:
+                db.delete(device)
+            db.commit()
+            db.close()
+
+    def test_worker_finish_without_artifacts_fails_run(self):
+        from fastapi.testclient import TestClient
+        from app import crud
+        from app.config import settings
+        from app.database import SessionLocal, ensure_schema
+        from app.main import app
+
+        ensure_schema()
+        db = SessionLocal()
+        old_token = settings.WORKER_API_TOKEN
+        old_stale = settings.WORKER_DEVICE_STALE_SECONDS
+        node_key = f"node-{uuid4().hex}"
+        serial = f"worker-device-{uuid4().hex}"
+        task = None
+        try:
+            settings.WORKER_API_TOKEN = "worker-test-token"
+            settings.WORKER_DEVICE_STALE_SECONDS = 300
+            crud.upsert_device(
+                db,
+                serial=serial,
+                status="online",
+                last_seen_at=utc_now(),
+                notes=f"worker:{node_key} device",
+            )
+            task = crud.create_task(
+                db,
+                name="worker no artifact",
+                keyword="phone",
+                target_app="淘宝",
+                target_scenario="搜索结果页",
+                mode="uiautomator2",
+            )
+            crud.create_task_run(db, task.id, status="queued")
+            crud.update_task_status(db, task.id, "queued")
+
+            client = TestClient(app)
+            headers = {"X-Worker-Token": "worker-test-token"}
+            claim = client.post(
+                "/api/worker/task-runs/claim",
+                json={"node_key": node_key, "device_serials": [serial], "capabilities": ["uiautomator2"]},
+                headers=headers,
+            )
+            self.assertEqual(claim.status_code, 200)
+            run_id = claim.json()["run"]["id"]
+
+            finish = client.post(
+                f"/api/worker/task-runs/{run_id}/finish",
+                json={"node_key": node_key, "exit_code": 0, "screenshot_count": 0},
+                headers=headers,
+            )
+
+            self.assertEqual(finish.status_code, 200)
+            self.assertEqual(finish.json()["status"], "failed")
+            self.assertIn("no images collected", finish.json()["failure_reason"])
+            db.expire_all()
+            self.assertEqual(crud.get_task(db, task.id).status, "failed")
+            self.assertEqual(crud.get_device_by_serial(db, serial).status, "online")
+        finally:
+            settings.WORKER_API_TOKEN = old_token
+            settings.WORKER_DEVICE_STALE_SECONDS = old_stale
+            if task:
+                crud.delete_task(db, task.id)
+                shutil.rmtree(Path(PROJECT_ROOT, "data", "tasks", str(task.id)), ignore_errors=True)
+                shutil.rmtree(Path(PROJECT_ROOT, "logs", "tasks", str(task.id)), ignore_errors=True)
+            device = crud.get_device_by_serial(db, serial)
+            if device:
+                db.delete(device)
+            db.commit()
+            db.close()
+
     def test_image_file_endpoint_redirects_to_oss_when_disk_file_missing(self):
         from fastapi.testclient import TestClient
 
@@ -1494,6 +1834,347 @@ class FlowRegressionTests(unittest.TestCase):
                 db.delete(task)
             if admin:
                 db.delete(admin)
+            db.commit()
+            db.close()
+
+    def test_admin_can_delete_task_and_unlink_related_records(self):
+        from fastapi.testclient import TestClient
+        from app import crud, models, schemas
+        from app.database import SessionLocal
+        from app.main import app
+        from app.services.auth import create_access_token, hash_password
+
+        db = SessionLocal()
+        admin = task = running_task = image = plan = None
+        task_id = running_task_id = run_id = image_id = plan_id = watch_run_id = None
+        try:
+            admin = crud.create_user(
+                db,
+                username=f"delete-task-admin-{uuid4().hex}",
+                password_hash=hash_password("secret-password"),
+                role="admin",
+            )
+            task = crud.create_task(
+                db,
+                name="delete-task-test",
+                keyword="COCOBELLA",
+                target_app="淘宝",
+                target_scenario="搜索结果页",
+                created_by=admin.id,
+                approved_by=admin.id,
+            )
+            task_id = task.id
+            run = crud.create_task_run(db, task.id, status="failed")
+            run_id = run.id
+            image = crud.create_image(db, schemas.ImageCreate(
+                file_path=f"data/delete-task-{uuid4().hex}.png",
+                task_id=task.id,
+                task_run_id=run.id,
+            ))
+            image_id = image.id
+            plan = crud.create_watch_plan(db, schemas.WatchPlanCreate(
+                name=f"delete-task-plan-{uuid4().hex}",
+                target_app="淘宝",
+                target_page="首页",
+                entry_instruction="打开淘宝首页",
+            ), created_by=admin.id)
+            plan_id = plan.id
+            watch_run = crud.create_watch_run(db, plan.id, date(2026, 6, 12))
+            watch_run_id = watch_run.id
+            watch_run.task_id = task.id
+            db.commit()
+
+            running_task = crud.create_task(
+                db,
+                name="running-delete-blocked",
+                keyword="",
+                target_app="淘宝",
+                target_scenario="首页",
+                created_by=admin.id,
+                approved_by=admin.id,
+            )
+            running_task_id = running_task.id
+            crud.update_task_status(db, running_task.id, "running")
+
+            client = TestClient(app)
+            headers = {"Authorization": f"Bearer {create_access_token(admin)}"}
+
+            blocked = client.delete(f"/api/admin/tasks/{running_task_id}", headers=headers)
+            self.assertEqual(blocked.status_code, 400)
+            db.expire_all()
+            self.assertIsNotNone(crud.get_task(db, running_task_id))
+
+            response = client.delete(f"/api/admin/tasks/{task_id}", headers=headers)
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(response.json()["deleted"])
+
+            db.expire_all()
+            self.assertIsNone(crud.get_task(db, task_id))
+            self.assertIsNone(crud.get_task_run(db, run_id))
+            image_after = crud.get_image(db, image_id)
+            self.assertIsNotNone(image_after)
+            self.assertIsNone(image_after.task_id)
+            self.assertIsNone(image_after.task_run_id)
+            self.assertIsNone(crud.get_watch_run(db, watch_run_id).task_id)
+        finally:
+            if image_id:
+                existing_image = crud.get_image(db, image_id)
+                if existing_image:
+                    db.delete(existing_image)
+            if plan_id:
+                existing_plan = crud.get_watch_plan(db, plan_id)
+                if existing_plan:
+                    db.delete(existing_plan)
+            for row_id in (task_id, running_task_id):
+                if row_id:
+                    existing_task = crud.get_task(db, row_id)
+                    if existing_task:
+                        db.delete(existing_task)
+            if admin:
+                db.delete(admin)
+            db.commit()
+            db.close()
+
+    def test_compare_asset_basket_and_skill_management_flow(self):
+        from fastapi.testclient import TestClient
+        from app import crud, models, schemas
+        from app.database import SessionLocal
+        from app.main import app
+        from app.routers import compare as compare_router
+        from app.services.auth import create_access_token, hash_password
+
+        db = SessionLocal()
+        user = task = image = None
+        skill_id = basket_item_id = asset_id = None
+        report_ids = []
+
+        class FakeCompareAnalyzer:
+            async def generate_report(self, assets, skill, focus_question=None):
+                self.assets = assets
+                self.skill = skill
+                self.focus_question = focus_question
+                return "## 一句话结论\n图1 的首屏 CTA 更突出。"
+
+        fake_analyzer = FakeCompareAnalyzer()
+        old_compare_analyzer = compare_router.compare_analyzer
+        compare_router.compare_analyzer = fake_analyzer
+        try:
+            user = crud.create_user(
+                db,
+                username=f"compare-user-{uuid4().hex}",
+                password_hash=hash_password("secret-password"),
+                role="operator",
+            )
+            task = crud.create_task(
+                db,
+                name="compare source",
+                keyword="iPhone17",
+                target_app="淘宝",
+                target_scenario="商品详情页",
+                created_by=user.id,
+                approved_by=user.id,
+            )
+            image = crud.create_image(db, schemas.ImageCreate(
+                file_path=f"data/compare-flow-{uuid4().hex}.png",
+                task_id=task.id,
+                source_app="淘宝",
+                scenario="商品详情页",
+            ))
+            client = TestClient(app)
+            headers = {"Authorization": f"Bearer {create_access_token(user)}"}
+
+            asset_response = client.post(
+                "/api/compare/assets/from-image",
+                headers=headers,
+                json={"image_id": str(image.id)},
+            )
+            self.assertEqual(asset_response.status_code, 200)
+            asset = asset_response.json()
+            asset_id = UUID(asset["id"])
+            self.assertEqual(asset["source_type"], "image")
+            self.assertEqual(asset["source_app"], "淘宝")
+
+            basket_response = client.post(
+                "/api/compare/basket",
+                headers=headers,
+                json={"asset_id": asset["id"]},
+            )
+            self.assertEqual(basket_response.status_code, 200)
+            basket_item_id = UUID(basket_response.json()["id"])
+            self.assertEqual(basket_response.json()["asset"]["id"], asset["id"])
+
+            skill_response = client.post(
+                "/api/compare/skills",
+                headers=headers,
+                json={
+                    "name": "首屏转化对比",
+                    "description": "比较首屏利益点和 CTA",
+                    "scenario_tags_json": ["商品详情页"],
+                    "prompt": "请比较首屏利益点和 CTA。",
+                },
+            )
+            self.assertEqual(skill_response.status_code, 200)
+            skill_id = UUID(skill_response.json()["id"])
+            self.assertEqual(skill_response.json()["version"], 1)
+
+            update_response = client.patch(
+                f"/api/compare/skills/{skill_id}",
+                headers=headers,
+                json={"prompt": "请比较首屏利益点、价格和 CTA。"},
+            )
+            self.assertEqual(update_response.status_code, 200)
+            self.assertEqual(update_response.json()["version"], 2)
+
+            report_response = client.post(
+                "/api/compare/reports",
+                headers=headers,
+                json={
+                    "asset_ids": [asset["id"]],
+                    "skill_id": str(skill_id),
+                    "focus_question": "重点看 CTA",
+                },
+            )
+            self.assertEqual(report_response.status_code, 200)
+            report = report_response.json()
+            report_ids.append(UUID(report["id"]))
+            self.assertEqual(report["status"], "success")
+            self.assertIn("图1", report["report"])
+            self.assertEqual(report["asset_ids_json"], [asset["id"]])
+            self.assertEqual(fake_analyzer.focus_question, "重点看 CTA")
+
+            too_many_response = client.post(
+                "/api/compare/reports",
+                headers=headers,
+                json={
+                    "asset_ids": [asset["id"]] * 11,
+                    "skill_id": str(skill_id),
+                },
+            )
+            self.assertEqual(too_many_response.status_code, 200)
+            report_ids.append(UUID(too_many_response.json()["id"]))
+
+            too_many_unique_response = client.post(
+                "/api/compare/reports",
+                headers=headers,
+                json={
+                    "asset_ids": [str(uuid4()) for _ in range(11)],
+                    "skill_id": str(skill_id),
+                },
+            )
+            self.assertEqual(too_many_unique_response.status_code, 400)
+
+            delete_response = client.delete(f"/api/compare/skills/{skill_id}", headers=headers)
+            self.assertEqual(delete_response.status_code, 200)
+            db.expire_all()
+            self.assertEqual(db.query(models.ComparisonSkill).filter(models.ComparisonSkill.id == skill_id).first().status, "deleted")
+        finally:
+            compare_router.compare_analyzer = old_compare_analyzer
+            for report_id in report_ids:
+                report = db.query(models.ComparisonReport).filter(models.ComparisonReport.id == report_id).first()
+                if report:
+                    db.delete(report)
+            if basket_item_id:
+                item = db.query(models.ComparisonBasketItem).filter(models.ComparisonBasketItem.id == basket_item_id).first()
+                if item:
+                    db.delete(item)
+            if asset_id:
+                asset = db.query(models.ComparisonAsset).filter(models.ComparisonAsset.id == asset_id).first()
+                if asset:
+                    db.delete(asset)
+            if skill_id:
+                skill = db.query(models.ComparisonSkill).filter(models.ComparisonSkill.id == skill_id).first()
+                if skill:
+                    db.delete(skill)
+            if image:
+                db.delete(image)
+            if task:
+                db.delete(task)
+            if user:
+                db.delete(user)
+            db.commit()
+            db.close()
+
+    def test_analysis_skill_management_updates_prompt_overrides(self):
+        from fastapi.testclient import TestClient
+        from app import crud, models
+        from app.database import SessionLocal
+        from app.main import app
+        from app.services.auth import create_access_token, hash_password
+
+        db = SessionLocal()
+        operator = viewer = None
+        try:
+            operator = crud.create_user(
+                db,
+                username=f"analysis-skill-operator-{uuid4().hex}",
+                password_hash=hash_password("secret-password"),
+                role="operator",
+            )
+            viewer = crud.create_user(
+                db,
+                username=f"analysis-skill-viewer-{uuid4().hex}",
+                password_hash=hash_password("secret-password"),
+                role="viewer",
+            )
+            client = TestClient(app)
+            operator_headers = {"Authorization": f"Bearer {create_access_token(operator)}"}
+            viewer_headers = {"Authorization": f"Bearer {create_access_token(viewer)}"}
+
+            # 列表接口应返回系统内置 skill
+            list_response = client.get("/api/admin/analysis-skills", headers=viewer_headers)
+            self.assertEqual(list_response.status_code, 200)
+            analysis_skills = list_response.json()
+            system_skills = [s for s in analysis_skills if s.get("is_system")]
+            self.assertGreaterEqual(len(system_skills), 1)
+
+            # viewer 不能创建
+            forbidden_response = client.post(
+                "/api/admin/analysis-skills",
+                headers=viewer_headers,
+                json={"name": "viewer cannot create", "prompt": "test", "profile": "default", "skill_type": "analysis"},
+            )
+            self.assertEqual(forbidden_response.status_code, 403)
+
+            # operator 创建自定义 skill
+            create_response = client.post(
+                "/api/admin/analysis-skills",
+                headers=operator_headers,
+                json={
+                    "name": "测试自定义 Skill",
+                    "description": "用于测试的自定义分析 skill",
+                    "prompt": "请输出新的设计分析和运营分析 JSON。",
+                    "profile": "default",
+                    "skill_type": "analysis",
+                },
+            )
+            self.assertEqual(create_response.status_code, 200)
+            skill_id = create_response.json()["id"]
+            self.assertEqual(create_response.json()["version"], 1)
+
+            # operator 更新 prompt → version 自增
+            update_response = client.patch(
+                f"/api/admin/analysis-skills/{skill_id}",
+                headers=operator_headers,
+                json={"prompt": "请输出更新后的分析 JSON。"},
+            )
+            self.assertEqual(update_response.status_code, 200)
+            self.assertEqual(update_response.json()["version"], 2)
+
+            # 系统 skill 不可删除
+            system_skill = system_skills[0]
+            delete_response = client.delete(
+                f"/api/admin/analysis-skills/{system_skill['id']}",
+                headers=operator_headers,
+            )
+            self.assertEqual(delete_response.status_code, 400)
+
+            # 清理：删除自定义 skill
+            client.delete(f"/api/admin/analysis-skills/{skill_id}", headers=operator_headers)
+        finally:
+            if operator:
+                db.delete(operator)
+            if viewer:
+                db.delete(viewer)
             db.commit()
             db.close()
 
@@ -2186,7 +2867,7 @@ class FlowRegressionTests(unittest.TestCase):
         prompt = module._append_auto_screenshot_stop_rule("打开拼多多App，找到百亿补贴，并截图保存到本地")
         prompt_again = module._append_auto_screenshot_stop_rule(prompt)
 
-        self.assertIn("平台会按任务配置自动采集截图并保存", prompt)
+        self.assertIn("平台仅在界面明显变化及到达目标页时自动采集截图并保存", prompt)
         self.assertIn("禁止打开系统设置、相册、文件管理、截图工具", prompt)
         self.assertIn("必须立即结束任务", prompt)
         self.assertEqual(prompt, prompt_again)
@@ -2213,7 +2894,7 @@ class FlowRegressionTests(unittest.TestCase):
         self.assertIn("目标截图清单", prompt)
         self.assertIn("1. 限时秒杀", prompt)
         self.assertIn("2. 百亿补贴", prompt)
-        self.assertIn("平台会在每一步自动截图并保存", prompt)
+        self.assertIn("平台仅在界面明显变化及到达目标页时自动截图并保存", prompt)
         self.assertIn("完成所有目标页后立即结束任务", prompt)
 
     def test_goal_validator_reports_missing_required_target(self):
@@ -3362,6 +4043,13 @@ class FlowRegressionTests(unittest.TestCase):
         self.assertIn("每月", source)
         self.assertIn('type="date"', source)
 
+    def test_worker_requirements_cover_autoglm_runtime(self):
+        requirements = Path(PROJECT_ROOT, "worker", "requirements.txt").read_text(encoding="utf-8").lower()
+
+        for dependency in ("python-dotenv", "openai", "pillow", "requests"):
+            with self.subTest(dependency=dependency):
+                self.assertIn(dependency, requirements)
+
     def test_watch_reporter_omits_temperature_for_compatible_models(self):
         from unittest.mock import patch
 
@@ -3396,6 +4084,71 @@ class FlowRegressionTests(unittest.TestCase):
         self.assertIn("关注问题只作为后续分析方向", WATCH_TARGET_PAGE_PROMPT)
         self.assertIn("不要仅因为页面有搜索框或商品列表就判定为搜索结果页", WATCH_TARGET_PAGE_PROMPT)
         self.assertNotIn("关注问题只作为后续分析方向", TARGET_PAGE_PROMPT)
+
+    def test_llm_analyzer_omits_temperature_for_models_that_require_default(self):
+        from app.services.llm_analyzer import LLMAnalyzer
+
+        analyzer = LLMAnalyzer()
+        gpt5 = analyzer._chat_payload(
+            {"model": "GPT-5.5"},
+            "判断目标页",
+            "image-data",
+        )
+        qwen = analyzer._chat_payload(
+            {"model": "Qwen/Qwen3-VL-8B-Instruct"},
+            "判断目标页",
+            "image-data",
+        )
+
+        self.assertNotIn("temperature", gpt5)
+        self.assertEqual(qwen["temperature"], 0.1)
+
+    def test_gpt5_temperature_omission_is_shared_by_planner_long_intent_and_compare(self):
+        from unittest.mock import patch
+
+        from app.services import long_image_intent, task_planner
+        from app.services.compare_analyzer import CompareAnalyzer
+
+        calls = []
+
+        class FakeCompletions:
+            def create(self, **kwargs):
+                calls.append(kwargs)
+                if "response_format" in kwargs:
+                    content = '{"intent":"long_image_capture","scene_type":"custom_page","apps":["京东"],"capture_count":3}'
+                else:
+                    content = "打开京东App，进入新品页并截图保存到本地"
+                return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content=content))])
+
+        client = SimpleNamespace(chat=SimpleNamespace(completions=FakeCompletions()))
+        with patch.object(task_planner, "_planner_client", return_value=(client, "GPT-5.5")):
+            asyncio.run(task_planner.plan_task("京东", "新品", ["新品"], None))
+        with patch.object(long_image_intent, "_model_client", return_value=(client, "GPT-5.5")):
+            long_image_intent.parse_long_image_intent_with_llm("打开京东新品页截取3屏长图")
+
+        compare_payload = CompareAnalyzer()._chat_payload(
+            {"model": "GPT-5.5"},
+            "对比图片",
+            ["image-1", "image-2"],
+        )
+
+        self.assertNotIn("temperature", calls[0])
+        self.assertNotIn("temperature", calls[1])
+        self.assertNotIn("temperature", compare_payload)
+
+    def test_llm_analyzer_http_error_includes_provider_response_body(self):
+        import httpx
+
+        from app.services.llm_analyzer import LLMAnalyzer
+
+        response = httpx.Response(
+            400,
+            json={"error": {"code": "unsupported_value", "message": "temperature must use default"}},
+            request=httpx.Request("POST", "https://example.com/chat/completions"),
+        )
+
+        with self.assertRaisesRegex(httpx.HTTPStatusError, "unsupported_value"):
+            LLMAnalyzer()._raise_for_status_with_detail(response)
 
     def test_llm_analyzer_uses_independent_prompt_profiles(self):
         from app.services.llm_analyzer import LLMAnalyzer

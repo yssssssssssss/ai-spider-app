@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useToast } from '../components/Toast';
-import { listAdminTasks, listDevices, retryTask, runTask, taskEventsUrl, updateTask } from '../api';
+import { deleteTask, listAdminTasks, listDevices, retryTask, runTask, taskEventsUrl, updateTask } from '../api';
 import { useAuth } from '../auth';
 
 function StatusBadge({ status }: { status: string }) {
@@ -35,7 +35,7 @@ function formatCompletedAt(value?: string | null) {
   });
 }
 
-export default function AdminTasks() {
+export default function AdminTasks({ embedded = false }: { embedded?: boolean }) {
   const { showToast } = useToast();
   const { hasRole } = useAuth();
   const [tasks, setTasks] = useState<any[]>([]);
@@ -48,6 +48,7 @@ export default function AdminTasks() {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [savingTaskId, setSavingTaskId] = useState<string | null>(null);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   const eventSourcesRef = useRef<Record<string, EventSource>>({});
   const pendingTaskIds = useMemo(() => tasks.filter(task => task.status === 'pending').map(task => task.id), [tasks]);
 
@@ -209,13 +210,35 @@ export default function AdminTasks() {
     }
   };
 
+  const handleDelete = async (task: any) => {
+    if (task.status === 'running' || task.status === 'queued') {
+      showToast('运行中或排队中的任务不能删除', 'warning');
+      return;
+    }
+    if (!window.confirm(`确定删除任务「${task.name || task.id}」吗？`)) return;
+
+    setDeletingTaskId(task.id);
+    try {
+      await deleteTask(task.id);
+      showToast('任务已删除', 'success');
+      setSelectedTaskIds(ids => ids.filter(id => id !== task.id));
+      load();
+    } catch {
+      // api 拦截器已弹出错误 Toast
+    } finally {
+      setDeletingTaskId(null);
+    }
+  };
+
   return (
     <div className="animate-fade-in">
-      <div className="page-header" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-        <div>
-          <h1>任务管理</h1>
-          <p>管理并执行竞品截图采集任务</p>
-        </div>
+      <div className={embedded ? 'embedded-section-toolbar' : 'page-header'} style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+        {!embedded && (
+          <div>
+            <h1>任务管理</h1>
+            <p>管理并执行竞品截图采集任务</p>
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 8 }}>
           {hasRole('operator') && (
             <button
@@ -395,7 +418,7 @@ export default function AdminTasks() {
                   <td title={t.completed_at || ''}>{formatCompletedAt(t.completed_at)}</td>
                   <td><StatusBadge status={t.status} /></td>
                   <td className="task-actions-cell" style={{ textAlign: 'right' }}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
                       {editingTaskId === t.id ? (
                         <>
                           <button className="btn-sm" onClick={() => saveTaskName(t.id)} disabled={savingTaskId === t.id}>
@@ -434,6 +457,15 @@ export default function AdminTasks() {
                               disabled={runningId === t.id}
                             >
                               {runningId === t.id ? '重试中...' : '重试'}
+                            </button>
+                          )}
+                          {hasRole('operator') && t.status !== 'running' && t.status !== 'queued' && (
+                            <button
+                              className="btn-sm btn-danger"
+                              onClick={() => handleDelete(t)}
+                              disabled={deletingTaskId === t.id}
+                            >
+                              {deletingTaskId === t.id ? '删除中...' : '删除'}
                             </button>
                           )}
                         </>

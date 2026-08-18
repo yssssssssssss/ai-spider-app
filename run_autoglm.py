@@ -1,9 +1,9 @@
 """
 AutoGLM 驱动脚本
 使用 Open-AutoGLM 的 AI 能力驱动手机完成淘宝截图任务
-- 每一步自动截图保存到本地
-- 上传到京东云 OSS
-- 将 OSS URL 写入数据库
+- 界面明显变化时保存过程截图
+- 到达目标页后保留最终截图
+- 上传到京东云 OSS 并写入数据库
 """
 import os
 import sys
@@ -14,6 +14,7 @@ import subprocess
 import time
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from io import BytesIO
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 # 加载项目根目录 .env 文件（如果存在）
@@ -32,9 +33,8 @@ from phone_agent.config.apps import get_package_name
 
 import config as app_config
 
-from app.services.oss_uploader import oss_uploader
 from app.services.long_screenshot import capture_product_detail_long_image
-from app.scripts_common import save_image_to_db
+from app.scripts_common import is_local_file_sink, save_image_to_db
 
 
 POPUP_CLOSE_MARKERS = ("弹窗", "浮层", "广告", "关闭", "关闭后", "跳过")
@@ -49,11 +49,13 @@ POPUP_BACK_TASK = (
     "关闭后停留在目标页面等待截图保存，不要提前结束。"
 )
 AUTO_SCREENSHOT_STOP_RULE = (
-    "执行约束：平台会按任务配置自动采集截图并保存到本地和后台；"
+    "执行约束：平台仅在界面明显变化及到达目标页时自动采集截图并保存到本地和后台；"
     "你不需要、也禁止打开系统设置、相册、文件管理、截图工具或其他非目标应用来保存截图。"
     "到达用户要求的目标页面并停留后，必须立即结束任务；"
     "不要返回桌面，不要继续点击、长按、滑动或探索无关页面。"
 )
+LEGACY_SCREENSHOT_RULE = "平台会在每一步自动截图并保存；"
+SCREEN_CHANGE_DELTA_THRESHOLD = 6.0
 LOGIN_PAGE_STOP_MESSAGE = "检测到登录页，停止任务"
 LOGIN_PAGE_STOP_RULE = (
     "安全约束：如果当前页面是登录页、注册页、验证码页、账号密码页、手机号授权页或短信验证页，"
@@ -91,6 +93,7 @@ SEARCH_SUBMIT_EXCLUDES = ("搜索框", "输入", "关键词", "历史搜索", "�
 
 
 def _append_auto_screenshot_stop_rule(task: str) -> str:
+    task = task.replace(LEGACY_SCREENSHOT_RULE, "平台仅在界面明显变化及到达目标页时自动截图并保存；")
     if AUTO_SCREENSHOT_STOP_RULE in task:
         return task
     return f"{task}。{AUTO_SCREENSHOT_STOP_RULE}"
@@ -258,6 +261,71 @@ def _step_action_name(step_result) -> str | None:
     return getattr(action, "action", None)
 
 
+def _typed_text_from_step(step_result) -> str | None:
+    action = getattr(step_result, "action", None) or {}
+    if not isinstance(action, dict) or action.get("action") not in ("Type", "Type_Name"):
+        return None
+    text = action.get("text")
+    return "" if text is None else str(text)
+
+
+def _focused_edit_text_attrs(ui_xml: str | None) -> dict[str, str] | None:
+    if not ui_xml:
+        return None
+    try:
+        root = ET.fromstring(ui_xml)
+    except ET.ParseError:
+        return None
+    for node in root.iter():
+        attrs = node.attrib
+        if "EditText" in attrs.get("class", "") and attrs.get("focused") == "true":
+            return attrs
+    return None
+
+
+def _set_focused_text_with_uiautomator2(text: str, device_id: str | None, ui_xml: str | None = None) -> bool:
+    try:
+        import uiautomator2 as u2
+
+        device = u2.connect(device_id) if device_id else u2.connect()
+        attrs = _focused_edit_text_attrs(ui_xml)
+        resource_id = attrs.get("resource-id") if attrs else None
+        field = device(resourceId=resource_id) if resource_id else device(className="android.widget.EditText", focused=True)
+        if not field.exists:
+            field = device(className="android.widget.EditText", focused=True)
+        if not field.exists:
+            return False
+        if not field.set_text(text, timeout=5):
+            return False
+        return field.get_text(timeout=5) == text
+    except Exception as e:
+        print(f"  ⚠️ UIAutomator2 文本输入失败: {e}")
+        return False
+
+
+def _ensure_typed_text(step_result, device_id: str | None) -> bool:
+    expected = _typed_text_from_step(step_result)
+    if expected is None or not getattr(step_result, "success", False):
+        return True
+
+    before_xml = _dump_ui_xml(device_id)
+    before_attrs = _focused_edit_text_attrs(before_xml)
+    if before_attrs and before_attrs.get("text", "") == expected:
+        return True
+
+    current = before_attrs.get("text", "") if before_attrs else "<unknown>"
+    print(f"  ⚠️ ADB Keyboard 输入未生效（当前: {current!r}），改用 UIAutomator2")
+    if not _set_focused_text_with_uiautomator2(expected, device_id, before_xml):
+        raise RuntimeError("Unable to set text in the focused input field")
+
+    after_attrs = _focused_edit_text_attrs(_dump_ui_xml(device_id))
+    if after_attrs and after_attrs.get("text", "") != expected:
+        actual = after_attrs.get("text", "")
+        raise RuntimeError(f"Text input verification failed: expected {expected!r}, got {actual!r}")
+    print(f"  ✅ 已修复文本输入: {expected}")
+    return True
+
+
 def _should_submit_search_after_type(task: str | None, step_result) -> bool:
     if not getattr(step_result, "success", False):
         return False
@@ -320,6 +388,78 @@ def _screenshots_are_near_duplicate(left_path: str, right_path: str) -> bool:
 
     avg_delta = sum(abs(a - b) for a, b in zip(left_pixels, right_pixels)) / len(left_pixels)
     return avg_delta <= 6.0
+
+
+def _screen_signature(base64_data: str | None) -> tuple[int, ...] | None:
+    if not base64_data:
+        return None
+    try:
+        with Image.open(BytesIO(base64.b64decode(base64_data))) as image:
+            sample = ImageOps.grayscale(image).resize((16, 16), Image.Resampling.LANCZOS)
+            pixels = sample.get_flattened_data() if hasattr(sample, "get_flattened_data") else sample.getdata()
+            return tuple(int(pixel) for pixel in pixels)
+    except (ValueError, UnidentifiedImageError, OSError):
+        return None
+
+
+def _screen_delta(left: tuple[int, ...], right: tuple[int, ...]) -> float:
+    return sum(abs(a - b) for a, b in zip(left, right)) / max(1, len(left))
+
+
+class ScreenCapturePolicy:
+    """Persist only meaningful screen changes and the final target screen."""
+
+    def __init__(self, *, enabled: bool, capture_changes: bool):
+        self.enabled = enabled
+        self.capture_changes = capture_changes
+        self._last_seen_signature: tuple[int, ...] | None = None
+        self._last_saved_signature: tuple[int, ...] | None = None
+        self._last_saved_path: str | None = None
+
+    def capture(
+        self,
+        agent,
+        step_idx: int,
+        output_dir: str,
+        source_app: str,
+        *,
+        force: bool = False,
+        task_id: str | None = None,
+        task_run_id: str | None = None,
+        db_device_id: str | None = None,
+    ) -> str | None:
+        if not self.enabled:
+            return None
+        screenshot = getattr(agent, "last_screenshot", None)
+        if screenshot is None:
+            return None
+        signature = _screen_signature(getattr(screenshot, "base64_data", None))
+        if signature is None:
+            return None
+
+        previous = self._last_seen_signature
+        self._last_seen_signature = signature
+        changed = previous is not None and _screen_delta(previous, signature) > SCREEN_CHANGE_DELTA_THRESHOLD
+
+        if force and signature == self._last_saved_signature:
+            return self._last_saved_path
+        if not force and (not self.capture_changes or not changed):
+            return None
+
+        image_data = getattr(screenshot, "original_base64_data", None) or screenshot.base64_data
+        path = _process_screenshot_bytes(
+            image_data,
+            step_idx,
+            output_dir,
+            source_app,
+            task_id,
+            task_run_id,
+            db_device_id,
+        )
+        if path:
+            self._last_saved_signature = signature
+            self._last_saved_path = path
+        return path
 
 
 class PopupFlowStateMachine:
@@ -449,7 +589,12 @@ def _capture_and_save(
         os.rename(temp_path, final_path)
         print(f"  📸 已保存截图: {final_path}")
 
+        if is_local_file_sink():
+            return final_path
+
         # 上传 OSS 并入库
+        from app.services.oss_uploader import oss_uploader
+
         result = oss_uploader.upload(final_path, scenario_name="screenshot")
         if result.get("success"):
             print(f"  ☁️  OSS URL: {result['url']}")
@@ -490,7 +635,12 @@ def _process_screenshot_bytes(
             f.write(img_bytes)
         print(f"  📸 已保存截图: {file_path}")
 
+        if is_local_file_sink():
+            return file_path
+
         # 上传 OSS
+        from app.services.oss_uploader import oss_uploader
+
         result = oss_uploader.upload(file_path, scenario_name="screenshot")
         if result.get("success"):
             print(f"  ☁️  OSS URL: {result['url']}")
@@ -529,7 +679,7 @@ def run_with_autoglm(
     exit_app: bool = True,
 ):
     """
-    使用 AutoGLM 执行自然语言任务，每一步自动截图并上传 OSS 入库
+    使用 AutoGLM 执行自然语言任务，仅在界面变化和目标页完成时保存截图。
 
     Args:
         task: 自然语言任务描述，如"打开淘宝搜索智能手表并截图"
@@ -538,7 +688,7 @@ def run_with_autoglm(
         apikey: API Key
         max_steps: 最大执行步数
         output_dir: 截图保存目录
-        capture_screenshots: 是否每一步都截图保存
+        capture_screenshots: 是否按界面变化保存过程截图并保留最终目标页
     """
     if post_capture_mode and post_capture_mode != PRODUCT_DETAIL_LONG_CAPTURE_MODE:
         raise ValueError(f"Unsupported post capture mode: {post_capture_mode}")
@@ -577,34 +727,40 @@ def run_with_autoglm(
     )
 
     task = _append_login_page_stop_rule(_append_auto_screenshot_stop_rule(task))
-    capture_screenshots = capture_screenshots and not final_capture
+    capture_policy = ScreenCapturePolicy(enabled=capture_screenshots, capture_changes=not final_capture)
 
     print(f"🚀 任务: {task}")
     print(f"📁 截图目录: {output_dir}")
     if agent_config.device_id:
         print(f"📱 设备: {agent_config.device_id}")
     print(f"🔢 最大步数: {max_steps}")
-    if final_capture:
-        print("📸 截图模式: 仅采集最终停留页")
+    if not capture_screenshots:
+        print("📸 截图模式: 不保存任务截图")
+    elif final_capture:
+        print("📸 截图模式: 仅保存最终目标页")
+    else:
+        print("📸 截图模式: 界面变化时保存，并保留最终目标页")
     print("-" * 50)
 
-    # 使用 step() 逐步执行，每步截图
+    # AutoGLM 仍会读取每一步画面用于决策；这里只控制哪些画面持久化为任务截图。
     popup_flow = PopupFlowStateMachine(task)
-    if not capture_screenshots:
+    if not capture_policy.capture_changes:
         popup_flow.enabled = False
     search_submitted = False
     step_result = agent.step(task=task)
     step_idx = 0
     _stop_if_login_page(step_result, source_app, agent_config.device_id, exit_app)
+    _ensure_typed_text(step_result, agent_config.device_id)
     if not search_submitted and _submit_search_after_type(task, step_result, agent_config.device_id):
         search_submitted = True
 
-    if capture_screenshots and step_result.success:
-        screenshot_path = _save_screenshot_from_agent(
+    if step_result.success:
+        screenshot_path = capture_policy.capture(
             agent,
             step_idx,
             output_dir,
-            source_app=source_app,
+            source_app,
+            force=step_result.finished and popup_flow.should_accept_finish(),
             task_id=task_id,
             task_run_id=task_run_id,
             db_device_id=db_device_id,
@@ -627,15 +783,17 @@ def run_with_autoglm(
         else:
             step_result = agent.step()
         _stop_if_login_page(step_result, source_app, agent_config.device_id, exit_app)
+        _ensure_typed_text(step_result, agent_config.device_id)
         if not search_submitted and _submit_search_after_type(task, step_result, agent_config.device_id):
             search_submitted = True
 
-        if capture_screenshots and step_result.success:
-            screenshot_path = _save_screenshot_from_agent(
+        if step_result.success:
+            screenshot_path = capture_policy.capture(
                 agent,
                 step_idx,
                 output_dir,
-                source_app=source_app,
+                source_app,
+                force=step_result.finished and popup_flow.should_accept_finish(),
                 task_id=task_id,
                 task_run_id=task_run_id,
                 db_device_id=db_device_id,
@@ -646,18 +804,10 @@ def run_with_autoglm(
     print("-" * 50)
     print(f"✅ AutoGLM 导航完成: {step_result.message or 'done'}")
     print(f"🔢 AutoGLM 执行步数: {step_idx}")
-    if final_capture:
-        if not getattr(step_result, "success", False):
-            raise RuntimeError(f"AutoGLM navigation failed before final capture: {step_result.message or 'unknown error'}")
-        _save_screenshot_from_agent(
-            agent,
-            step_idx,
-            output_dir,
-            source_app=source_app,
-            task_id=task_id,
-            task_run_id=task_run_id,
-            db_device_id=db_device_id,
-        )
+    if not step_result.finished:
+        raise RuntimeError(f"AutoGLM did not reach the target page within {max_steps} steps")
+    if not getattr(step_result, "success", False):
+        raise RuntimeError(f"AutoGLM navigation failed before final capture: {step_result.message or 'unknown error'}")
     if post_capture_mode == PRODUCT_DETAIL_LONG_CAPTURE_MODE:
         if not _should_run_post_capture(step_result, post_capture_mode):
             raise RuntimeError(f"AutoGLM navigation did not finish successfully: {step_result.message or 'unknown error'}")
@@ -692,6 +842,7 @@ def main():
     parser.add_argument("--final-capture", action="store_true", help="仅在任务结束时采集最终停留页截图")
     parser.add_argument("--no-capture", action="store_true", help="不自动截图（仅执行任务）")
     parser.add_argument("--keep-app-open", action="store_true", help="任务结束后不强制退出目标 App")
+    parser.add_argument("--capture-sink", choices=["cloud", "local-files", "local_files"], default=None, help="截图产物处理方式")
     parser.add_argument("--check", action="store_true", help="检查系统要求")
 
     args = parser.parse_args()
@@ -702,6 +853,9 @@ def main():
         ok = check_system_requirements(DeviceType.ADB)
         sys.exit(0 if ok else 1)
         return
+
+    if args.capture_sink:
+        os.environ["CAPTURE_SINK"] = args.capture_sink.replace("-", "_")
 
     # 检查必要的环境变量
     base_url = args.base_url or os.getenv("PHONE_AGENT_BASE_URL")

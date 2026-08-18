@@ -12,7 +12,13 @@ from dataclasses import dataclass, field
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "Open-AutoGLM"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
 
-from app.services.oss_uploader import oss_uploader
+from app.scripts_common import is_local_file_sink
+
+
+JD_APP_PACKAGE = "com.jingdong.app.mall"
+DEFAULT_APP_LOAD_SECONDS = 6
+DEFAULT_AFTER_CLICK_SECONDS = 4
+DEFAULT_SCREENSHOT_SETTLE_SECONDS = 2
 
 
 @dataclass
@@ -30,6 +36,7 @@ class WorkflowStep:
     scroll_count: int = 0               # 滑动次数
     scroll_direction: str = "up"        # 滑动方向: up/down
     output_dir: str = ""                # 输出目录(覆盖默认)
+    required: bool = False              # 未完成该步骤是否失败
 
 
 @dataclass
@@ -70,7 +77,6 @@ class PopupHandler:
     def _try_close_popup(self) -> bool:
         """尝试通过UI树查找关闭按钮"""
         try:
-            xml = self.d.dump_hierarchy()
             # 方法1: 通过文本查找
             for text in self.CLOSE_TEXTS:
                 try:
@@ -103,25 +109,6 @@ class PopupHandler:
                         return True
                 except Exception:
                     continue
-
-            # 方法4: 检测页面顶部或底部是否有带"×"或"X"的按钮（通常是 ImageView 或 TextView）
-            # 通过bounds判断位置
-            try:
-                # 获取屏幕尺寸
-                w, h = self.d.window_size()
-                # 在顶部区域查找小的点击区域（可能是关闭按钮）
-                elems = self.d(className="android.widget.ImageView")
-                for e in elems:
-                    bounds = e.info.get("bounds", {})
-                    if bounds:
-                        x1, y1, x2, y2 = bounds["left"], bounds["top"], bounds["right"], bounds["bottom"]
-                        # 顶部区域小图标
-                        if y2 < h * 0.15 and (x2 - x1) < w * 0.1:
-                            print(f"  [弹窗] 检测到顶部关闭图标: bounds=({x1},{y1},{x2},{y2})")
-                            e.click()
-                            return True
-            except Exception:
-                pass
 
             return False
         except Exception as e:
@@ -207,6 +194,12 @@ class WorkflowEngine:
             print(f"✅ 设备已连接: {self.d.device_info['serial']}")
         return self.d
 
+    def _sleep(self, seconds: int, reason: str):
+        if seconds <= 0:
+            return
+        print(f"⏳ {reason}: {seconds} 秒")
+        time.sleep(seconds)
+
     def _screenshot(self, output_dir: str, prefix: str = "screenshot") -> dict:
         """截图并保存，支持去重和OSS上传
         返回: {"local_path": str, "oss_url": str, "oss_key": str}
@@ -226,7 +219,16 @@ class WorkflowEngine:
         print(f"  📸 已保存: {filename}")
         self.screenshot_count += 1
 
+        if is_local_file_sink():
+            return {
+                "local_path": filepath,
+                "oss_url": "",
+                "oss_key": "",
+            }
+
         # 上传到京东云 OSS
+        from app.services.oss_uploader import oss_uploader
+
         result = oss_uploader.upload(filepath, scenario_name="screenshot")
         if result.get("success"):
             print(f"  ☁️  OSS URL: {result['url']}")
@@ -263,11 +265,11 @@ class WorkflowEngine:
             d.app_start(step.package, step.activity)
         else:
             d.app_start(step.package)
-        time.sleep(3)
+        self._sleep(step.duration or 3, "等待应用加载")
 
         # 处理启动弹窗
         self._handle_popups()
-        time.sleep(2)
+        self._sleep(2, "等待页面稳定")
 
         return output_dir
 
@@ -295,11 +297,40 @@ class WorkflowEngine:
             except Exception:
                 pass
 
-        if not clicked:
-            print(f"  ⚠️ 未找到点击目标")
+        if not clicked and step.target_text:
+            try:
+                elem = d(textContains=step.target_text)
+                if elem.exists:
+                    elem.click()
+                    clicked = True
+            except Exception:
+                pass
 
-        time.sleep(2)
+        if not clicked and step.target_desc:
+            try:
+                elem = d(descriptionContains=step.target_desc)
+                if elem.exists:
+                    elem.click()
+                    clicked = True
+            except Exception:
+                pass
+
+        if not clicked:
+            message = f"未找到点击目标: text='{step.target_text}', desc='{step.target_desc}'"
+            print(f"  ⚠️ {message}")
+            if step.required:
+                raise RuntimeError(message)
+
+        self._sleep(step.duration or DEFAULT_AFTER_CLICK_SECONDS, "等待点击后页面加载")
         self._handle_popups()
+
+    def _single_screenshot(self, step: WorkflowStep, output_dir: str):
+        """等待页面稳定后截一张图"""
+        if not output_dir:
+            raise RuntimeError("截图步骤缺少输出目录，请先打开应用")
+        self._sleep(step.duration or DEFAULT_SCREENSHOT_SETTLE_SECONDS, "等待截图前页面稳定")
+        self._handle_popups()
+        self._screenshot(output_dir, prefix=step.app or "screenshot")
 
     def _wait_and_screenshot(self, step: WorkflowStep, output_dir: str):
         """等待并间隔截图"""
@@ -352,6 +383,8 @@ class WorkflowEngine:
                 self._click(step)
             elif step.action == "wait":
                 self._wait_and_screenshot(step, current_output_dir)
+            elif step.action == "screenshot":
+                self._single_screenshot(step, current_output_dir)
             elif step.action == "scroll":
                 self._scroll_and_screenshot(step, current_output_dir)
             elif step.action == "close_app":
@@ -362,6 +395,69 @@ class WorkflowEngine:
         print("\n" + "=" * 60)
         print(f"🎉 工作流完成! 共截图 {self.screenshot_count} 张")
         print("=" * 60)
+
+
+def _task_context_from_env() -> Dict[str, str]:
+    return {
+        "name": os.getenv("WORKFLOW_TASK_NAME", ""),
+        "keyword": os.getenv("WORKFLOW_TASK_KEYWORD", ""),
+        "target_app": os.getenv("WORKFLOW_TARGET_APP", ""),
+        "target_scenario": os.getenv("WORKFLOW_TARGET_SCENARIO", ""),
+        "generated_instruction": os.getenv("WORKFLOW_GENERATED_INSTRUCTION", ""),
+    }
+
+
+def _has_task_context(context: Dict[str, str]) -> bool:
+    return any(value.strip() for value in context.values())
+
+
+def _is_jd_new_tab_task(context: Dict[str, str]) -> bool:
+    text = " ".join(value for value in context.values() if value)
+    target_app = context.get("target_app", "")
+    return (
+        ("京东" in target_app or "京东" in text or "jd" in text.lower() or "jingdong" in text.lower())
+        and "新品" in text
+        and ("截图" in text or "截屏" in text or "capture" in text.lower())
+    )
+
+
+def build_jd_new_tab_workflow() -> WorkflowConfig:
+    """京东 App 新品 tab 单截图任务。"""
+    return WorkflowConfig(
+        name="京东新品tab截图",
+        steps=[
+            WorkflowStep(
+                name="打开京东",
+                action="open_app",
+                app="京东",
+                package=JD_APP_PACKAGE,
+                duration=DEFAULT_APP_LOAD_SECONDS,
+            ),
+            WorkflowStep(
+                name="点击新品tab",
+                action="click",
+                app="京东",
+                target_text="新品",
+                target_desc="新品",
+                duration=DEFAULT_AFTER_CLICK_SECONDS,
+                required=True,
+            ),
+            WorkflowStep(
+                name="完成截屏",
+                action="screenshot",
+                app="京东",
+                duration=DEFAULT_SCREENSHOT_SETTLE_SECONDS,
+            ),
+        ],
+        popup_handler=True,
+        dedup=False,
+    )
+
+
+def build_workflow_from_task_context(context: Dict[str, str]) -> WorkflowConfig:
+    if _is_jd_new_tab_task(context):
+        return build_jd_new_tab_workflow()
+    raise ValueError("unsupported uiautomator2 workflow task")
 
 
 def build_example_workflow() -> WorkflowConfig:
@@ -398,7 +494,8 @@ def build_example_workflow() -> WorkflowConfig:
 
 
 def main():
-    workflow = build_example_workflow()
+    context = _task_context_from_env()
+    workflow = build_workflow_from_task_context(context) if _has_task_context(context) else build_example_workflow()
     engine = WorkflowEngine(workflow)
     engine.run()
 

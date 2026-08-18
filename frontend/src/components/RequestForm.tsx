@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createRequest, parseLongImageIntent } from '../api';
+import { createRequest, listAnalysisSkills, parseLongImageIntent } from '../api';
 
 const knownApps = ['淘宝', '天猫', '拼多多', '京东'];
 const productDetailMarkers = ['商详', '商品详情', '商品页'];
@@ -77,6 +77,8 @@ export default function RequestForm() {
   const [parsedIntent, setParsedIntent] = useState<LongImageIntent | null>(null);
   const [parsingIntent, setParsingIntent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [availableSkills, setAvailableSkills] = useState<any[]>([]);
+  const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
 
   const inputText = naturalInput.trim();
   const localLongImageCandidate = isLongImageCandidate(inputText);
@@ -94,6 +96,12 @@ export default function RequestForm() {
     excludeAds ? '广告' : '',
     excludeService ? '客服' : '',
   ].filter(Boolean);
+
+  useEffect(() => {
+    listAnalysisSkills({ profile: 'default' }).then(({ data }) => {
+      setAvailableSkills(data.filter((s: any) => s.status === 'active'));
+    }).catch(() => setAvailableSkills([]));
+  }, []);
 
   useEffect(() => {
     setParsedIntent(null);
@@ -145,6 +153,7 @@ export default function RequestForm() {
     setExcludeAds(true);
     setExcludeService(true);
     setParsedIntent(null);
+    setSelectedSkillIds([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -162,8 +171,9 @@ export default function RequestForm() {
             inputText,
             `长图采集：截图屏数${captureCount}；${isProductDetailLongImage ? `选择规则：第一个普通商品；排除入口：${excludedEntries.join('、') || '无'}；` : ''}自动裁切重复区域并生成长图，保留原始截图。`,
           ].join('\n'),
+          analysis_skill_ids: selectedSkillIds.length > 0 ? selectedSkillIds : undefined,
         }
-        : buildPlainRequest(inputText);
+        : { ...buildPlainRequest(inputText), analysis_skill_ids: selectedSkillIds.length > 0 ? selectedSkillIds : undefined };
 
       const { data } = await createRequest(payload);
       setResult(data);
@@ -288,6 +298,34 @@ export default function RequestForm() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* 分析 Skill 多选 */}
+        {availableSkills.length > 0 && (
+          <div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500, marginBottom: 8 }}>
+              分析技能（可选）
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+              {availableSkills.map(skill => (
+                <label key={skill.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <input
+                    style={{ width: 'auto' }}
+                    type="checkbox"
+                    checked={selectedSkillIds.includes(skill.id)}
+                    onChange={e => {
+                      if (e.target.checked) {
+                        setSelectedSkillIds([...selectedSkillIds, skill.id]);
+                      } else {
+                        setSelectedSkillIds(selectedSkillIds.filter(id => id !== skill.id));
+                      }
+                    }}
+                  />
+                  <span>{skill.name}</span>
+                </label>
+              ))}
+            </div>
           </div>
         )}
 

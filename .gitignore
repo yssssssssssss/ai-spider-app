@@ -1,4 +1,5 @@
 node_modules/
+.venv-worker/
 __pycache__/
 *.pyc
 .env
@@ -20,3 +21,4 @@ frontend/dist/
 data/**/_temp_*
 data/**/exports/
 data/tasks/
+worker_runs/

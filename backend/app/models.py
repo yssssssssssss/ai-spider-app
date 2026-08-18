@@ -29,7 +29,17 @@ class Image(Base):
 
     task = relationship("Task", back_populates="images")
     task_run = relationship("TaskRun", back_populates="images")
-    analysis = relationship("Analysis", back_populates="image", uselist=False)
+    analyses = relationship("Analysis", back_populates="image", cascade="all, delete-orphan")
+
+    @property
+    def analysis(self):
+        """向后兼容：返回 skill_id 为 null 的默认分析，或第一条分析"""
+        if not self.analyses:
+            return None
+        for a in self.analyses:
+            if a.skill_id is None:
+                return a
+        return self.analyses[0]
 
 
 class User(Base):
@@ -59,19 +69,49 @@ class AppSetting(Base):
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
 
-class Analysis(Base):
-    __tablename__ = "analysis"
+class AnalysisSkill(Base):
+    __tablename__ = "analysis_skills"
+    __table_args__ = (
+        Index("ix_analysis_skills_status", "status"),
+        Index("ix_analysis_skills_profile_status", "profile", "status"),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    image_id = Column(UUID(as_uuid=True), ForeignKey("images.id"), unique=True)
+    name = Column(Text, nullable=False)
+    description = Column(Text)
+    prompt = Column(Text, nullable=False)
+    output_schema_json = Column(JSONB, default=dict)
+    scenario_tags_json = Column(JSONB, default=list)
+    profile = Column(String, nullable=False, default="default")
+    skill_type = Column(String, nullable=False, default="analysis")
+    status = Column(String, nullable=False, default="active")
+    version = Column(Integer, nullable=False, default=1)
+    is_system = Column(Boolean, nullable=False, default=False)
+    created_by = Column(UUID(as_uuid=True), nullable=True)
+    updated_by = Column(UUID(as_uuid=True), nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+
+class Analysis(Base):
+    __tablename__ = "analysis"
+    __table_args__ = (
+        UniqueConstraint("image_id", "skill_id", name="uq_analysis_image_skill"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    image_id = Column(UUID(as_uuid=True), ForeignKey("images.id"))
     design_analysis = Column(Text)
     ops_analysis = Column(Text)
     status = Column(String, default="pending")
     embedding_status = Column(String, default="pending")
     embedding_error = Column(Text)
     analyzed_at = Column(DateTime, nullable=True)
+    skill_id = Column(UUID(as_uuid=True), ForeignKey("analysis_skills.id"), nullable=True)
+    skill_key = Column(String, nullable=True)
+    result_json = Column(JSONB, nullable=True)
 
-    image = relationship("Image", back_populates="analysis")
+    image = relationship("Image", back_populates="analyses")
     embeddings = relationship("Embedding", back_populates="analysis", cascade="all, delete-orphan")
 
 
@@ -85,6 +125,7 @@ class Request(Base):
     keywords = Column(PGArray(Text))
     description = Column(Text)
     status = Column(String, default="pending")
+    analysis_skill_ids = Column(PGArray(UUID(as_uuid=True)), default=list)
     created_at = Column(DateTime, default=utc_now)
 
     tasks = relationship("Task", back_populates="request")
@@ -109,6 +150,7 @@ class Task(Base):
     run_by = Column(UUID(as_uuid=True), nullable=True)
     approved_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
+    analysis_skill_ids = Column(PGArray(UUID(as_uuid=True)), default=list)
 
     request = relationship("Request", back_populates="tasks")
     images = relationship("Image", back_populates="task")
@@ -156,6 +198,11 @@ class TaskRun(Base):
     device_id = Column(UUID(as_uuid=True), ForeignKey("devices.id"), nullable=True)
     created_by = Column(UUID(as_uuid=True), nullable=True)
     created_at = Column(DateTime, default=utc_now)
+    worker_node_key = Column(String, nullable=True)
+    worker_claimed_at = Column(DateTime, nullable=True)
+    worker_lease_expires_at = Column(DateTime, nullable=True)
+    worker_error = Column(Text, nullable=True)
+    artifact_count = Column(Integer, nullable=False, default=0)
 
     task = relationship("Task", back_populates="runs")
     device = relationship("Device")
@@ -176,6 +223,86 @@ class Embedding(Base):
     analysis = relationship("Analysis", back_populates="embeddings")
 
 
+class ComparisonAsset(Base):
+    __tablename__ = "comparison_assets"
+    __table_args__ = (
+        Index("ix_comparison_assets_created_by", "created_by"),
+        Index("ix_comparison_assets_image_id", "image_id"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    source_type = Column(String, nullable=False, default="image")
+    image_id = Column(UUID(as_uuid=True), ForeignKey("images.id"), nullable=True)
+    file_path = Column(Text, nullable=True)
+    display_name = Column(Text, nullable=False)
+    source_app = Column(Text)
+    scenario = Column(Text)
+    notes = Column(Text)
+    status = Column(String, nullable=False, default="active")
+    created_by = Column(UUID(as_uuid=True), nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+
+    image = relationship("Image")
+
+
+class ComparisonBasketItem(Base):
+    __tablename__ = "comparison_basket_items"
+    __table_args__ = (
+        UniqueConstraint("user_id", "asset_id", name="uq_comparison_basket_user_asset"),
+        Index("ix_comparison_basket_user_id", "user_id"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), nullable=False)
+    asset_id = Column(UUID(as_uuid=True), ForeignKey("comparison_assets.id"), nullable=False)
+    created_at = Column(DateTime, default=utc_now)
+
+    asset = relationship("ComparisonAsset")
+
+
+class ComparisonSkill(Base):
+    __tablename__ = "comparison_skills"
+    __table_args__ = (
+        Index("ix_comparison_skills_status", "status"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(Text, nullable=False)
+    description = Column(Text)
+    scenario_tags_json = Column(JSONB, default=list)
+    prompt = Column(Text, nullable=False)
+    output_schema_json = Column(JSONB, default=dict)
+    status = Column(String, nullable=False, default="active")
+    version = Column(Integer, nullable=False, default=1)
+    created_by = Column(UUID(as_uuid=True), nullable=True)
+    updated_by = Column(UUID(as_uuid=True), nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+
+class ComparisonReport(Base):
+    __tablename__ = "comparison_reports"
+    __table_args__ = (
+        Index("ix_comparison_reports_created_by", "created_by"),
+        Index("ix_comparison_reports_status", "status"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    asset_ids_json = Column(JSONB, nullable=False, default=list)
+    skill_id = Column(UUID(as_uuid=True), ForeignKey("comparison_skills.id"), nullable=False)
+    skill_name = Column(Text, nullable=False)
+    skill_version = Column(Integer, nullable=False, default=1)
+    focus_question = Column(Text)
+    report = Column(Text)
+    status = Column(String, nullable=False, default="pending")
+    error = Column(Text)
+    created_by = Column(UUID(as_uuid=True), nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+    completed_at = Column(DateTime, nullable=True)
+
+    skill = relationship("ComparisonSkill")
+
+
 class WatchPlan(Base):
     __tablename__ = "watch_plans"
 
@@ -193,6 +320,7 @@ class WatchPlan(Base):
     status = Column(String, nullable=False, default="active")
     pause_reason = Column(Text)
     last_run_at = Column(DateTime, nullable=True)
+    analysis_skill_ids = Column(PGArray(UUID(as_uuid=True)), default=list)
     created_by = Column(UUID(as_uuid=True), nullable=True)
     updated_by = Column(UUID(as_uuid=True), nullable=True)
     created_at = Column(DateTime, default=datetime.now)

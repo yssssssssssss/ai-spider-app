@@ -91,6 +91,7 @@ def _find_near_duplicate_image(db: Session, image: models.Image) -> models.Image
         .join(models.Analysis, models.Analysis.image_id == models.Image.id)
         .filter(models.Image.task_id == image.task_id)
         .filter(models.Image.id != image.id)
+        .filter(models.Analysis.skill_id == None)  # noqa: E711 — 只看旧格式分析记录
         .filter(models.Analysis.status.in_(ANALYZED_STATUSES))
         .order_by(models.Image.created_at.asc())
         .limit(100)
@@ -117,7 +118,7 @@ def _watch_focus_question(task) -> str | None:
             return focus
     return None
 
-def _analysis_context(image) -> dict:
+def _analysis_context(image, db: Session | None = None) -> dict:
     task = image.task
     request = task.request if task else None
     keywords = []
@@ -126,17 +127,22 @@ def _analysis_context(image) -> dict:
     elif task and task.keyword:
         keywords = [task.keyword]
     is_watch = _is_watch_task(task)
-    return {
+    context = {
         "target_app": image.source_app or (task.target_app if task else None) or (request.target_app if request else None),
         "target_scenario": image.scenario or (task.target_scenario if task else None) or (request.target_scenario if request else None),
         "keywords": keywords,
         "focus_question": _watch_focus_question(task) if is_watch else (request.description if request else None),
         "prompt_profile": "watch" if is_watch else "default",
     }
+    return context
 
 
-def _record_analysis(db: Session, image: models.Image, design: str, ops: str, status: str = "success"):
-    analysis = crud.create_analysis(db, image.id, design, ops, status=status)
+def _record_analysis(db: Session, image: models.Image, design: str, ops: str, status: str = "success",
+                     skill_id=None, skill_key: str | None = None, result_json: dict | None = None):
+    analysis = crud.create_analysis(
+        db, image.id, design, ops, status=status,
+        skill_id=skill_id, skill_key=skill_key, result_json=result_json,
+    )
     if image.task_id:
         refresh_task_run_goal_validation(db, image.task_id, image.task_run_id)
     return analysis
@@ -160,46 +166,115 @@ async def _analyze_and_embed(image_id: UUID):
         image = crud.get_image(db, image_id)
         if not image:
             return
+        # 重复检测
         duplicate = _find_near_duplicate_image(db, image)
         if duplicate:
             _record_analysis(
-                db,
-                image,
-                "",
-                f"近似页面，跳过重复分析: 已分析过 {duplicate.file_path}",
-                status="skipped",
+                db, image, "", f"近似页面，跳过重复分析: 已分析过 {duplicate.file_path}", status="skipped",
             )
             return
-        context = _analysis_context(image)
+        context = _analysis_context(image, db)
+        # 判断目标页面（对所有 skill 共用一次）
         try:
             is_target, reason = await analyzer.is_target_page(image.file_path, context)
             if not is_target and not _allow_watch_homepage_target_fallback(image, reason):
                 _record_analysis(db, image, "", f"非目标页面，跳过分析: {reason}", status="skipped")
                 return
-            design, ops, status = await analyzer.analyze(image.file_path, context=context)
         except Exception as e:
-            _record_analysis(db, image, "", f"分析失败: {e}", status="failed")
+            _record_analysis(db, image, "", f"目标页面判断失败: {e}", status="failed")
             return
-        analysis = _record_analysis(db, image, design or "", ops or "", status=status)
-        analysis_id = analysis.id
-        combined_text = f"{design or ''}\n{ops or ''}".strip()
-        try:
-            if combined_text:
-                vector = await embedder.embed_single(combined_text)
-                crud.create_embedding(db, analysis_id, vector, "combined")
-            if design:
-                v_design = await embedder.embed_single(design)
-                crud.create_embedding(db, analysis_id, v_design, "design")
-            if ops:
-                v_ops = await embedder.embed_single(ops)
-                crud.create_embedding(db, analysis_id, v_ops, "ops")
-            crud.update_embedding_status(db, analysis_id, "success")
-        except Exception as e:
-            db.rollback()
-            crud.update_embedding_status(db, analysis_id, "failed", str(e))
-            print(f"⚠️ 向量写入失败 image={image_id}: {e}")
+
+        # 获取任务绑定的 skill 列表
+        task = image.task
+        skill_ids = getattr(task, "analysis_skill_ids", None) or []
+
+        # 没有选择 skill → 使用系统默认内置分析（向后兼容）
+        if not skill_ids:
+            try:
+                design, ops, status = await analyzer.analyze(image.file_path, context=context)
+            except Exception as e:
+                _record_analysis(db, image, "", f"分析失败: {e}", status="failed")
+                return
+            analysis = _record_analysis(db, image, design or "", ops or "", status=status)
+            await _embed_analysis(db, analysis, design, ops)
+            return
+
+        # 有选择 skill → 加载 skill 并按每个 skill 执行分析
+        skills = (
+            db.query(models.AnalysisSkill)
+            .filter(models.AnalysisSkill.id.in_(skill_ids))
+            .filter(models.AnalysisSkill.status == "active")
+            .all()
+        )
+        for skill in skills:
+            try:
+                if skill.is_system:
+                    # 内置 skill：同时写入旧字段 + result_json
+                    design, ops, status = await analyzer.analyze(image.file_path, context=context)
+                    result_json = {"design_analysis": design, "ops_analysis": ops} if design and ops else None
+                    analysis = _record_analysis(
+                        db, image, design or "", ops or "", status=status,
+                        skill_id=skill.id, skill_key=f"system_{skill.profile}", result_json=result_json,
+                    )
+                    await _embed_analysis(db, analysis, design, ops, result_json=result_json)
+                else:
+                    # 自定义 skill：只写入 result_json
+                    result, status = await analyzer.analyze_with_skill(image.file_path, skill, context)
+                    analysis = _record_analysis(
+                        db, image, "", "", status=status,
+                        skill_id=skill.id, skill_key=str(skill.id), result_json=result,
+                    )
+                    await _embed_skill_result(db, analysis, result)
+            except Exception as e:
+                _record_analysis(
+                    db, image, "", f"Skill {skill.name} 分析失败: {e}", status="failed",
+                    skill_id=skill.id, skill_key=str(skill.id),
+                )
     finally:
         db.close()
+
+
+async def _embed_analysis(db, analysis, design, ops, result_json=None):
+    """为内置分析结果生成 embedding"""
+    analysis_id = analysis.id
+    combined_text = f"{design or ''}\n{ops or ''}".strip()
+    try:
+        if combined_text:
+            vector = await embedder.embed_single(combined_text)
+            crud.create_embedding(db, analysis_id, vector, "combined")
+        if design:
+            v_design = await embedder.embed_single(design)
+            crud.create_embedding(db, analysis_id, v_design, "design")
+        if ops:
+            v_ops = await embedder.embed_single(ops)
+            crud.create_embedding(db, analysis_id, v_ops, "ops")
+        crud.update_embedding_status(db, analysis_id, "success")
+    except Exception as e:
+        db.rollback()
+        crud.update_embedding_status(db, analysis_id, "failed", str(e))
+        print(f"⚠️ 向量写入失败 analysis={analysis_id}: {e}")
+
+
+async def _embed_skill_result(db, analysis, result_json):
+    """为自定义 skill 结果生成 embedding"""
+    if not result_json:
+        return
+    analysis_id = analysis.id
+    texts = []
+    if isinstance(result_json, dict):
+        for v in result_json.values():
+            if isinstance(v, str):
+                texts.append(v)
+    combined_text = "\n".join(texts).strip()
+    try:
+        if combined_text:
+            vector = await embedder.embed_single(combined_text)
+            crud.create_embedding(db, analysis_id, vector, "combined")
+        crud.update_embedding_status(db, analysis_id, "success")
+    except Exception as e:
+        db.rollback()
+        crud.update_embedding_status(db, analysis_id, "failed", str(e))
+        print(f"⚠️ skill 向量写入失败 analysis={analysis_id}: {e}")
 
 @router.post("", response_model=schemas.ImageOut)
 def create_image(

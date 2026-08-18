@@ -130,18 +130,40 @@ export default function ImageCard({ result }: { result: any }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-            <section>
-              <div style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: 8 }}>设计分析</div>
-              <p style={{ lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-                {analysis?.design_analysis || '暂无设计分析'}
-              </p>
-            </section>
-            <section>
-              <div style={{ color: '#0a84ff', fontWeight: 600, marginBottom: 8 }}>运营分析</div>
-              <p style={{ lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-                {analysis?.ops_analysis || '暂无运营分析'}
-              </p>
-            </section>
+            {/* 内置分析：旧字段向后兼容 */}
+            {analysis?.design_analysis && (
+              <section>
+                <div style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: 8 }}>设计分析</div>
+                <p style={{ lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                  {analysis.design_analysis}
+                </p>
+              </section>
+            )}
+            {analysis?.ops_analysis && (
+              <section>
+                <div style={{ color: '#0a84ff', fontWeight: 600, marginBottom: 8 }}>运营分析</div>
+                <p style={{ lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                  {analysis.ops_analysis}
+                </p>
+              </section>
+            )}
+            {/* 自定义 skill 结果：result_json 动态渲染 */}
+            {analysis?.result_json && typeof analysis.result_json === 'object' && (
+              Object.entries(analysis.result_json)
+                .filter(([key]) => key !== 'design_analysis' && key !== 'ops_analysis')
+                .map(([key, value]) => (
+                  <section key={key}>
+                    <div style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: 8 }}>{key}</div>
+                    <p style={{ lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                      {typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
+                    </p>
+                  </section>
+                ))
+            )}
+            {/* 无任何分析内容 */}
+            {!analysis?.design_analysis && !analysis?.ops_analysis && !analysis?.result_json && (
+              <p style={{ color: 'var(--text-tertiary)' }}>暂无分析结果</p>
+            )}
           </div>
         </div>
       </div>

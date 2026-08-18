@@ -1,6 +1,6 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createWatchPlan } from '../api';
+import { createWatchPlan, listAnalysisSkills } from '../api';
 import { useToast } from './Toast';
 
 function localDateInputValue(date = new Date()) {
@@ -29,6 +29,14 @@ export default function WatchPlanForm({ homePanel = false }: { homePanel?: boole
   const { showToast } = useToast();
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
+  const [availableSkills, setAvailableSkills] = useState<any[]>([]);
+  const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    listAnalysisSkills({ profile: 'watch' }).then(({ data }) => {
+      setAvailableSkills(data.filter((s: any) => s.status === 'active'));
+    }).catch(() => setAvailableSkills([]));
+  }, []);
 
   const update = (key: string, value: string) => {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -48,6 +56,7 @@ export default function WatchPlanForm({ homePanel = false }: { homePanel?: boole
         schedule_time: form.schedule_time.length === 5 ? `${form.schedule_time}:00` : form.schedule_time,
         schedule_start_date: form.schedule_start_date || null,
         schedule_end_date: form.schedule_end_date || null,
+        analysis_skill_ids: selectedSkillIds.length > 0 ? selectedSkillIds : undefined,
       };
       const { data } = await createWatchPlan(payload);
       showToast('观察计划已创建', 'success');
@@ -157,6 +166,32 @@ export default function WatchPlanForm({ homePanel = false }: { homePanel?: boole
             placeholder="关注页面的补贴利益点、主视觉、频道入口和活动氛围变化"
           />
         </label>
+
+        {/* 分析 Skill 多选 */}
+        {availableSkills.length > 0 && (
+          <label>
+            <span>分析技能（可选）</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 4 }}>
+              {availableSkills.map(skill => (
+                <label key={skill.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <input
+                    style={{ width: 'auto' }}
+                    type="checkbox"
+                    checked={selectedSkillIds.includes(skill.id)}
+                    onChange={e => {
+                      if (e.target.checked) {
+                        setSelectedSkillIds([...selectedSkillIds, skill.id]);
+                      } else {
+                        setSelectedSkillIds(selectedSkillIds.filter(id => id !== skill.id));
+                      }
+                    }}
+                  />
+                  <span>{skill.name}</span>
+                </label>
+              ))}
+            </div>
+          </label>
+        )}
 
         <div className="form-actions">
           <button type="submit" disabled={submitting}>

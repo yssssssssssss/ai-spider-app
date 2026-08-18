@@ -55,6 +55,9 @@ class Settings(BaseSettings):
     AUTH_REGISTRATION_INVITE_CODE: str = os.getenv("AUTH_REGISTRATION_INVITE_CODE", "1234")
     TASK_MAX_RETRIES: int = int(os.getenv("TASK_MAX_RETRIES", "3"))
     WORKER_API_TOKEN: str = os.getenv("WORKER_API_TOKEN", "")
+    WORKER_LEASE_SECONDS: int = int(os.getenv("WORKER_LEASE_SECONDS", "300"))
+    WORKER_POLL_SECONDS: int = int(os.getenv("WORKER_POLL_SECONDS", "5"))
+    WORKER_DEVICE_STALE_SECONDS: int = int(os.getenv("WORKER_DEVICE_STALE_SECONDS", "30"))
 
     # 京东云 OSS 配置
     JD_OSS_REGION: str = os.getenv("JD_OSS_REGION", "cn-south-1")

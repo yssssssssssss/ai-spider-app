@@ -241,13 +241,27 @@ def update_task(
     user: models.User = Depends(require_at_least("operator")),
 ):
     task = _get_visible_task(db, task_id, user)
+    if body.analysis_skill_ids is not None:
+        task.analysis_skill_ids = body.analysis_skill_ids
+        db.commit()
+        db.refresh(task)
     name = body.name.strip() if body.name is not None else None
-    if not name:
-        raise HTTPException(status_code=400, detail="Task name is required")
-    if len(name) > 120:
-        raise HTTPException(status_code=400, detail="Task name is too long")
-    crud.update_task_name(db, task.id, name)
+    if name is not None:
+        if not name:
+            raise HTTPException(status_code=400, detail="Task name is required")
+        if len(name) > 120:
+            raise HTTPException(status_code=400, detail="Task name is too long")
+        crud.update_task_name(db, task.id, name)
     return _task_out(db, crud.get_task(db, task.id))
+
+
+@router.delete("/tasks/{task_id}")
+def delete_task(task_id: UUID, db: Session = Depends(get_db), user: models.User = Depends(require_at_least("operator"))):
+    task = _get_visible_task(db, task_id, user)
+    if task.status in ("running", "queued"):
+        raise HTTPException(status_code=400, detail="Running or queued task cannot be deleted")
+    crud.delete_task(db, task.id)
+    return {"id": str(task_id), "deleted": True}
 
 
 @router.post("/tasks/{task_id}/run", response_model=schemas.TaskOut)

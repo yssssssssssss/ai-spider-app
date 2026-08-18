@@ -9,6 +9,15 @@ from PIL import Image
 from app.config import settings
 
 MAX_VLM_IMAGE_SIDE = 2048
+DEFAULT_TEMPERATURE_MODEL_PREFIXES = ("gpt-5", "o1", "o3", "o4")
+
+
+def temperature_options(model: str, value: float) -> dict[str, float]:
+    normalized = (model or "").strip().lower()
+    if normalized.startswith(DEFAULT_TEMPERATURE_MODEL_PREFIXES):
+        return {}
+    return {"temperature": value}
+
 
 DEFAULT_PROMPT_PROFILE = "default"
 WATCH_PROMPT_PROFILE = "watch"
@@ -209,14 +218,14 @@ class LLMAnalyzer:
 
     def _build_analysis_prompt(self, context: Optional[dict] = None) -> str:
         context_lines = self._context_lines(context)
-        base_prompt = ANALYSIS_PROMPTS[self._prompt_profile(context)]
+        base_prompt = (context or {}).get("analysis_prompt_override") or ANALYSIS_PROMPTS[self._prompt_profile(context)]
         if not context_lines:
             return base_prompt
         return base_prompt + "\n\n用户需求上下文：\n" + "\n".join(context_lines)
 
     def _build_target_page_prompt(self, context: Optional[dict] = None) -> str:
         context_lines = self._context_lines(context)
-        base_prompt = TARGET_PAGE_PROMPTS[self._prompt_profile(context)]
+        base_prompt = (context or {}).get("target_prompt_override") or TARGET_PAGE_PROMPTS[self._prompt_profile(context)]
         if not context_lines:
             return base_prompt
         return base_prompt + "\n\n用户需求上下文：\n" + "\n".join(context_lines)
@@ -229,30 +238,46 @@ class LLMAnalyzer:
             return ("true" in lowered or "符合" in content, content[:200])
         return bool(parsed.get("is_target")), str(parsed.get("reason") or "")
 
-    async def _chat_with_provider(self, provider: dict[str, str], prompt: str, base64_image: str) -> str:
+    def _chat_payload(self, provider: dict[str, str], prompt: str, base64_image: str) -> dict:
         messages = [
             {
                 "role": "user",
                 "content": [
                     {"type": "text", "text": prompt},
-                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64_image}"}}
-                ]
+                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64_image}"}},
+                ],
             }
         ]
+        payload = {
+            "model": provider["model"],
+            "messages": messages,
+            "max_tokens": 2048,
+            "stream": False,
+        }
+        payload.update(temperature_options(provider["model"], 0.1))
+        return payload
+
+    def _raise_for_status_with_detail(self, response: httpx.Response) -> None:
+        if not response.is_error:
+            return
+        detail = response.text.strip()
+        if len(detail) > 2000:
+            detail = detail[:2000] + "..."
+        raise httpx.HTTPStatusError(
+            f"{response.status_code} {response.reason_phrase} for url '{response.request.url}'; provider response: {detail}",
+            request=response.request,
+            response=response,
+        )
+
+    async def _chat_with_provider(self, provider: dict[str, str], prompt: str, base64_image: str) -> str:
         async with httpx.AsyncClient() as client:
             resp = await client.post(
                 f"{provider['base_url']}/chat/completions",
                 headers={"Authorization": f"Bearer {provider['api_key']}"},
-                json={
-                    "model": provider["model"],
-                    "messages": messages,
-                    "temperature": 0.1,
-                    "max_tokens": 2048,
-                    "stream": False
-                },
-                timeout=120.0
+                json=self._chat_payload(provider, prompt, base64_image),
+                timeout=120.0,
             )
-            resp.raise_for_status()
+            self._raise_for_status_with_detail(resp)
             return self._response_content(resp.text)
 
     async def _complete_with_fallback(self, prompt: str, base64_image: str) -> str:
@@ -275,6 +300,28 @@ class LLMAnalyzer:
         base64_image = self._encode_image(image_path)
         content = await self._complete_with_fallback(self._build_target_page_prompt(context), base64_image)
         return self._extract_target_result(content)
+
+    async def analyze_with_skill(self, image_path: str, skill, context: Optional[dict] = None) -> Tuple[Optional[dict], str]:
+        """使用自定义 skill 的 prompt 分析图片，返回完整 JSON 结果和状态"""
+        if not self.providers:
+            raise RuntimeError("VLM_API_KEY, PHONE_AGENT_API_KEY or OPENAI_API_KEY not configured")
+
+        # 构建 skill 专用 prompt
+        context_lines = self._context_lines(context)
+        prompt = skill.prompt
+        if context_lines:
+            prompt += "\n\n用户需求上下文：\n" + "\n".join(context_lines)
+        # 要求 JSON 输出
+        prompt += "\n\n请只输出一个JSON对象。"
+
+        base64_image = self._encode_image(image_path)
+        content = await self._complete_with_fallback(prompt, base64_image)
+        content = self._strip_finish_wrapper(content)
+        parsed = self._extract_json(content)
+        if parsed:
+            return parsed, "success"
+        else:
+            return {"raw_text": content[:2000]}, "partial"
 
     async def analyze(self, image_path: str, context: Optional[dict] = None) -> Tuple[Optional[str], Optional[str], str]:
         if not self.providers:

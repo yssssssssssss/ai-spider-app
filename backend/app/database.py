@@ -1,4 +1,5 @@
 import uuid
+import json
 
 from sqlalchemy import create_engine, event, inspect, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -180,6 +181,123 @@ def _ensure_default_app_settings(conn):
         )
 
 
+def _migrate_analysis_skills_table(conn, inspector):
+    """迁移 analysis_skills 表：从旧结构（instruction_md/is_official/owner_id）到新结构（description/prompt/profile/skill_type/version/is_system）"""
+    columns = {row["name"] for row in inspector.get_columns("analysis_skills")}
+    # 新增列
+    new_columns = {
+        "description": "TEXT",
+        "prompt": "TEXT",
+        "output_schema_json": "JSONB DEFAULT '{}'::jsonb",
+        "scenario_tags_json": "JSONB DEFAULT '[]'::jsonb",
+        "profile": "VARCHAR DEFAULT 'default'",
+        "skill_type": "VARCHAR DEFAULT 'analysis'",
+        "version": "INTEGER DEFAULT 1",
+        "is_system": "BOOLEAN DEFAULT false",
+        "created_by": "UUID",
+        "updated_by": "UUID",
+    }
+    for col, ddl in new_columns.items():
+        if col not in columns:
+            conn.execute(text(f"ALTER TABLE analysis_skills ADD COLUMN {col} {ddl}"))
+
+    # 从旧列迁移数据
+    if "instruction_md" in columns and "prompt" not in columns:
+        conn.execute(text("UPDATE analysis_skills SET prompt = instruction_md WHERE prompt IS NULL"))
+    if "is_official" in columns:
+        conn.execute(text("UPDATE analysis_skills SET is_system = is_official WHERE is_system IS NULL OR is_system = false"))
+
+    # 删除旧唯一约束和索引
+    for constraint in inspector.get_unique_constraints("analysis_skills"):
+        conn.execute(text(f"ALTER TABLE analysis_skills DROP CONSTRAINT IF EXISTS {constraint['name']}"))
+    for index in inspector.get_indexes("analysis_skills"):
+        if not index.get("unique") and index["name"] != "analysis_skills_pkey":
+            conn.execute(text(f"DROP INDEX IF EXISTS {index['name']}"))
+
+    # 删除旧列（如果已迁移完成）
+    for old_col in ["instruction_md", "is_official", "owner_id"]:
+        if old_col in columns:
+            try:
+                conn.execute(text(f"ALTER TABLE analysis_skills DROP COLUMN IF EXISTS {old_col}"))
+            except Exception:
+                pass  # 有 FK 或依赖时跳过
+
+
+def _ensure_default_analysis_skills(conn):
+    """确保系统内置分析 skill 存在"""
+    from app.services.analysis_skills import SYSTEM_SKILL_DEFAULTS
+    count = conn.execute(text("SELECT count(*) FROM analysis_skills")).scalar()
+    if count:
+        return
+    for default in SYSTEM_SKILL_DEFAULTS:
+        # 检查是否已存在同名系统 skill
+        existing = conn.execute(
+            text("SELECT id FROM analysis_skills WHERE name = :name AND is_system = true"),
+            {"name": default["name"]},
+        ).first()
+        if not existing:
+            conn.execute(
+                text("""
+                    INSERT INTO analysis_skills
+                        (id, name, description, prompt, output_schema_json, scenario_tags_json,
+                         profile, skill_type, status, version, is_system, created_at, updated_at)
+                    VALUES
+                        (:id, :name, :description, :prompt, '{}'::jsonb, '[]'::jsonb,
+                         :profile, :skill_type, 'active', 1, true, now(), now())
+                """),
+                {
+                    "id": str(uuid.uuid4()),
+                    "name": default["name"],
+                    "description": default["description"],
+                    "prompt": default["prompt"],
+                    "profile": default["profile"],
+                    "skill_type": default["skill_type"],
+                },
+            )
+
+
+def _ensure_default_comparison_skills(conn):
+    count = conn.execute(text("SELECT count(*) FROM comparison_skills")).scalar()
+    if count:
+        return
+    defaults = [
+        (
+            "商品详情页对比",
+            "比较商品详情页的首屏卖点、价格表达、CTA、信任背书和转化路径。",
+            ["商品详情页"],
+            "你是电商竞品分析专家。请对所选商品详情页截图进行对比，重点分析首屏卖点、价格表达、CTA、信任背书、信息层级和可借鉴改版建议。输出一句话结论、差异表、证据引用和优先级建议。",
+        ),
+        (
+            "搜索结果页对比",
+            "比较搜索结果页的信息密度、商品卡片、筛选排序和广告位。",
+            ["搜索结果页"],
+            "你是电商搜索体验分析专家。请比较所选搜索结果页截图，重点分析商品卡片信息、排序筛选、广告/运营位、价格利益点、可扫读性和转化机会。输出关键差异、证据和优化建议。",
+        ),
+        (
+            "综合竞品诊断",
+            "从设计、运营、转化三个方向给出综合竞品结论。",
+            ["综合"],
+            "你是资深竞品分析顾问。请从设计表现、运营表达、转化路径、用户决策成本四个维度对所选截图进行综合诊断，给出可执行改进建议，并标注每条结论对应的图片证据。",
+        ),
+    ]
+    for name, description, tags, prompt in defaults:
+        conn.execute(
+            text("""
+                INSERT INTO comparison_skills
+                    (id, name, description, scenario_tags_json, prompt, output_schema_json, status, version, created_at, updated_at)
+                VALUES
+                    (:id, :name, :description, CAST(:tags AS jsonb), :prompt, '{}'::jsonb, 'active', 1, now(), now())
+            """),
+            {
+                "id": str(uuid.uuid4()),
+                "name": name,
+                "description": description,
+                "tags": json.dumps(tags, ensure_ascii=False),
+                "prompt": prompt,
+            },
+        )
+
+
 def _ensure_task_runs_backfill(conn):
     task_rows = conn.execute(text("""
         SELECT t.id
@@ -221,9 +339,11 @@ def ensure_schema():
             _ensure_column(conn, inspector, "tasks", "created_by", "UUID")
             _ensure_column(conn, inspector, "tasks", "approved_by", "UUID")
             _ensure_column(conn, inspector, "tasks", "run_by", "UUID")
+            _ensure_column(conn, inspector, "tasks", "analysis_skill_ids", "UUID[]")
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_tasks_created_by ON tasks(created_by)"))
         if "requests" in tables:
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_requests_user_id ON requests(user_id)"))
+            _ensure_column(conn, inspector, "requests", "analysis_skill_ids", "UUID[]")
         if "images" in tables:
             _ensure_column(conn, inspector, "images", "oss_url", "TEXT")
             _ensure_column(conn, inspector, "images", "oss_key", "TEXT")
@@ -234,20 +354,41 @@ def ensure_schema():
         if "analysis" in tables:
             _ensure_column(conn, inspector, "analysis", "embedding_status", "VARCHAR DEFAULT 'pending'")
             _ensure_column(conn, inspector, "analysis", "embedding_error", "TEXT")
+            _ensure_column(conn, inspector, "analysis", "skill_id", "UUID")
+            _ensure_column(conn, inspector, "analysis", "skill_key", "VARCHAR")
+            _ensure_column(conn, inspector, "analysis", "result_json", "JSONB")
+            # 移除旧的 image_id unique 约束（同一图片可有多个 skill 的分析）
+            try:
+                conn.execute(text("ALTER TABLE analysis DROP CONSTRAINT IF EXISTS analysis_image_id_key"))
+            except Exception:
+                pass
+            conn.execute(text("""
+                CREATE UNIQUE INDEX IF NOT EXISTS uq_analysis_image_skill
+                ON analysis (image_id, skill_id)
+            """))
         if "watch_plans" in tables:
             _ensure_column(conn, inspector, "watch_plans", "created_by", "UUID")
             _ensure_column(conn, inspector, "watch_plans", "updated_by", "UUID")
             _ensure_column(conn, inspector, "watch_plans", "schedule_cycle", "VARCHAR DEFAULT 'daily'")
             _ensure_column(conn, inspector, "watch_plans", "schedule_start_date", "DATE")
             _ensure_column(conn, inspector, "watch_plans", "schedule_end_date", "DATE")
+            _ensure_column(conn, inspector, "watch_plans", "analysis_skill_ids", "UUID[]")
             conn.execute(text("UPDATE watch_plans SET schedule_cycle = 'daily' WHERE schedule_cycle IS NULL OR schedule_cycle = ''"))
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_watch_plans_created_by ON watch_plans(created_by)"))
         if "devices" in tables:
             conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_devices_serial ON devices(serial)"))
         if "task_runs" in tables:
             _ensure_column(conn, inspector, "task_runs", "goal_validation_json", "JSONB DEFAULT '{}'::jsonb")
+            _ensure_column(conn, inspector, "task_runs", "worker_node_key", "VARCHAR")
+            _ensure_column(conn, inspector, "task_runs", "worker_claimed_at", "TIMESTAMP")
+            _ensure_column(conn, inspector, "task_runs", "worker_lease_expires_at", "TIMESTAMP")
+            _ensure_column(conn, inspector, "task_runs", "worker_error", "TEXT")
+            _ensure_column(conn, inspector, "task_runs", "artifact_count", "INTEGER DEFAULT 0")
+            conn.execute(text("UPDATE task_runs SET artifact_count = 0 WHERE artifact_count IS NULL"))
+            conn.execute(text("ALTER TABLE task_runs ALTER COLUMN artifact_count SET DEFAULT 0"))
             conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_task_runs_task_attempt ON task_runs(task_id, attempt_no)"))
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_task_runs_task_id ON task_runs(task_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_task_runs_worker_lease ON task_runs(worker_lease_expires_at)"))
         if "embeddings" in tables:
             _ensure_embedding_vector_dim(conn)
             _ensure_embedding_uniqueness(conn)
@@ -256,6 +397,23 @@ def ensure_schema():
             _ensure_default_users(conn)
         if "app_settings" in tables:
             _ensure_default_app_settings(conn)
+        if "comparison_assets" in tables:
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_assets_created_by ON comparison_assets(created_by)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_assets_image_id ON comparison_assets(image_id)"))
+        if "comparison_basket_items" in tables:
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_comparison_basket_user_asset ON comparison_basket_items(user_id, asset_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_basket_user_id ON comparison_basket_items(user_id)"))
+        if "comparison_skills" in tables:
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_skills_status ON comparison_skills(status)"))
+            _ensure_default_comparison_skills(conn)
+        if "analysis_skills" in tables:
+            _migrate_analysis_skills_table(conn, inspector)
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_analysis_skills_status ON analysis_skills(status)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_analysis_skills_profile_status ON analysis_skills(profile, status)"))
+            _ensure_default_analysis_skills(conn)
+        if "comparison_reports" in tables:
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_reports_created_by ON comparison_reports(created_by)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comparison_reports_status ON comparison_reports(status)"))
         if "task_runs" in tables and "tasks" in tables:
             _ensure_task_runs_backfill(conn)
 

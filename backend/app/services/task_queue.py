@@ -9,6 +9,7 @@ from app import crud, models
 from app.database import SessionLocal
 from app.services.devices import refresh_devices
 from app.services.task_events import push_event, task_event
+from app.services.worker_dispatch import has_available_worker_device, is_worker_device
 
 
 TASK_STATUS_QUEUED = "queued"
@@ -52,11 +53,34 @@ def _next_queued_run(db: Session) -> models.TaskRun | None:
     )
 
 
-def _select_device(db: Session, task: models.Task, device_id: UUID | None):
+def _is_phone_task(task: models.Task) -> bool:
+    return task.mode in ("autoglm", "uiautomator2")
+
+
+def _select_local_device(db: Session, task: models.Task, device_id: UUID | None):
     if task.mode not in ("autoglm", "uiautomator2") and not device_id:
         return None
     refresh_devices(db)
-    return crud.acquire_device(db, device_id)
+    if device_id is not None:
+        device = crud.get_device(db, device_id)
+        if not device or is_worker_device(device) or device.status != "online":
+            return None
+        return device
+    for device in crud.list_devices(db):
+        if device.status == "online" and not is_worker_device(device):
+            return device
+    return None
+
+
+def _should_enqueue_for_worker(db: Session, task: models.Task, requested_device_id: UUID | None) -> bool:
+    if not _is_phone_task(task):
+        return False
+    refresh_devices(db)
+    if requested_device_id is not None:
+        return is_worker_device(crud.get_device(db, requested_device_id))
+    if _select_local_device(db, task, None):
+        return False
+    return has_available_worker_device(db)
 
 
 def _store_prompt_if_needed(db: Session, task: models.Task, prompt: str | None) -> models.Task:
@@ -102,7 +126,7 @@ def _start_task_run(
 ) -> TaskQueueDecision:
     task = _store_prompt_if_needed(db, task, prompt)
     device_id = requested_device_id or (run.device_id if run else None)
-    device = _select_device(db, task, device_id)
+    device = _select_local_device(db, task, device_id)
     if task.mode in ("autoglm", "uiautomator2") and not device:
         raise TaskQueueError("Selected device is unavailable" if device_id else "No available device")
 
@@ -159,6 +183,15 @@ def start_or_enqueue_task(
                 prompt=prompt,
             )
             return TaskQueueDecision(status=TASK_STATUS_QUEUED, task=crud.get_task(db, task.id), run=run)
+        if _should_enqueue_for_worker(db, task, requested_device_id):
+            run = _enqueue_task(
+                db,
+                task,
+                created_by=created_by,
+                requested_device_id=requested_device_id,
+                prompt=prompt,
+            )
+            return TaskQueueDecision(status=TASK_STATUS_QUEUED, task=crud.get_task(db, task.id), run=run)
         return _start_task_run(
             db,
             task,
@@ -182,6 +215,8 @@ def start_next_queued_task() -> TaskQueueDecision | None:
                 if not task or task.status != TASK_STATUS_QUEUED:
                     crud.update_task_run(db, run.id, status="failed", failure_reason="Queued task no longer exists")
                     continue
+                if _should_enqueue_for_worker(db, task, run.device_id):
+                    return None
                 try:
                     decision = _start_task_run(
                         db,

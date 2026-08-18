@@ -5,15 +5,15 @@ import HomePage from './pages/HomePage';
 import SearchPage from './pages/SearchPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import AdminRequests from './pages/AdminRequests';
-import AdminTasks from './pages/AdminTasks';
 import AdminTaskResults from './pages/AdminTaskResults';
 import AdminDevices from './pages/AdminDevices';
 import AdminUsers from './pages/AdminUsers';
 import AdminWatchPlans from './pages/AdminWatchPlans';
 import AdminWatchPlanNew from './pages/AdminWatchPlanNew';
 import AdminWatchPlanDetail from './pages/AdminWatchPlanDetail';
-import AdminDashboard from './pages/AdminDashboard';
+import CompareWorkbench from './pages/CompareWorkbench';
+import SkillEditor from './pages/SkillEditor';
+import AdminTaskManagement from './pages/AdminTaskManagement';
 
 function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
   const { pathname } = useLocation();
@@ -95,9 +95,9 @@ function Navigation() {
           {user ? (
             <>
               <NavLink to="/search">图片检索</NavLink>
-              <NavLink to="/admin">数据看板</NavLink>
-              <NavLink to="/admin/requests">{hasRole('operator') ? '审核管理' : '需求管理'}</NavLink>
               <NavLink to="/admin/tasks">任务管理</NavLink>
+              <NavLink to="/compare">对比分析</NavLink>
+              <NavLink to="/skills">Skill 编辑</NavLink>
               <NavLink to="/admin/devices">设备管理</NavLink>
               <NavLink to="/admin/watch-plans">持续观察</NavLink>
               {hasRole('admin') && <NavLink to="/admin/users">用户管理</NavLink>}
@@ -128,10 +128,13 @@ function App() {
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
-                  <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
-                  <Route path="/admin/requests" element={<RequireAuth><AdminRequests /></RequireAuth>} />
-                  <Route path="/admin/tasks" element={<RequireAuth><AdminTasks /></RequireAuth>} />
+                  <Route path="/admin" element={<RequireAuth><Navigate to="/admin/tasks" replace /></RequireAuth>} />
+                  <Route path="/admin/requests" element={<RequireAuth><Navigate to="/admin/tasks?tab=requests" replace /></RequireAuth>} />
+                  <Route path="/admin/tasks" element={<RequireAuth><AdminTaskManagement /></RequireAuth>} />
                   <Route path="/admin/tasks/:taskId/results" element={<RequireAuth><AdminTaskResults /></RequireAuth>} />
+                  <Route path="/compare" element={<RequireAuth><CompareWorkbench /></RequireAuth>} />
+                  <Route path="/skills" element={<RequireAuth><SkillEditor /></RequireAuth>} />
+                  <Route path="/compare/skills" element={<RequireAuth><Navigate to="/skills?tab=compare" replace /></RequireAuth>} />
                   <Route path="/admin/images" element={<RequireAuth><Navigate to="/search" replace /></RequireAuth>} />
                   <Route path="/admin/devices" element={<RequireAuth><AdminDevices /></RequireAuth>} />
                   <Route path="/admin/users" element={<RequireAuth><RequireRole role="admin"><AdminUsers /></RequireRole></RequireAuth>} />

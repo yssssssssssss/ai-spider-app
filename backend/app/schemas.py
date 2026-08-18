@@ -1,7 +1,13 @@
 from datetime import date, datetime, time
-from typing import List, Literal, Optional
-from pydantic import BaseModel, ConfigDict, Field
+from typing import Annotated, List, Literal, Optional
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 from uuid import UUID
+
+# 数据库旧记录 analysis_skill_ids 可能为 None，统一转为空列表
+def _none_to_list(v):
+    return v if v is not None else []
+
+OptionalUUIDList = Annotated[List[UUID], BeforeValidator(_none_to_list)]
 
 
 class OrmModel(BaseModel):
@@ -36,12 +42,16 @@ class AnalysisOut(OrmModel):
     embedding_status: Optional[str] = None
     embedding_error: Optional[str] = None
     analyzed_at: Optional[datetime] = None
+    skill_id: Optional[UUID] = None
+    skill_key: Optional[str] = None
+    result_json: dict | list | None = None
 
 class RequestCreate(BaseModel):
     target_app: Optional[str] = None
     target_scenario: Optional[str] = None
     keywords: List[str] = []
     description: Optional[str] = None
+    analysis_skill_ids: List[UUID] = Field(default_factory=list)
 
 
 class LongImageIntentParseRequest(BaseModel):
@@ -76,6 +86,7 @@ class RequestOut(OrmModel):
     keywords: List[str]
     description: Optional[str] = None
     status: str
+    analysis_skill_ids: OptionalUUIDList = Field(default_factory=list)
     created_at: datetime
 
 class UserOut(OrmModel):
@@ -128,6 +139,46 @@ class RegistrationInviteCodeUpdate(BaseModel):
     invite_code: str
 
 
+class AnalysisSkillCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    prompt: str
+    output_schema_json: dict | list | None = None
+    scenario_tags_json: list[str] = Field(default_factory=list)
+    profile: str = "default"
+    skill_type: str = "analysis"
+    status: str = "active"
+
+
+class AnalysisSkillUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    prompt: Optional[str] = None
+    output_schema_json: dict | list | None = None
+    scenario_tags_json: Optional[list[str]] = None
+    profile: Optional[str] = None
+    skill_type: Optional[str] = None
+    status: Optional[str] = None
+
+
+class AnalysisSkillOut(OrmModel):
+    id: UUID
+    name: str
+    description: Optional[str] = None
+    prompt: str
+    output_schema_json: dict | list | None = None
+    scenario_tags_json: list | dict | None = None
+    profile: str
+    skill_type: str
+    status: str
+    version: int
+    is_system: bool
+    created_by: Optional[UUID] = None
+    updated_by: Optional[UUID] = None
+    created_at: datetime
+    updated_at: datetime
+
+
 class TaskOut(OrmModel):
     id: UUID
     request_id: Optional[UUID] = None
@@ -152,6 +203,7 @@ class TaskOut(OrmModel):
     device_serial: Optional[str] = None
     approved_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
+    analysis_skill_ids: OptionalUUIDList = Field(default_factory=list)
 
 
 class TaskRunOut(OrmModel):
@@ -169,10 +221,141 @@ class TaskRunOut(OrmModel):
     device_id: Optional[UUID] = None
     created_by: Optional[UUID] = None
     created_at: datetime
+    worker_node_key: Optional[str] = None
+    worker_claimed_at: Optional[datetime] = None
+    worker_lease_expires_at: Optional[datetime] = None
+    worker_error: Optional[str] = None
+    artifact_count: int = 0
+
+
+class WorkerClaimRequest(BaseModel):
+    node_key: str
+    device_serials: List[str] = Field(default_factory=list)
+    capabilities: List[str] = Field(default_factory=list)
+
+
+class WorkerTaskRunOut(TaskRunOut):
+    pass
+
+
+class WorkerClaimOut(BaseModel):
+    claimed: bool
+    poll_seconds: int
+    run: Optional[WorkerTaskRunOut] = None
+    task: Optional[TaskOut] = None
+    device: Optional["DeviceOut"] = None
+
+
+class WorkerRunHeartbeatRequest(BaseModel):
+    node_key: str
+
+
+class WorkerRunFinishRequest(BaseModel):
+    node_key: str
+    exit_code: int = 0
+    screenshot_count: int = 0
+
+
+class WorkerRunFailRequest(BaseModel):
+    node_key: str
+    exit_code: int = 1
+    failure_reason: str
+
+
+class WorkerArtifactOut(BaseModel):
+    image_id: UUID
+    file_path: str
+    sha256: str
+    duplicate: bool = False
+    oss_url: Optional[str] = None
+
+
+class ComparisonAssetCreate(BaseModel):
+    image_id: UUID
+    notes: Optional[str] = None
+
+
+class ComparisonAssetOut(OrmModel):
+    id: UUID
+    source_type: str
+    image_id: Optional[UUID] = None
+    file_path: Optional[str] = None
+    display_name: str
+    source_app: Optional[str] = None
+    scenario: Optional[str] = None
+    notes: Optional[str] = None
+    status: str
+    created_by: Optional[UUID] = None
+    created_at: datetime
+
+
+class ComparisonBasketItemCreate(BaseModel):
+    asset_id: UUID
+
+
+class ComparisonBasketItemOut(OrmModel):
+    id: UUID
+    asset: ComparisonAssetOut
+    created_at: datetime
+
+
+class ComparisonSkillCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    scenario_tags_json: list[str] = Field(default_factory=list)
+    prompt: str
+    output_schema_json: dict | list | None = None
+    status: str = "active"
+
+
+class ComparisonSkillUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    scenario_tags_json: Optional[list[str]] = None
+    prompt: Optional[str] = None
+    output_schema_json: dict | list | None = None
+    status: Optional[str] = None
+
+
+class ComparisonSkillOut(OrmModel):
+    id: UUID
+    name: str
+    description: Optional[str] = None
+    scenario_tags_json: list | dict | None = None
+    prompt: str
+    output_schema_json: dict | list | None = None
+    status: str
+    version: int
+    created_by: Optional[UUID] = None
+    updated_by: Optional[UUID] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class ComparisonReportCreate(BaseModel):
+    asset_ids: list[UUID] = Field(default_factory=list)
+    skill_id: UUID
+    focus_question: Optional[str] = None
+
+
+class ComparisonReportOut(OrmModel):
+    id: UUID
+    asset_ids_json: list
+    skill_id: UUID
+    skill_name: str
+    skill_version: int
+    focus_question: Optional[str] = None
+    report: Optional[str] = None
+    status: str
+    error: Optional[str] = None
+    created_by: Optional[UUID] = None
+    created_at: datetime
+    completed_at: Optional[datetime] = None
 
 
 class TaskUpdate(BaseModel):
     name: Optional[str] = None
+    analysis_skill_ids: Optional[List[UUID]] = None
 
 
 class RetryTaskRequest(BaseModel):
@@ -230,6 +413,7 @@ class WatchPlanCreate(BaseModel):
     schedule_cycle: Literal["daily", "weekly", "monthly"] = "daily"
     schedule_start_date: Optional[date] = None
     schedule_end_date: Optional[date] = None
+    analysis_skill_ids: List[UUID] = Field(default_factory=list)
 
 
 class WatchPlanUpdate(BaseModel):
@@ -243,6 +427,7 @@ class WatchPlanUpdate(BaseModel):
     schedule_start_date: Optional[date] = None
     schedule_end_date: Optional[date] = None
     status: Optional[str] = None
+    analysis_skill_ids: Optional[List[UUID]] = None
 
 
 class WatchPlanOut(OrmModel):
@@ -267,6 +452,7 @@ class WatchPlanOut(OrmModel):
     updated_by: Optional[UUID] = None
     created_by_name: Optional[str] = None
     updated_by_name: Optional[str] = None
+    analysis_skill_ids: OptionalUUIDList = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 

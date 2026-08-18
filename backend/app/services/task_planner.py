@@ -4,6 +4,7 @@
 import json
 from openai import OpenAI
 from app.config import settings
+from app.services.llm_analyzer import temperature_options
 
 
 SEARCH_SCENE_MARKERS = ("搜索", "search", "检索", "查询", "商品列表", "结果页", "商品详情", "详情页", "商品页")
@@ -108,15 +109,16 @@ async def plan_task(
 
     try:
         client, model = _planner_client()
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
+        request = {
+            "model": model,
+            "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content},
             ],
-            temperature=0.3,
-            max_tokens=256,
-        )
+            "max_tokens": 256,
+        }
+        request.update(temperature_options(model, 0.3))
+        response = client.chat.completions.create(**request)
         instruction = response.choices[0].message.content.strip()
         print(f"🤖 LLM 生成指令: {instruction}")
         return append_execution_rules(instruction)

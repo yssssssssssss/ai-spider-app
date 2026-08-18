@@ -17,7 +17,7 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`badge ${map[status] || ''}`}>{labels[status] || status}</span>;
 }
 
-export default function AdminRequests() {
+export default function AdminRequests({ embedded = false }: { embedded?: boolean }) {
   const { showToast } = useToast();
   const { user, hasRole } = useAuth();
   const canReview = hasRole('operator');
@@ -65,15 +65,25 @@ export default function AdminRequests() {
 
   return (
     <div className="animate-fade-in">
-      <div className="page-header" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-        <div>
-          <h1>{canReview ? '审核管理' : '需求管理'}</h1>
-          <p>{canReview ? '审核用户提交的竞品分析需求' : '查看自己提交的竞品分析需求'}</p>
+      {!embedded && (
+        <div className="page-header" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+          <div>
+            <h1>{canReview ? '审核管理' : '需求管理'}</h1>
+            <p>{canReview ? '审核用户提交的竞品分析需求' : '查看自己提交的竞品分析需求'}</p>
+          </div>
+          <button className="btn-secondary btn-sm" onClick={load} disabled={loading}>
+            {loading ? '刷新中...' : '刷新'}
+          </button>
         </div>
-        <button className="btn-secondary btn-sm" onClick={load} disabled={loading}>
-          {loading ? '刷新中...' : '刷新'}
-        </button>
-      </div>
+      )}
+      {embedded && (
+        <div className="embedded-section-toolbar">
+          <span>{canReview ? '审核用户提交的竞品分析需求' : '查看自己提交的竞品分析需求'}</span>
+          <button className="btn-secondary btn-sm" onClick={load} disabled={loading}>
+            {loading ? '刷新中...' : '刷新'}
+          </button>
+        </div>
+      )}
 
       <div
         style={{

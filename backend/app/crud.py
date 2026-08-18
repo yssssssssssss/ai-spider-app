@@ -2,7 +2,7 @@ from uuid import UUID
 from typing import List, Optional
 from datetime import date, datetime
 from sqlalchemy.orm import Session
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, and_
 
 from app import models, schemas
 
@@ -61,7 +61,10 @@ def list_images(
     if task_id is not None:
         q = q.filter(models.Image.task_id == task_id)
     if analysis_status or embedding_status:
-        q = q.outerjoin(models.Analysis, models.Analysis.image_id == models.Image.id)
+        q = q.outerjoin(models.Analysis, and_(
+            models.Analysis.image_id == models.Image.id,
+            models.Analysis.skill_id.is_(None),  # 只看旧格式分析，避免一对多重复
+        ))
     if analysis_status:
         if analysis_status == "pending":
             q = q.filter(or_(models.Analysis.status == "pending", models.Analysis.id.is_(None)))
@@ -74,8 +77,10 @@ def list_images(
             q = q.filter(models.Analysis.embedding_status == embedding_status)
     return q.order_by(models.Image.created_at.desc()).offset(skip).limit(limit).all()
 
-def create_analysis(db: Session, image_id: UUID, design: str, ops: str, status: str = "success") -> models.Analysis:
-    db_analysis = get_analysis_by_image(db, image_id)
+def create_analysis(db: Session, image_id: UUID, design: str, ops: str, status: str = "success",
+                    skill_id: UUID | None = None, skill_key: str | None = None,
+                    result_json: dict | None = None) -> models.Analysis:
+    db_analysis = get_analysis_by_image_and_skill(db, image_id, skill_id)
     if db_analysis:
         db_analysis.design_analysis = design
         db_analysis.ops_analysis = ops
@@ -83,6 +88,12 @@ def create_analysis(db: Session, image_id: UUID, design: str, ops: str, status: 
         db_analysis.embedding_status = "pending"
         db_analysis.embedding_error = None
         db_analysis.analyzed_at = func.now()
+        if skill_id:
+            db_analysis.skill_id = skill_id
+        if skill_key:
+            db_analysis.skill_key = skill_key
+        if result_json is not None:
+            db_analysis.result_json = result_json
     else:
         db_analysis = models.Analysis(
             image_id=image_id,
@@ -90,12 +101,39 @@ def create_analysis(db: Session, image_id: UUID, design: str, ops: str, status: 
             ops_analysis=ops,
             status=status,
             embedding_status="pending",
-            analyzed_at=func.now()
+            analyzed_at=func.now(),
+            skill_id=skill_id,
+            skill_key=skill_key,
+            result_json=result_json,
         )
         db.add(db_analysis)
     db.commit()
     db.refresh(db_analysis)
     return db_analysis
+
+
+def get_analysis_by_image_and_skill(db: Session, image_id: UUID, skill_id: UUID | None = None) -> Optional[models.Analysis]:
+    q = db.query(models.Analysis).filter(models.Analysis.image_id == image_id)
+    if skill_id is None:
+        q = q.filter(models.Analysis.skill_id.is_(None))
+    else:
+        q = q.filter(models.Analysis.skill_id == skill_id)
+    return q.first()
+
+
+def get_analysis_by_image(db: Session, image_id: UUID) -> Optional[models.Analysis]:
+    """获取图片的默认分析结果（skill_id 为 null 的旧兼容记录）"""
+    return db.query(models.Analysis).filter(
+        models.Analysis.image_id == image_id,
+        models.Analysis.skill_id.is_(None),
+    ).first()
+
+
+def list_analyses_by_image(db: Session, image_id: UUID) -> list[models.Analysis]:
+    """获取图片的所有分析结果（包括多个 skill 的）"""
+    return db.query(models.Analysis).filter(
+        models.Analysis.image_id == image_id,
+    ).order_by(models.Analysis.skill_id.asc()).all()
 
 
 def update_embedding_status(
@@ -112,10 +150,6 @@ def update_embedding_status(
     db.commit()
     db.refresh(analysis)
     return analysis
-
-
-def get_analysis_by_image(db: Session, image_id: UUID) -> Optional[models.Analysis]:
-    return db.query(models.Analysis).filter(models.Analysis.image_id == image_id).first()
 
 def create_request(db: Session, req: schemas.RequestCreate, user_id: Optional[str] = None) -> models.Request:
     data = req.model_dump()
@@ -262,6 +296,41 @@ def update_task_name(db: Session, task_id: UUID, name: str) -> Optional[models.T
         db.commit()
         db.refresh(task)
     return task
+
+
+def delete_task(db: Session, task_id: UUID) -> bool:
+    task = get_task(db, task_id)
+    if not task:
+        return False
+
+    run_ids = [
+        row[0]
+        for row in db.query(models.TaskRun.id)
+        .filter(models.TaskRun.task_id == task_id)
+        .all()
+    ]
+    if run_ids:
+        db.query(models.Device).filter(models.Device.current_task_run_id.in_(run_ids)).update(
+            {models.Device.current_task_run_id: None},
+            synchronize_session=False,
+        )
+        db.query(models.Image).filter(models.Image.task_run_id.in_(run_ids)).update(
+            {models.Image.task_run_id: None},
+            synchronize_session=False,
+        )
+
+    db.query(models.WatchRun).filter(models.WatchRun.task_id == task_id).update(
+        {models.WatchRun.task_id: None},
+        synchronize_session=False,
+    )
+    db.query(models.Image).filter(models.Image.task_id == task_id).update(
+        {models.Image.task_id: None},
+        synchronize_session=False,
+    )
+    db.query(models.TaskRun).filter(models.TaskRun.task_id == task_id).delete(synchronize_session=False)
+    db.delete(task)
+    db.commit()
+    return True
 
 
 def set_task_run_user(db: Session, task_id: UUID, user_id: Optional[UUID]) -> Optional[models.Task]:
@@ -461,6 +530,11 @@ def update_task_run(
     output_dir: Optional[str] = None,
     log_path: Optional[str] = None,
     device_id: Optional[UUID] = None,
+    worker_node_key: Optional[str] = None,
+    worker_claimed_at: Optional[datetime] = None,
+    worker_lease_expires_at: Optional[datetime] = None,
+    worker_error: Optional[str] = None,
+    artifact_count: Optional[int] = None,
 ) -> Optional[models.TaskRun]:
     run = get_task_run(db, run_id)
     if not run:
@@ -483,6 +557,26 @@ def update_task_run(
         run.log_path = log_path
     if device_id is not None:
         run.device_id = device_id
+    if worker_node_key is not None:
+        run.worker_node_key = worker_node_key
+    if worker_claimed_at is not None:
+        run.worker_claimed_at = worker_claimed_at
+    if worker_lease_expires_at is not None:
+        run.worker_lease_expires_at = worker_lease_expires_at
+    if worker_error is not None:
+        run.worker_error = worker_error
+    if artifact_count is not None:
+        run.artifact_count = artifact_count
+    db.commit()
+    db.refresh(run)
+    return run
+
+
+def increment_task_run_artifact_count(db: Session, run_id: UUID) -> Optional[models.TaskRun]:
+    run = get_task_run(db, run_id)
+    if not run:
+        return None
+    run.artifact_count = (run.artifact_count or 0) + 1
     db.commit()
     db.refresh(run)
     return run
@@ -699,7 +793,7 @@ def update_watch_plan(db: Session, plan_id: UUID, patch: schemas.WatchPlanUpdate
         return None
     data = patch.model_dump(exclude_unset=True)
     for field, value in data.items():
-        if value is not None:
+        if value is not None or field == "analysis_skill_ids":
             setattr(plan, field, value)
     plan.updated_at = datetime.now()
     if updated_by:

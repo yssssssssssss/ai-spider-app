@@ -5,6 +5,7 @@ from typing import Any
 
 from openai import OpenAI
 from app.config import settings
+from app.services.llm_analyzer import temperature_options
 
 
 KNOWN_APPS = ("淘宝", "天猫", "拼多多", "京东")
@@ -153,16 +154,17 @@ stitch: boolean
 keep_raw_images: boolean
 missing_fields: 缺失字段数组"""
     try:
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
+        request = {
+            "model": model,
+            "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": text},
             ],
-            temperature=0,
-            max_tokens=300,
-            response_format={"type": "json_object"},
-        )
+            "max_tokens": 300,
+            "response_format": {"type": "json_object"},
+        }
+        request.update(temperature_options(model, 0))
+        response = client.chat.completions.create(**request)
         payload = json.loads(response.choices[0].message.content or "{}")
         return _intent_from_payload(payload, fallback)
     except Exception as exc:

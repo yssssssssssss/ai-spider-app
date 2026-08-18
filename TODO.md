@@ -1,6 +1,6 @@
 # 竞品分析平台 - TODO
 
-> 最后更新：2026-06-01
+> 最后更新：2026-08-17
 
 ## P0 已完成
 
@@ -75,10 +75,23 @@
 - [x] 异步复核：图片分析完成后可重新校验已完成 run，避免漏采任务误判成功
 - [x] 前端展示：任务结果页展示目标覆盖、缺失和待确认状态
 
+### P2.7 本地 Worker 执行器
+
+- [x] 云端 worker API：设备上报、claim、run heartbeat、artifact/log 上传、finish/fail
+- [x] 调度分流：worker 设备任务进入 queued，由本地 worker 领取；云端本机 ADB 路径保留
+- [x] 状态持久化：task_runs 增加 worker 租约、错误和 artifact_count 字段
+- [x] 本地 worker CLI：发现 ADB 设备、轮询任务、执行采集脚本、上传截图和日志
+- [x] capture sink：worker 模式只保存本地文件，不直接写 DB 或 OSS
+- [ ] 云端部署配置 WORKER_API_TOKEN
+- [ ] 本地真实手机端到端联调
+- [ ] worker 中断/lease 过期真实故障演练
+- [ ] 详见 docs/superpowers/plans/2026-08-17-local-worker-executor-implementation.md
+
 ## 验证记录
 
-- 本轮后端回归测试：77 个通过
+- 本轮后端回归测试：129 个通过
 - 本轮前端构建：通过
+- 本地 worker/设备回归：5 个通过
 - Doubao embedding live health：`ok=true`
 - pgvector 维度：2048
 - `embeddings` 重复组：0
