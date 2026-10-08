@@ -126,6 +126,7 @@ class Request(Base):
     description = Column(Text)
     status = Column(String, default="pending")
     analysis_skill_ids = Column(PGArray(UUID(as_uuid=True)), default=list)
+    scroll_promo_config_json = Column(JSONB, nullable=True)
     created_at = Column(DateTime, default=utc_now)
 
     tasks = relationship("Task", back_populates="request")
@@ -151,6 +152,7 @@ class Task(Base):
     approved_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
     analysis_skill_ids = Column(PGArray(UUID(as_uuid=True)), default=list)
+    scroll_promo_config_json = Column(JSONB, nullable=True)
 
     request = relationship("Request", back_populates="tasks")
     images = relationship("Image", back_populates="task")
@@ -193,6 +195,7 @@ class TaskRun(Base):
     exit_code = Column(Integer, nullable=True)
     failure_reason = Column(Text)
     goal_validation_json = Column(JSONB, default=dict)
+    result_json = Column(JSONB, default=dict)
     log_path = Column(Text)
     output_dir = Column(Text)
     device_id = Column(UUID(as_uuid=True), ForeignKey("devices.id"), nullable=True)

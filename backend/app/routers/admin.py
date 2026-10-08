@@ -28,6 +28,21 @@ EXPORT_MEDIA_TYPES = {
     "zip": "application/zip",
 }
 TARGET_APP_SPLIT_PATTERN = re.compile(r"(?:\s*(?:、|，|,|/|\\|;|；|\+|和|及|与)\s*)+")
+JD_NEW_FLOOR_MODE = "jd_new_floor_audit"
+JD_NEW_FLOOR_SCENARIO = "新品楼层规范检查"
+JD_NEW_FLOOR_INSTRUCTION = (
+    "打开京东App，点击顶部导航“新品”，等待5秒并关闭中央遮挡弹窗；"
+    "先截取一张未移动页面的原始全屏截图，按固定X/Y区域完成腰部楼层步骤1至3；"
+    "步骤4检查X区域是否为封面图+首焦栏目标题，以及其下方是否紧接一行4商品楼层，按组合输出格式正确/错误；"
+    "步骤5至7均以X区域为识别对象，分别检查双入口、三入口和超级明星福利原有规则；"
+    "二级tab组件巡查随后点击“新奇集市”并等待8秒，识别文本为“推荐”且文字呈红色的横向Tab行，将其全宽区域动态定义为z1，"
+    "手指向上滑动800px使页面向下滚动后，将全宽y=450至525定义为z2，"
+    "再用手指向下滑动400px使页面向上回退，并将全宽y=450至525定义为z3；"
+    "检查z1选中/非选中组数及HEX颜色，并分别与#FF0F23、#3D414D、#F2F3F5作视觉一致性判断；第二个Tab按钮作为独立特殊态，检查其文字色是否与#E63FAF视觉一致；"
+    "z2与z1一致显示“正确”、否则显示“错误”，z3与z1一致显示“错误”、不一致显示“正确”；"
+    "检查z1、z2均为单行、均且仅有一个内容一致的选中态，并在两处左滑400px验证区域内变化且区域外不变；"
+    "保存动作前后截图并生成包含“腰部楼层巡查”和“二级tab组件巡查”两部分的报告。"
+)
 
 
 def _is_visible_task_image(image) -> bool:
@@ -176,17 +191,31 @@ async def approve_request(
     target_app = body.target_app or req.target_app
     target_apps = split_target_apps(target_app) or [target_app]
     target_scenario = body.target_scenario or req.target_scenario
+    if body.mode == JD_NEW_FLOOR_MODE:
+        target_apps = ["京东"]
+        target_scenario = JD_NEW_FLOOR_SCENARIO
     created_tasks = []
 
     for app_name in target_apps:
+        scroll_promo_config = None
+        if body.mode == "scroll_promo":
+            scroll_promo_config = schemas.ScrollPromoConfigInput.model_validate(
+                req.scroll_promo_config_json or {}
+            ).model_dump()
+            app_name = scroll_promo_config["target_app"]
         target_goals = build_target_goals(app_name, target_scenario, keywords, req.description)
         generated_instruction = None
-        if body.mode == "scroll_promo":
+        if body.mode == JD_NEW_FLOOR_MODE:
+            generated_instruction = JD_NEW_FLOOR_INSTRUCTION
+        elif body.mode == "scroll_promo":
             generated_instruction = (
-                f"打开{app_name or '目标'}App并等待首页加载，执行一次1秒页面上滑；"
-                "从滑动过程中按10FPS提取候选帧，筛选后最多保留6张；"
-                "逐帧识别右下角促销贴片、判断展开或收起状态、定位关闭按钮，"
-                "只生成红色线框标注，不自动点击关闭按钮。"
+                f"打开{app_name}App，点击“{scroll_promo_config['target_tab']}”Tab并等待{scroll_promo_config['page_wait_seconds']:g}秒页面加载；如果画面中间出现弹窗则关闭；"
+                f"静态截图{scroll_promo_config['static_frame_count']}张，相邻截图之间上滑{scroll_promo_config['static_scroll_distance_px']}px；逐张识别右下角促销贴片和正下方关闭按钮，"
+                f"置信度达到{scroll_promo_config['static_confidence_threshold']:.0%}且任一为true则汇总为存在；"
+                f"执行一次{scroll_promo_config['dynamic_swipe_duration_seconds']:g}秒页面上滑，定位真实运动开始后{scroll_promo_config['motion_window_offset_seconds']:g}秒，"
+                f"连续{scroll_promo_config['motion_window_duration_seconds']:g}秒按{scroll_promo_config['fps']}FPS提取候选帧并最多保留{scroll_promo_config['max_frames']}张；"
+                f"以静态有效贴片最大宽度为基准，过程帧贴片宽度小于其{scroll_promo_config['collapse_width_ratio']:.2%}时判定为收起态并绘制红框；"
+                "汇总静态和滑动过程结果，不运行原设计/运营分析Skill，不自动点击关闭按钮。"
             )
         else:
             try:
@@ -213,6 +242,7 @@ async def approve_request(
             created_by=UUID(str(req.user_id)) if _looks_uuid(req.user_id) else user.id,
             approved_by=user.id,
             target_goals_json=target_goals,
+            scroll_promo_config_json=scroll_promo_config,
         )
 
         # 将 LLM 生成的指令存入 task

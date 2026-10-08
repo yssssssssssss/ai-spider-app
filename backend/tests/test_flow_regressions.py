@@ -1028,16 +1028,18 @@ class FlowRegressionTests(unittest.TestCase):
         from app import crud
         from app.database import SessionLocal
         from app.services import devices
+        from app.services.worker_dispatch import has_available_worker_device
 
         db = SessionLocal()
         worker_serial = f"worker-device-{uuid4().hex}"
         adb_serial = f"adb-device-{uuid4().hex}"
         try:
+            worker_last_seen = utc_now()
             crud.upsert_device(
                 db,
                 serial=worker_serial,
                 status="online",
-                last_seen_at=utc_now(),
+                last_seen_at=worker_last_seen,
                 notes="worker:local-device device",
             )
             crud.upsert_device(
@@ -1048,7 +1050,10 @@ class FlowRegressionTests(unittest.TestCase):
                 notes="device",
             )
 
-            fake_result = SimpleNamespace(returncode=0, stdout="List of devices attached\n")
+            fake_result = SimpleNamespace(
+                returncode=0,
+                stdout=f"List of devices attached\n{worker_serial}\tdevice\n",
+            )
             with (
                 patch.object(devices.shutil, "which", return_value="/usr/bin/adb"),
                 patch.object(devices.subprocess, "run", return_value=fake_result),
@@ -1056,7 +1061,11 @@ class FlowRegressionTests(unittest.TestCase):
                 devices.refresh_devices(db)
 
             db.expire_all()
-            self.assertEqual(crud.get_device_by_serial(db, worker_serial).status, "online")
+            worker_device = crud.get_device_by_serial(db, worker_serial)
+            self.assertEqual(worker_device.status, "online")
+            self.assertEqual(worker_device.notes, "worker:local-device device")
+            self.assertEqual(worker_device.last_seen_at, worker_last_seen)
+            self.assertTrue(has_available_worker_device(db, device_id=worker_device.id))
             self.assertEqual(crud.get_device_by_serial(db, adb_serial).status, "offline")
         finally:
             for serial in (worker_serial, adb_serial):

@@ -40,6 +40,7 @@ class PromotionDetection:
     promo_bbox_norm: list[int] | None
     promo_description: str
     close_button_present: bool
+    close_button_below_promo: bool
     close_button_bbox_norm: list[int] | None
     close_button_description: str
     confidence: float
@@ -95,6 +96,7 @@ class PromotionDetector:
             state = "uncertain" if present else "none"
         close_bbox = self._normalize_bbox(payload.get("close_button_bbox_norm"))
         close_present = present and bool(payload.get("close_button_present")) and close_bbox is not None
+        close_below = present and close_present and self._is_close_below_promo(promo_bbox, close_bbox)
         if present and promo_bbox:
             if close_present and promo_bbox[2] < 995:
                 state = "expanded"
@@ -110,6 +112,7 @@ class PromotionDetector:
             promo_bbox_norm=promo_bbox,
             promo_description=str(payload.get("promo_description") or "") if present else "",
             close_button_present=close_present,
+            close_button_below_promo=close_below,
             close_button_bbox_norm=close_bbox if close_present else None,
             close_button_description=str(payload.get("close_button_description") or "") if close_present else "",
             confidence=confidence,
@@ -185,6 +188,12 @@ class PromotionDetector:
         if not isinstance(payload, dict):
             raise ValueError("Promotion detector result must be an object")
         return payload
+
+    def _is_close_below_promo(self, promo_bbox: list[int], close_bbox: list[int]) -> bool:
+        promo_x1, _promo_y1, promo_x2, promo_y2 = promo_bbox
+        close_x1, close_y1, close_x2, _close_y2 = close_bbox
+        close_center_x = (close_x1 + close_x2) / 2
+        return promo_x1 - 50 <= close_center_x <= promo_x2 + 50 and promo_y2 <= close_y1 <= promo_y2 + 120
 
     def _is_bottom_right(self, bbox: list[int]) -> bool:
         x1, y1, _x2, _y2 = bbox

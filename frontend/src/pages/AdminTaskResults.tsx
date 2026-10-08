@@ -14,6 +14,7 @@ import { useToast } from '../components/Toast';
 
 function isVisibleTaskResult(result: any) {
   if (String(result?.image?.scenario || '').includes('促销贴片')) return true;
+  if (String(result?.image?.scenario || '').includes('新品楼层规范检查')) return true;
   return result?.analysis?.status !== 'skipped';
 }
 
@@ -39,6 +40,12 @@ export default function AdminTaskResults() {
   const visibleTaskImages = taskImages.filter(isVisibleTaskResult);
   const currentRun = runs.find(run => run.id === runId) || runs[0];
   const goalValidation = currentRun?.goal_validation_json;
+  const runReport = currentRun?.result_json;
+  const promotionReport = runReport?.report_type === 'scroll_promo' || runReport?.step3 ? runReport : null;
+  const promotionSummary = promotionReport?.summary;
+  const floorAuditReport = runReport?.report_type === 'jd_new_floor_audit' ? runReport : null;
+  const floorAuditSummary = floorAuditReport?.summary;
+  const secondaryTabSummary = floorAuditReport?.secondary_tab_audit?.summary;
 
   useEffect(() => {
     let ignore = false;
@@ -131,6 +138,16 @@ export default function AdminTaskResults() {
           {hasRole('operator') && (
             <button className="btn-secondary btn-sm" onClick={() => download('zip')} disabled={!!downloading}>{downloading === 'zip' ? '下载中...' : 'ZIP'}</button>
           )}
+          {promotionReport && (
+            <Link className="btn-sm link-button" to={`/admin/tasks/${taskId}/scroll-promo-report?runId=${currentRun?.id || ''}`}>
+              滑动贴片报告
+            </Link>
+          )}
+          {floorAuditReport && (
+            <Link className="btn-sm link-button" style={{ background: '#c96f00' }} to={`/admin/tasks/${taskId}/jd-new-floor-report?runId=${currentRun?.id || ''}`}>
+              新品楼层报告
+            </Link>
+          )}
           <Link className="btn-secondary btn-sm link-button" to="/admin/tasks">
             返回任务列表
           </Link>
@@ -177,6 +194,48 @@ export default function AdminTaskResults() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+          {promotionSummary && (
+            <div className="goal-validation-panel">
+              <div className="goal-validation-head">
+                <span>滑动贴片结论</span>
+                <strong>{promotionSummary.collapsed_frame_count > 0 ? '检测到收起态' : '未检测到收起态'}</strong>
+              </div>
+              <p>
+                静态帧贴片：{promotionSummary.static_promo_present ? '存在' : '未发现'}；
+                静态帧关闭按钮：{promotionSummary.static_close_button_present ? '存在' : '未发现'}；
+                收起判定：宽度 &lt; 基准的 2/3；
+                过程帧 {promotionReport.step3?.selected_frame_count || 0} 张，发现贴片 {promotionSummary.motion_promo_frame_count || 0} 张，
+                收起态 {promotionSummary.collapsed_frame_count || 0} 张。
+              </p>
+            </div>
+          )}
+          {floorAuditSummary && (
+            <div className="goal-validation-panel">
+              <div className="goal-validation-head">
+                <span>腰部楼层巡查结论</span>
+                <strong>{floorAuditSummary.status === 'pass' ? '通过' : floorAuditSummary.status === 'fail' ? '存在不合规项' : '需要复核'}</strong>
+              </div>
+              <p>
+                通过 {floorAuditSummary.counts?.pass || 0} 项；
+                不通过 {floorAuditSummary.counts?.fail || 0} 项；
+                待确认 {floorAuditSummary.counts?.uncertain || 0} 项；
+                不适用 {floorAuditSummary.counts?.not_applicable || 0} 项。
+              </p>
+            </div>
+          )}
+          {secondaryTabSummary && (
+            <div className="goal-validation-panel">
+              <div className="goal-validation-head">
+                <span>二级tab组件巡查结论</span>
+                <strong>{secondaryTabSummary.status === 'pass' ? '通过' : secondaryTabSummary.status === 'fail' ? '存在不合规项' : '需要复核'}</strong>
+              </div>
+              <p>
+                通过 {secondaryTabSummary.counts?.pass || 0} 项；
+                不通过 {secondaryTabSummary.counts?.fail || 0} 项；
+                待确认 {secondaryTabSummary.counts?.uncertain || 0} 项。
+              </p>
             </div>
           )}
         </div>

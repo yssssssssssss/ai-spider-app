@@ -209,6 +209,7 @@ def create_task(
     approved_by: Optional[UUID] = None,
     run_by: Optional[UUID] = None,
     target_goals_json: Optional[list | dict] = None,
+    scroll_promo_config_json: Optional[dict] = None,
 ) -> models.Task:
     db_task = models.Task(
         name=name,
@@ -222,6 +223,7 @@ def create_task(
         approved_by=approved_by,
         run_by=run_by,
         target_goals_json=target_goals_json or [],
+        scroll_promo_config_json=scroll_promo_config_json,
         status="pending",
         approved_at=func.now() if admin_id or approved_by else None
     )
@@ -527,6 +529,7 @@ def update_task_run(
     exit_code: Optional[int] = None,
     failure_reason: Optional[str] = None,
     goal_validation_json: Optional[dict | list] = None,
+    result_json: Optional[dict | list] = None,
     output_dir: Optional[str] = None,
     log_path: Optional[str] = None,
     device_id: Optional[UUID] = None,
@@ -551,6 +554,8 @@ def update_task_run(
         run.failure_reason = failure_reason
     if goal_validation_json is not None:
         run.goal_validation_json = goal_validation_json
+    if result_json is not None:
+        run.result_json = result_json
     if output_dir is not None:
         run.output_dir = output_dir
     if log_path is not None:

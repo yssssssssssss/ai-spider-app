@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -111,6 +112,97 @@ class WorkerWorkflowTests(unittest.TestCase):
         self.assertEqual(env["WORKFLOW_TARGET_APP"], "京东")
         self.assertEqual(env["WORKFLOW_TARGET_SCENARIO"], "新品tab截图")
         self.assertEqual(env["WORKFLOW_GENERATED_INSTRUCTION"], "")
+
+    def test_worker_child_uses_the_same_api_endpoint_and_token_as_parent(self):
+        env = _build_env(
+            Path("/tmp/artifacts"),
+            "task-1",
+            "run-1",
+            "device-1",
+            {},
+            worker_base_url="http://127.0.0.1:8000/api/worker",
+            worker_token="local-worker-token",
+        )
+
+        self.assertEqual(env["WORKER_BASE_URL"], "http://127.0.0.1:8000/api/worker")
+        self.assertEqual(env["WORKER_API_TOKEN"], "local-worker-token")
+
+    def test_worker_renews_lease_before_each_artifact_and_log_upload(self):
+        class FinishedProcess:
+            returncode = 0
+
+            def poll(self):
+                return 0
+
+        class FakeClient:
+            def __init__(self):
+                self.calls = []
+
+            def extend_lease(self, run_id, node_key):
+                self.calls.append(("lease", run_id, node_key))
+
+            def upload_artifact(self, run_id, node_key, path, **_kwargs):
+                self.calls.append(("artifact", path.name))
+                return {"image_id": f"image-{path.stem}", "file_path": str(path), "oss_url": ""}
+
+            def upload_log(self, run_id, node_key, _text):
+                self.calls.append(("log", run_id, node_key))
+
+        claim = {
+            "run": {"id": "run-1"},
+            "task": {
+                "id": "task-1",
+                "target_app": "京东",
+                "target_scenario": "新品楼层规范检查",
+                "mode": "jd_new_floor_audit",
+            },
+            "device": {"serial": "device-1"},
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            artifacts_dir = Path(temp_dir, "worker_runs", "run-1", "artifacts")
+            artifacts_dir.mkdir(parents=True)
+            Path(artifacts_dir, "raw_fullscreen.png").write_bytes(b"raw")
+            Path(artifacts_dir, "annotated_floor_audit.png").write_bytes(b"annotated")
+            secondary_frames = {
+                "z1_before": {"filename": "secondary_tab_z1_before.png"},
+                "z1_after_left": {"filename": "secondary_tab_z1_after_left.png"},
+                "z2_before": {"filename": "secondary_tab_z2_before.png"},
+                "z2_after_left": {"filename": "secondary_tab_z2_after_left.png"},
+                "z3_before": {"filename": "secondary_tab_z3_before.png"},
+            }
+            for index, frame in enumerate(secondary_frames.values(), start=1):
+                Path(artifacts_dir, frame["filename"]).write_bytes(f"secondary-{index}".encode())
+            Path(artifacts_dir, "jd_new_floor_report.json").write_text(
+                json.dumps(
+                    {
+                        "report_type": "jd_new_floor_audit",
+                        "artifacts": {
+                            "raw": {"filename": "raw_fullscreen.png"},
+                            "annotated": {"filename": "annotated_floor_audit.png"},
+                        },
+                        "secondary_tab_audit": {
+                            "report_type": "jd_secondary_tab_audit",
+                            "frames": secondary_frames,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            client = FakeClient()
+            with (
+                patch("worker.executor.subprocess.Popen", return_value=FinishedProcess()),
+                patch("worker.executor._force_stop_target_app"),
+            ):
+                result = execute_claim(Path(temp_dir), client, "node-1", claim)
+
+        upload_indexes = [index for index, call in enumerate(client.calls) if call[0] in {"artifact", "log"}]
+        self.assertTrue(upload_indexes)
+        self.assertTrue(all(client.calls[index - 1][0] == "lease" for index in upload_indexes))
+        self.assertEqual(result.uploaded_count, 7)
+        self.assertEqual(
+            result.result_json["secondary_tab_audit"]["frames"]["z3_before"]["image_id"],
+            "image-secondary_tab_z3_before",
+        )
 
 
 if __name__ == "__main__":

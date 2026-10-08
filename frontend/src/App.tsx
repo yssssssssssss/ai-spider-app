@@ -14,6 +14,8 @@ import AdminWatchPlanDetail from './pages/AdminWatchPlanDetail';
 import CompareWorkbench from './pages/CompareWorkbench';
 import SkillEditor from './pages/SkillEditor';
 import AdminTaskManagement from './pages/AdminTaskManagement';
+import ScrollPromoReport from './pages/ScrollPromoReport';
+import JdNewFloorReport from './pages/JdNewFloorReport';
 
 function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
   const { pathname } = useLocation();
@@ -132,6 +134,8 @@ function App() {
                   <Route path="/admin/requests" element={<RequireAuth><Navigate to="/admin/tasks?tab=requests" replace /></RequireAuth>} />
                   <Route path="/admin/tasks" element={<RequireAuth><AdminTaskManagement /></RequireAuth>} />
                   <Route path="/admin/tasks/:taskId/results" element={<RequireAuth><AdminTaskResults /></RequireAuth>} />
+                  <Route path="/admin/tasks/:taskId/scroll-promo-report" element={<RequireAuth><ScrollPromoReport /></RequireAuth>} />
+                  <Route path="/admin/tasks/:taskId/jd-new-floor-report" element={<RequireAuth><JdNewFloorReport /></RequireAuth>} />
                   <Route path="/compare" element={<RequireAuth><CompareWorkbench /></RequireAuth>} />
                   <Route path="/skills" element={<RequireAuth><SkillEditor /></RequireAuth>} />
                   <Route path="/compare/skills" element={<RequireAuth><Navigate to="/skills?tab=compare" replace /></RequireAuth>} />

@@ -11,6 +11,8 @@ from app import crud, models, schemas
 from app.config import settings
 from app.database import get_db
 from app.services import worker_dispatch
+from app.services.jd_new_floor_analyzer import jd_new_floor_analyzer
+from app.services.jd_secondary_tab_analyzer import FRAME_KEYS, jd_secondary_tab_analyzer
 from app.services.promotion_detector import promotion_detector
 
 
@@ -157,6 +159,67 @@ async def detect_promotion_overlay(
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"promotion detection failed: {exc}") from exc
 
 
+@router.post("/jd-new-floor-analyze", response_model=schemas.WorkerJdNewFloorAnalysisOut)
+async def analyze_jd_new_floor(
+    file: UploadFile = File(...),
+    _: None = Depends(require_worker_token),
+):
+    content = await file.read()
+    if len(content) > 15 * 1024 * 1024:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="image too large")
+    try:
+        return (await jd_new_floor_analyzer.analyze_png(content)).to_dict()
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"floor analysis failed: {exc}") from exc
+
+
+@router.post("/jd-secondary-tab-locate", response_model=schemas.WorkerJdSecondaryTabLocatorOut)
+async def locate_jd_secondary_tab(
+    file: UploadFile = File(...),
+    _: None = Depends(require_worker_token),
+):
+    content = await file.read()
+    if len(content) > 15 * 1024 * 1024:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="image too large")
+    try:
+        return await jd_secondary_tab_analyzer.locate_z1_png(content)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"secondary Tab location failed: {exc}") from exc
+
+
+@router.post("/jd-secondary-tab-analyze", response_model=schemas.WorkerJdSecondaryTabAnalysisOut)
+async def analyze_jd_secondary_tab(
+    z1_before: UploadFile = File(...),
+    z1_after_left: UploadFile = File(...),
+    z2_before: UploadFile = File(...),
+    z2_after_left: UploadFile = File(...),
+    z3_before: UploadFile = File(...),
+    z1_top: int = Form(...),
+    z1_bottom: int = Form(...),
+    _: None = Depends(require_worker_token),
+):
+    uploads = {
+        "z1_before": z1_before,
+        "z1_after_left": z1_after_left,
+        "z2_before": z2_before,
+        "z2_after_left": z2_after_left,
+        "z3_before": z3_before,
+    }
+    contents = {key: await uploads[key].read() for key in FRAME_KEYS}
+    if any(len(content) > 15 * 1024 * 1024 for content in contents.values()):
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="image too large")
+    try:
+        return (await jd_secondary_tab_analyzer.analyze_pngs(contents, z1_top, z1_bottom)).to_dict()
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"secondary Tab analysis failed: {exc}") from exc
+
+
 @router.post("/task-runs/claim", response_model=schemas.WorkerClaimOut)
 def claim_task_run(
     body: schemas.WorkerClaimRequest,
@@ -184,6 +247,19 @@ def worker_run_heartbeat(
     try:
         lease_expires_at = worker_dispatch.extend_run_lease(db, run_id, body.node_key)
         return {"ok": True, "run_id": str(run_id), "lease_expires_at": lease_expires_at.isoformat()}
+    except worker_dispatch.WorkerDispatchError as exc:
+        _raise_worker_error(exc)
+
+
+@router.post("/task-runs/{run_id}/result", response_model=schemas.WorkerTaskRunOut)
+def upload_worker_result(
+    run_id: UUID,
+    body: schemas.WorkerRunResultRequest,
+    db: Session = Depends(get_db),
+    _: None = Depends(require_worker_token),
+):
+    try:
+        return worker_dispatch.store_worker_result(db, run_id, body.node_key, body.result_json)
     except worker_dispatch.WorkerDispatchError as exc:
         _raise_worker_error(exc)
 

@@ -85,6 +85,8 @@ scripts/start_local_worker.sh --once
 
 Worker 执行任务时会设置 `CAPTURE_SINK=local_files`，采集脚本只在本地保存截图；随后 Worker 将图片上传给云端，由云端统一入库、OSS 上传和分析。
 
+Worker 默认同时声明 `uiautomator2`、`autoglm`、`scroll_promo` 和 `jd_new_floor_audit` 能力。新品楼层检查会打开京东“新品”页并关闭遮挡弹窗：先保存原始全屏截图并完成原 3.3 至 3.9“腰部楼层巡查”，再点击“新奇集市”并等待 8 秒，以红色“推荐”文字为锚点动态定位 z1；随后按手指上滑 800px（页面向下）、手指下滑 400px（页面向上回退）的顺序采集 z2/z3，并在 z1、z2 左滑 400px，最终上传 7 张截图并生成包含“腰部楼层巡查”和“二级tab组件巡查”的合并报告。
+
 ## 不应通过 Git 迁移的内容
 
 以下目录和文件应在新电脑重新生成或单独备份：

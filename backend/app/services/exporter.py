@@ -94,6 +94,7 @@ def task_export_payload(db: Session, task_id: UUID, user_id: UUID | None = None)
                 "exit_code": run.exit_code,
                 "failure_reason": run.failure_reason,
                 "goal_validation_json": run.goal_validation_json,
+                "result_json": run.result_json,
                 "log_path": run.log_path,
                 "output_dir": run.output_dir,
                 "device_id": str(run.device_id) if run.device_id else None,

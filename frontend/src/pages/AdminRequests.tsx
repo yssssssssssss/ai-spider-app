@@ -41,7 +41,9 @@ export default function AdminRequests({ embedded = false }: { embedded?: boolean
     setActingId(id);
     try {
       await approveRequest(id, { admin_id: user?.username, mode });
-      const message = mode === 'scroll_promo'
+      const message = mode === 'jd_new_floor_audit'
+        ? '已创建新品楼层检查任务'
+        : mode === 'scroll_promo'
         ? '已创建滑动贴片检测任务'
         : mode === 'autoglm'
           ? '已创建 AI 采集任务'
@@ -164,6 +166,16 @@ export default function AdminRequests({ embedded = false }: { embedded?: boolean
                   <td style={{ textAlign: 'right' }}>
                     {r.status === 'pending' && canReview && (
                       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
+                        {String(r.target_app || '').includes('京东') && String(r.target_scenario || '').includes('新品楼层规范检查') && (
+                          <button
+                            className="btn-sm"
+                            style={{ background: '#c96f00', whiteSpace: 'nowrap' }}
+                            onClick={() => handleApprove(r.id, 'jd_new_floor_audit')}
+                            disabled={actingId === r.id}
+                          >
+                            {actingId === r.id ? '处理中...' : '楼层检查'}
+                          </button>
+                        )}
                         <button
                           className="btn-sm"
                           style={{ background: '#dc2626', whiteSpace: 'nowrap' }}

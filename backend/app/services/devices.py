@@ -37,6 +37,8 @@ def refresh_devices(db: Session) -> tuple[list[models.Device], bool]:
         status = "online" if adb_state == "device" else "offline"
         notes = None if adb_state == "device" else adb_state
         existing = crud.get_device_by_serial(db, serial)
+        if existing and existing.notes and existing.notes.startswith(WORKER_DEVICE_NOTE_PREFIX):
+            continue
         if existing and existing.status == "busy" and adb_state == "device":
             existing.last_seen_at = now
             existing.updated_at = now

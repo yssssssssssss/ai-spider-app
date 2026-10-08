@@ -340,10 +340,12 @@ def ensure_schema():
             _ensure_column(conn, inspector, "tasks", "approved_by", "UUID")
             _ensure_column(conn, inspector, "tasks", "run_by", "UUID")
             _ensure_column(conn, inspector, "tasks", "analysis_skill_ids", "UUID[]")
+            _ensure_column(conn, inspector, "tasks", "scroll_promo_config_json", "JSONB")
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_tasks_created_by ON tasks(created_by)"))
         if "requests" in tables:
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_requests_user_id ON requests(user_id)"))
             _ensure_column(conn, inspector, "requests", "analysis_skill_ids", "UUID[]")
+            _ensure_column(conn, inspector, "requests", "scroll_promo_config_json", "JSONB")
         if "images" in tables:
             _ensure_column(conn, inspector, "images", "oss_url", "TEXT")
             _ensure_column(conn, inspector, "images", "oss_key", "TEXT")
@@ -379,6 +381,7 @@ def ensure_schema():
             conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_devices_serial ON devices(serial)"))
         if "task_runs" in tables:
             _ensure_column(conn, inspector, "task_runs", "goal_validation_json", "JSONB DEFAULT '{}'::jsonb")
+            _ensure_column(conn, inspector, "task_runs", "result_json", "JSONB DEFAULT '{}'::jsonb")
             _ensure_column(conn, inspector, "task_runs", "worker_node_key", "VARCHAR")
             _ensure_column(conn, inspector, "task_runs", "worker_claimed_at", "TIMESTAMP")
             _ensure_column(conn, inspector, "task_runs", "worker_lease_expires_at", "TIMESTAMP")

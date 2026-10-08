@@ -114,6 +114,9 @@ def start_task_process(task, prompt: str | None = None, *, task_run=None, create
     ensure_queue(task_id)
     process = None
 
+    if task.mode in {"scroll_promo", "jd_new_floor_audit"}:
+        raise ValueError(f"{task.mode} tasks must run on a registered worker")
+
     if task.mode == "autoglm":
         script_path = os.path.join(project_root, "run_autoglm.py")
         if not os.path.exists(script_path):

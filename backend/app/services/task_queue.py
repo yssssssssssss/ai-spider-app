@@ -14,6 +14,7 @@ from app.services.worker_dispatch import PHONE_TASK_MODES, has_available_worker_
 
 TASK_STATUS_QUEUED = "queued"
 TASK_STATUS_RUNNING = "running"
+WORKER_ONLY_TASK_MODES = {"scroll_promo", "jd_new_floor_audit"}
 _queue_lock = threading.Lock()
 
 
@@ -127,7 +128,7 @@ def _start_task_run(
     task = _store_prompt_if_needed(db, task, prompt)
     device_id = requested_device_id or (run.device_id if run else None)
     device = _select_local_device(db, task, device_id)
-    if task.mode == "scroll_promo" and not device:
+    if task.mode in WORKER_ONLY_TASK_MODES and not device:
         raise TaskQueueError("No available worker device")
     if task.mode in ("autoglm", "uiautomator2") and not device:
         raise TaskQueueError("Selected device is unavailable" if device_id else "No available device")
@@ -172,6 +173,10 @@ def start_or_enqueue_task(
     prompt: str | None = None,
 ) -> TaskQueueDecision:
     with _queue_lock:
+        if task.mode in WORKER_ONLY_TASK_MODES and requested_device_id is not None:
+            requested_device = crud.get_device(db, requested_device_id)
+            if not is_worker_device(requested_device):
+                raise TaskQueueError(f"{task.mode} tasks require a registered worker device")
         if task.status == TASK_STATUS_RUNNING:
             raise TaskQueueError("Task is already running")
         if task.status == TASK_STATUS_QUEUED:

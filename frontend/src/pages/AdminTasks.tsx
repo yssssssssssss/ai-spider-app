@@ -35,6 +35,12 @@ function formatCompletedAt(value?: string | null) {
   });
 }
 
+const WORKER_ONLY_MODES = new Set(['scroll_promo', 'jd_new_floor_audit']);
+
+function isWorkerDevice(device: any) {
+  return String(device?.notes || '').startsWith('worker:');
+}
+
 export default function AdminTasks({ embedded = false }: { embedded?: boolean }) {
   const { showToast } = useToast();
   const { hasRole } = useAuth();
@@ -51,6 +57,11 @@ export default function AdminTasks({ embedded = false }: { embedded?: boolean })
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   const eventSourcesRef = useRef<Record<string, EventSource>>({});
   const pendingTaskIds = useMemo(() => tasks.filter(task => task.status === 'pending').map(task => task.id), [tasks]);
+  const selectedDevice = devices.find(device => device.id === deviceId);
+  const runPayloadFor = (task: any) => {
+    if (!deviceId || (WORKER_ONLY_MODES.has(task?.mode) && !isWorkerDevice(selectedDevice))) return {};
+    return { device_id: deviceId };
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -131,8 +142,8 @@ export default function AdminTasks({ embedded = false }: { embedded?: boolean })
   const handleRun = async (id: string, retry = false) => {
     setRunningId(id);
     try {
-      const payload = deviceId ? { device_id: deviceId } : {};
-      const response = retry ? await retryTask(id, payload) : await runTask(id, payload);
+      const task = tasks.find(item => item.id === id);
+      const response = retry ? await retryTask(id, runPayloadFor(task)) : await runTask(id, runPayloadFor(task));
       const status = response.data?.status;
       if (retry) {
         showToast(status === 'queued' ? '重试已加入队列，等待当前任务完成' : '重试已启动，后台正在采集截图', 'success');
@@ -165,12 +176,14 @@ export default function AdminTasks({ embedded = false }: { embedded?: boolean })
 
     setBulkStarting(true);
     try {
-      const payload = deviceId ? { device_id: deviceId } : {};
       const results = await Promise.allSettled(
-        ids.map(id => runTask(id, payload).then(response => {
-          watchTaskEvents(id);
-          return response;
-        }))
+        ids.map(id => {
+          const task = tasks.find(item => item.id === id);
+          return runTask(id, runPayloadFor(task)).then(response => {
+            watchTaskEvents(id);
+            return response;
+          });
+        })
       );
       const successCount = results.filter(result => result.status === 'fulfilled').length;
       if (successCount > 0) {
@@ -436,6 +449,24 @@ export default function AdminTasks({ embedded = false }: { embedded?: boolean })
                           >
                             查看结果
                           </Link>
+                          {t.mode === 'scroll_promo' && (
+                            <Link
+                              className="btn-sm link-button"
+                              style={{ background: '#dc2626' }}
+                              to={`/admin/tasks/${t.id}/scroll-promo-report`}
+                            >
+                              贴片报告
+                            </Link>
+                          )}
+                          {t.mode === 'jd_new_floor_audit' && (
+                            <Link
+                              className="btn-sm link-button"
+                              style={{ background: '#c96f00' }}
+                              to={`/admin/tasks/${t.id}/jd-new-floor-report`}
+                            >
+                              楼层报告
+                            </Link>
+                          )}
                           {hasRole('operator') && (
                             <button className="btn-secondary btn-sm" onClick={() => beginEditName(t)}>
                               改名

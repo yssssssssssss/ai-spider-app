@@ -17,7 +17,8 @@ TASK_STATUS_QUEUED = "queued"
 TASK_STATUS_RUNNING = "running"
 TASK_STATUS_COMPLETED = "completed"
 TASK_STATUS_FAILED = "failed"
-PHONE_TASK_MODES = {"autoglm", "uiautomator2", "scroll_promo"}
+PHONE_TASK_MODES = {"autoglm", "uiautomator2", "scroll_promo", "jd_new_floor_audit"}
+SPECIAL_REPORT_TASK_MODES = {"scroll_promo", "jd_new_floor_audit"}
 ALLOWED_IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp"}
 
 
@@ -263,6 +264,13 @@ def extend_run_lease(db: Session, run_id: UUID, node_key: str) -> datetime:
     return expires_at
 
 
+def store_worker_result(db: Session, run_id: UUID, node_key: str, result_json: dict) -> models.TaskRun:
+    run = _owned_run(db, run_id, node_key)
+    if run.status != TASK_STATUS_RUNNING:
+        raise WorkerDispatchError("task run is not running")
+    return crud.update_task_run(db, run.id, result_json=result_json)
+
+
 def finish_worker_run(db: Session, run_id: UUID, node_key: str, exit_code: int, screenshot_count: int) -> models.TaskRun:
     run = _owned_run(db, run_id, node_key)
     if run.status != TASK_STATUS_RUNNING:
@@ -271,6 +279,51 @@ def finish_worker_run(db: Session, run_id: UUID, node_key: str, exit_code: int, 
         return _fail_run(db, run, exit_code=exit_code, reason=f"worker process exited with {exit_code}")
     if (run.artifact_count or 0) <= 0:
         return _fail_run(db, run, exit_code=exit_code, reason="no images collected")
+    if run.task and run.task.mode == "jd_new_floor_audit":
+        result = run.result_json or {}
+        if result.get("report_type") != "jd_new_floor_audit":
+            return _fail_run(db, run, exit_code=exit_code, reason="floor audit report is missing")
+        artifacts = result.get("artifacts") if isinstance(result.get("artifacts"), dict) else {}
+        for artifact_name in ("raw", "annotated"):
+            artifact = artifacts.get(artifact_name)
+            image_id = artifact.get("image_id") if isinstance(artifact, dict) else None
+            try:
+                image = crud.get_image(db, UUID(str(image_id))) if image_id else None
+            except (TypeError, ValueError):
+                image = None
+            if not image or str(image.task_run_id) != str(run.id):
+                return _fail_run(
+                    db,
+                    run,
+                    exit_code=exit_code,
+                    reason=f"floor audit {artifact_name} image is missing from this run",
+                )
+
+        secondary = result.get("secondary_tab_audit")
+        if isinstance(secondary, dict):
+            if secondary.get("report_type") != "jd_secondary_tab_audit":
+                return _fail_run(db, run, exit_code=exit_code, reason="secondary Tab audit report is invalid")
+            frames = secondary.get("frames") if isinstance(secondary.get("frames"), dict) else {}
+            for frame_name in (
+                "z1_before",
+                "z1_after_left",
+                "z2_before",
+                "z2_after_left",
+                "z3_before",
+            ):
+                frame = frames.get(frame_name)
+                image_id = frame.get("image_id") if isinstance(frame, dict) else None
+                try:
+                    image = crud.get_image(db, UUID(str(image_id))) if image_id else None
+                except (TypeError, ValueError):
+                    image = None
+                if not image or str(image.task_run_id) != str(run.id):
+                    return _fail_run(
+                        db,
+                        run,
+                        exit_code=exit_code,
+                        reason=f"secondary Tab {frame_name} image is missing from this run",
+                    )
 
     now = _utc_now()
     crud.update_task_status(db, run.task_id, TASK_STATUS_COMPLETED)
@@ -363,14 +416,16 @@ def save_worker_artifact(
         ),
     )
     crud.increment_task_run_artifact_count(db, run.id)
-    refresh_task_run_goal_validation(db, run.task_id, run.id)
+    if not task or task.mode not in SPECIAL_REPORT_TASK_MODES:
+        refresh_task_run_goal_validation(db, run.task_id, run.id)
     push_event(str(run.task_id), task_event("new_image", image_id=str(image.id)))
-    try:
-        from app.services.collector_bridge import _trigger_analysis
+    if not task or task.mode not in SPECIAL_REPORT_TASK_MODES:
+        try:
+            from app.services.collector_bridge import _trigger_analysis
 
-        _trigger_analysis(image.id)
-    except Exception as exc:
-        print(f"⚠️ worker artifact 自动分析启动失败 {image.id}: {exc}")
+            _trigger_analysis(image.id)
+        except Exception as exc:
+            print(f"⚠️ worker artifact 自动分析启动失败 {image.id}: {exc}")
 
     return schemas.WorkerArtifactOut(
         image_id=image.id,

@@ -24,6 +24,10 @@ TARGET_APP_PACKAGES = {
     "天猫": "com.tmall.wireless",
     "抖音": "com.ss.android.ugc.aweme",
 }
+REPORT_FILENAMES = {
+    "scroll_promo": "promotion_detections.json",
+    "jd_new_floor_audit": "jd_new_floor_report.json",
+}
 
 
 @dataclass
@@ -31,6 +35,7 @@ class ExecutionResult:
     exit_code: int
     uploaded_count: int
     log_path: Path
+    result_json: dict[str, Any] | None = None
 
 
 def execute_claim(repo_root: Path, client: WorkerClient, node_key: str, claim: dict[str, Any]) -> ExecutionResult:
@@ -45,7 +50,16 @@ def execute_claim(repo_root: Path, client: WorkerClient, node_key: str, claim: d
     artifacts_dir.mkdir(parents=True, exist_ok=True)
 
     command = _build_command(repo_root, task, run_id, task_id, str(device["serial"]), artifacts_dir)
-    env = _build_env(artifacts_dir, task_id, run_id, str(device["serial"]), task)
+    client_headers = getattr(client, "headers", {})
+    env = _build_env(
+        artifacts_dir,
+        task_id,
+        run_id,
+        str(device["serial"]),
+        task,
+        worker_base_url=str(getattr(client, "base_url", "")),
+        worker_token=str(client_headers.get("X-Worker-Token", "")),
+    )
     tracker = ArtifactTracker()
     uploaded_count = 0
 
@@ -77,15 +91,30 @@ def execute_claim(repo_root: Path, client: WorkerClient, node_key: str, claim: d
                 process.wait(timeout=5)
         _force_stop_target_app(task, str(device["serial"]), log_path)
 
+    report_filename = REPORT_FILENAMES.get(str(task.get("mode") or ""))
+    report_path = artifacts_dir / report_filename if report_filename else None
+    result_json = None
+    if report_path and report_path.exists():
+        try:
+            import json
+
+            result_json = json.loads(report_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            with log_path.open("a", encoding="utf-8") as log_file:
+                _write_log_line(log_file, f"result report read failed: {exc}")
+
     for artifact in tracker.scan_new(artifacts_dir):
         try:
-            client.upload_artifact(
+            client.extend_lease(run_id, node_key)
+            uploaded = client.upload_artifact(
                 run_id,
                 node_key,
                 artifact.path,
                 source_app=task.get("target_app"),
                 scenario=task.get("target_scenario"),
             )
+            if result_json:
+                _attach_result_artifact(result_json, artifact.path.name, uploaded)
             tracker.mark_uploaded(artifact)
             uploaded_count += 1
         except Exception as exc:
@@ -93,11 +122,38 @@ def execute_claim(repo_root: Path, client: WorkerClient, node_key: str, claim: d
                 _write_log_line(log_file, f"artifact upload failed {artifact.path}: {exc}")
 
     try:
+        client.extend_lease(run_id, node_key)
         _upload_log_tail(client, run_id, node_key, log_path)
     except Exception as exc:
         with log_path.open("a", encoding="utf-8") as log_file:
             _write_log_line(log_file, f"log upload failed: {exc}")
-    return ExecutionResult(exit_code=process.returncode or 0, uploaded_count=uploaded_count, log_path=log_path)
+    return ExecutionResult(
+        exit_code=process.returncode or 0,
+        uploaded_count=uploaded_count,
+        log_path=log_path,
+        result_json=result_json,
+    )
+
+
+def _attach_result_artifact(result_json: dict[str, Any], filename: str, uploaded: dict[str, Any]) -> None:
+    def visit(value: Any) -> None:
+        if isinstance(value, dict):
+            artifact_names = {
+                value.get("filename"),
+                value.get("raw_file"),
+                value.get("annotated_file"),
+            }
+            if filename in artifact_names:
+                value["image_id"] = uploaded.get("image_id")
+                value["image_file_path"] = uploaded.get("file_path")
+                value["oss_url"] = uploaded.get("oss_url")
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    visit(result_json)
 
 
 def _target_app_package(task: dict[str, Any]) -> str | None:
@@ -134,27 +190,46 @@ def _force_stop_target_app(task: dict[str, Any], device_serial: str, log_path: P
 
 def _build_command(repo_root: Path, task: dict[str, Any], run_id: str, task_id: str, device_serial: str, output_dir: Path) -> list[str]:
     mode = task.get("mode") or "uiautomator2"
-    if mode == "scroll_promo":
-        package = _target_app_package(task)
+    if mode == "jd_new_floor_audit":
+        app_name = str(task.get("target_app") or "京东")
+        package = _target_app_package({"target_app": app_name})
         if not package:
-            raise ValueError(f"unsupported target app for scroll promo task: {task.get('target_app')}")
+            raise ValueError(f"unsupported target app for floor audit task: {app_name}")
+        return [
+            sys.executable,
+            str(repo_root / "run_jd_new_floor_audit.py"),
+            "--app", app_name,
+            "--package", package,
+            "--device-id", device_serial,
+            "--output-dir", str(output_dir),
+            "--target-tab", "新品",
+            "--page-wait", os.getenv("JD_NEW_FLOOR_PAGE_WAIT_SECONDS", "5"),
+        ]
+    if mode == "scroll_promo":
+        config = task.get("scroll_promo_config_json") or {}
+        configured_app = str(config.get("target_app") or task.get("target_app") or "京东")
+        package = _target_app_package({"target_app": configured_app})
+        if not package:
+            raise ValueError(f"unsupported target app for scroll promo task: {configured_app}")
         return [
             sys.executable,
             str(repo_root / "run_scroll_promo_chain.py"),
-            "--app",
-            str(task.get("target_app") or "京东"),
-            "--package",
-            package,
-            "--device-id",
-            device_serial,
-            "--output-dir",
-            str(output_dir),
-            "--swipes",
-            os.getenv("SCROLL_PROMO_SWIPE_COUNT", "1"),
-            "--max-frames",
-            os.getenv("SCROLL_PROMO_MAX_FRAMES", "6"),
-            "--fps",
-            os.getenv("SCROLL_PROMO_FPS", "10"),
+            "--app", configured_app,
+            "--package", package,
+            "--device-id", device_serial,
+            "--output-dir", str(output_dir),
+            "--swipes", os.getenv("SCROLL_PROMO_SWIPE_COUNT", "1"),
+            "--max-frames", str(config.get("max_frames", 6)),
+            "--fps", str(config.get("fps", 10)),
+            "--target-tab", str(config.get("target_tab", "新品")),
+            "--page-wait", str(config.get("page_wait_seconds", 5)),
+            "--static-frames", str(config.get("static_frame_count", 3)),
+            "--static-scroll-distance", str(config.get("static_scroll_distance_px", 600)),
+            "--static-confidence", str(config.get("static_confidence_threshold", 0.75)),
+            "--swipe-duration", str(config.get("dynamic_swipe_duration_seconds", 2)),
+            "--motion-offset", str(config.get("motion_window_offset_seconds", 0.5)),
+            "--motion-duration", str(config.get("motion_window_duration_seconds", 1)),
+            "--collapse-ratio", str(config.get("collapse_width_ratio", 2 / 3)),
         ]
     if mode == "autoglm":
         prompt = (
@@ -181,7 +256,16 @@ def _build_command(repo_root: Path, task: dict[str, Any], run_id: str, task_id: 
     raise ValueError(f"unsupported task mode: {mode}")
 
 
-def _build_env(output_dir: Path, task_id: str, run_id: str, device_serial: str, task: dict[str, Any]) -> dict[str, str]:
+def _build_env(
+    output_dir: Path,
+    task_id: str,
+    run_id: str,
+    device_serial: str,
+    task: dict[str, Any],
+    *,
+    worker_base_url: str = "",
+    worker_token: str = "",
+) -> dict[str, str]:
     env = os.environ.copy()
     env.update(
         {
@@ -200,6 +284,10 @@ def _build_env(output_dir: Path, task_id: str, run_id: str, device_serial: str, 
             "JD_OSS_SECRET_ACCESS_KEY": "",
         }
     )
+    if worker_base_url:
+        env["WORKER_BASE_URL"] = worker_base_url
+    if worker_token:
+        env["WORKER_API_TOKEN"] = worker_token
     return env
 
 

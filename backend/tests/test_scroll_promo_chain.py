@@ -142,6 +142,38 @@ class PromotionDetectorTests(unittest.TestCase):
         self.assertTrue(worker_dispatch._task_supported(task, {"scroll_promo"}))
         self.assertFalse(worker_dispatch._task_supported(task, {"autoglm"}))
 
+    def test_scroll_promo_config_validates_motion_window_and_candidate_count(self):
+        from pydantic import ValidationError
+        from app.schemas import ScrollPromoConfigInput
+
+        config = ScrollPromoConfigInput(static_scroll_distance_px=700, fps=10, motion_window_duration_seconds=1, max_frames=6)
+        self.assertEqual(config.static_scroll_distance_px, 700)
+        with self.assertRaises(ValidationError):
+            ScrollPromoConfigInput(dynamic_swipe_duration_seconds=1, motion_window_offset_seconds=0.5, motion_window_duration_seconds=1)
+        with self.assertRaises(ValidationError):
+            ScrollPromoConfigInput(fps=5, motion_window_duration_seconds=1, max_frames=6)
+
+    def test_task_management_and_report_expose_scroll_promo_details(self):
+        from pathlib import Path
+
+        tasks_source = Path(PROJECT_ROOT, "frontend", "src", "pages", "AdminTasks.tsx").read_text(encoding="utf-8")
+        report_source = Path(PROJECT_ROOT, "frontend", "src", "pages", "ScrollPromoReport.tsx").read_text(encoding="utf-8")
+        request_source = Path(PROJECT_ROOT, "frontend", "src", "components", "RequestForm.tsx").read_text(encoding="utf-8")
+        self.assertIn("贴片报告", tasks_source)
+        self.assertIn("scroll-promo-report", tasks_source)
+        self.assertIn("静态置信度阈值", report_source)
+        self.assertIn("收起宽度阈值", report_source)
+        self.assertIn("静态最大宽度", report_source)
+        static_promo = report_source.index('<span>静态贴片</span>')
+        static_close = report_source.index('<span>静态关闭按钮</span>')
+        collapsed = report_source.index('<span>收起态</span>')
+        self.assertLess(static_promo, static_close)
+        self.assertLess(static_close, collapsed)
+        self.assertIn("promo-conclusion-stack", report_source)
+        self.assertIn("滑动贴片模板已载入", request_source)
+        self.assertIn("scroll_promo_config_json", request_source)
+        self.assertIn("最终执行计划", request_source)
+
     def test_task_results_keep_scroll_promo_frames_even_when_analysis_is_skipped(self):
         from pathlib import Path
 
@@ -166,6 +198,7 @@ class PromotionDetectorTests(unittest.TestCase):
             promo_bbox_norm=[800, 700, 980, 900],
             promo_description="促销贴片",
             close_button_present=True,
+            close_button_below_promo=True,
             close_button_bbox_norm=[920, 850, 960, 890],
             close_button_description="关闭按钮",
             confidence=0.88,

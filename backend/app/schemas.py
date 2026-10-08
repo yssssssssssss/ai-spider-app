@@ -1,6 +1,6 @@
 from datetime import date, datetime, time
 from typing import Annotated, List, Literal, Optional
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, model_validator
 from uuid import UUID
 
 # 数据库旧记录 analysis_skill_ids 可能为 None，统一转为空列表
@@ -46,12 +46,36 @@ class AnalysisOut(OrmModel):
     skill_key: Optional[str] = None
     result_json: dict | list | None = None
 
+class ScrollPromoConfigInput(BaseModel):
+    target_app: Literal["京东"] = "京东"
+    target_tab: str = Field(default="新品", min_length=1, max_length=30)
+    page_wait_seconds: float = Field(default=5, ge=0, le=30)
+    static_frame_count: int = Field(default=3, ge=1, le=5)
+    static_scroll_distance_px: int = Field(default=600, ge=50, le=1200)
+    static_confidence_threshold: float = Field(default=0.75, ge=0.5, le=0.99)
+    dynamic_swipe_duration_seconds: float = Field(default=2, ge=0.5, le=5)
+    motion_window_offset_seconds: float = Field(default=0.5, ge=0, le=4)
+    motion_window_duration_seconds: float = Field(default=1, ge=0.2, le=3)
+    fps: int = Field(default=10, ge=1, le=20)
+    max_frames: int = Field(default=6, ge=1, le=10)
+    collapse_width_ratio: float = Field(default=2 / 3, gt=0, lt=1)
+
+    @model_validator(mode="after")
+    def validate_motion_window(self):
+        if self.motion_window_offset_seconds + self.motion_window_duration_seconds > self.dynamic_swipe_duration_seconds:
+            raise ValueError("motion window must fit inside dynamic swipe duration")
+        if round(self.motion_window_duration_seconds * self.fps) < self.max_frames:
+            raise ValueError("motion window must produce at least max_frames candidates")
+        return self
+
+
 class RequestCreate(BaseModel):
     target_app: Optional[str] = None
     target_scenario: Optional[str] = None
     keywords: List[str] = []
     description: Optional[str] = None
     analysis_skill_ids: List[UUID] = Field(default_factory=list)
+    scroll_promo_config_json: Optional[ScrollPromoConfigInput] = None
 
 
 class LongImageIntentParseRequest(BaseModel):
@@ -87,6 +111,7 @@ class RequestOut(OrmModel):
     description: Optional[str] = None
     status: str
     analysis_skill_ids: OptionalUUIDList = Field(default_factory=list)
+    scroll_promo_config_json: Optional[dict] = None
     created_at: datetime
 
 class UserOut(OrmModel):
@@ -204,6 +229,7 @@ class TaskOut(OrmModel):
     approved_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     analysis_skill_ids: OptionalUUIDList = Field(default_factory=list)
+    scroll_promo_config_json: Optional[dict] = None
 
 
 class TaskRunOut(OrmModel):
@@ -216,6 +242,7 @@ class TaskRunOut(OrmModel):
     exit_code: Optional[int] = None
     failure_reason: Optional[str] = None
     goal_validation_json: dict | list | None = None
+    result_json: dict | list | None = None
     log_path: Optional[str] = None
     output_dir: Optional[str] = None
     device_id: Optional[UUID] = None
@@ -262,6 +289,11 @@ class WorkerRunFailRequest(BaseModel):
     failure_reason: str
 
 
+class WorkerRunResultRequest(BaseModel):
+    node_key: str
+    result_json: dict
+
+
 class WorkerArtifactOut(BaseModel):
     image_id: UUID
     file_path: str
@@ -276,11 +308,41 @@ class WorkerPromotionDetectionOut(BaseModel):
     promo_bbox_norm: Optional[List[int]] = None
     promo_description: str = ""
     close_button_present: bool
+    close_button_below_promo: bool = False
     close_button_bbox_norm: Optional[List[int]] = None
     close_button_description: str = ""
     confidence: float
     image_width: int
     image_height: int
+
+
+class WorkerJdNewFloorAnalysisOut(BaseModel):
+    report_type: Literal["jd_new_floor_audit"]
+    schema_version: int
+    capture: dict
+    regions: dict
+    checks: dict
+    summary: dict
+
+
+class WorkerJdSecondaryTabLocatorOut(BaseModel):
+    report_type: Literal["jd_secondary_tab_locator"]
+    anchor_text: str
+    anchor_color: str
+    anchor_bbox_px: List[int]
+    bbox_px: List[int]
+    visible_texts: List[str]
+    evidence: str
+
+
+class WorkerJdSecondaryTabAnalysisOut(BaseModel):
+    report_type: Literal["jd_secondary_tab_audit"]
+    schema_version: int
+    capture: dict
+    regions: dict
+    frames: dict
+    checks: dict
+    summary: dict
 
 
 class ComparisonAssetCreate(BaseModel):

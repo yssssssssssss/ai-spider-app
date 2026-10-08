@@ -38,7 +38,11 @@ def main() -> int:
                     print(f"🎯 claimed run {run_id} on {claim['device']['serial']}")
                     try:
                         result = execute_claim(repo_root, client, args.node_key, claim)
+                        if result.result_json:
+                            client.extend_lease(run_id, args.node_key)
+                            client.upload_result(run_id, args.node_key, result.result_json)
                         if result.exit_code == 0:
+                            client.extend_lease(run_id, args.node_key)
                             client.finish(run_id, args.node_key, result.exit_code, result.uploaded_count)
                             print(f"✅ finished run {run_id}, uploaded={result.uploaded_count}")
                         else:
@@ -72,7 +76,7 @@ def parse_args():
     parser.add_argument("--name", default=os.getenv("WORKER_NAME") or socket.gethostname(), help="Display name")
     parser.add_argument("--repo-root", default=os.getenv("WORKER_REPO_ROOT") or Path(__file__).resolve().parents[1], help="Project root")
     parser.add_argument("--poll-seconds", type=int, default=int(os.getenv("WORKER_POLL_SECONDS", "5")), help="Fallback poll interval")
-    parser.add_argument("--capabilities", default=os.getenv("WORKER_CAPABILITIES", "uiautomator2,autoglm,scroll_promo"), help="Comma-separated task modes")
+    parser.add_argument("--capabilities", default=os.getenv("WORKER_CAPABILITIES", "uiautomator2,autoglm,scroll_promo,jd_new_floor_audit"), help="Comma-separated task modes")
     parser.add_argument("--once", action="store_true", help="Run a single poll/claim cycle")
     args = parser.parse_args()
     if not args.base_url:
