@@ -18,6 +18,7 @@ def _search_result_for_image(image) -> schemas.SearchResult:
     return schemas.SearchResult(
         image=schemas.ImageOut.model_validate(image),
         analysis=schemas.AnalysisOut.model_validate(image.analysis) if image.analysis else None,
+        analyses=[schemas.AnalysisOut.model_validate(item) for item in image.analyses],
         similarity=None,
     )
 

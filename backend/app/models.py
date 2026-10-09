@@ -81,6 +81,7 @@ class AnalysisSkill(Base):
     description = Column(Text)
     prompt = Column(Text, nullable=False)
     output_schema_json = Column(JSONB, default=dict)
+    specification_json = Column(JSONB, nullable=True)
     scenario_tags_json = Column(JSONB, default=list)
     profile = Column(String, nullable=False, default="default")
     skill_type = Column(String, nullable=False, default="analysis")
@@ -110,9 +111,21 @@ class Analysis(Base):
     skill_id = Column(UUID(as_uuid=True), ForeignKey("analysis_skills.id"), nullable=True)
     skill_key = Column(String, nullable=True)
     result_json = Column(JSONB, nullable=True)
+    provenance_json = Column(JSONB, nullable=True)
+    inspection_json = Column(JSONB, nullable=True)
 
     image = relationship("Image", back_populates="analyses")
     embeddings = relationship("Embedding", back_populates="analysis", cascade="all, delete-orphan")
+    revisions = relationship("AnalysisRevision", cascade="all, delete-orphan", order_by="AnalysisRevision.archived_at")
+
+
+class AnalysisRevision(Base):
+    __tablename__ = "analysis_revisions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    analysis_id = Column(UUID(as_uuid=True), ForeignKey("analysis.id"), nullable=False, index=True)
+    archived_at = Column(DateTime, default=utc_now)
+    payload_json = Column(JSONB, nullable=False)
 
 
 class Request(Base):
@@ -196,6 +209,7 @@ class TaskRun(Base):
     failure_reason = Column(Text)
     goal_validation_json = Column(JSONB, default=dict)
     result_json = Column(JSONB, default=dict)
+    analysis_skills_snapshot_json = Column(JSONB, nullable=True)
     log_path = Column(Text)
     output_dir = Column(Text)
     device_id = Column(UUID(as_uuid=True), ForeignKey("devices.id"), nullable=True)

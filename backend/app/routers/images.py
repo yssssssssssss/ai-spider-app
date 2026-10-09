@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from uuid import UUID
 import os
+from types import SimpleNamespace
 from typing import List
 from PIL import Image, ImageOps, UnidentifiedImageError
 from app.database import get_db
@@ -12,6 +13,8 @@ from app.services.llm_analyzer import analyzer
 from app.services.embedder import embedder
 from app.services.auth import data_scope_user_id, get_current_user, require_at_least
 from app.services.goal_validator import refresh_task_run_goal_validation
+from app.services.model_trace import capture_model_calls, model_purpose
+from app.services.inspection import Specification, build_inspection, skill_snapshot, validate_skill_output
 
 router = APIRouter(prefix="/images", tags=["images"])
 
@@ -138,96 +141,127 @@ def _analysis_context(image, db: Session | None = None) -> dict:
 
 
 def _record_analysis(db: Session, image: models.Image, design: str, ops: str, status: str = "success",
-                     skill_id=None, skill_key: str | None = None, result_json: dict | None = None):
+                     skill_id=None, skill_key: str | None = None, result_json: dict | None = None,
+                     provenance_json: dict | None = None, inspection_json: dict | None = None):
     analysis = crud.create_analysis(
         db, image.id, design, ops, status=status,
         skill_id=skill_id, skill_key=skill_key, result_json=result_json,
+        provenance_json=provenance_json, inspection_json=inspection_json,
     )
     if image.task_id:
         refresh_task_run_goal_validation(db, image.task_id, image.task_run_id)
     return analysis
 
 
-def _allow_watch_homepage_target_fallback(image: models.Image, reason: str) -> bool:
-    task = image.task
-    if not _is_watch_task(task):
-        return False
-    scenario = str(image.scenario or task.target_scenario or "")
-    if "首页" not in scenario:
-        return False
-    reason_text = str(reason or "")
-    return "搜索结果" in reason_text or "搜索框" in reason_text
-
-
 async def _analyze_and_embed(image_id: UUID):
+    with capture_model_calls() as calls:
+        await _analyze_image(image_id, calls)
+
+
+async def _analyze_image(image_id: UUID, calls: list):
     from app.database import SessionLocal
     db = SessionLocal()
     try:
         image = crud.get_image(db, image_id)
         if not image:
             return
+        definition = None
+        target_validation = None
+
+        def record(design, ops, **kwargs):
+            return _record_analysis(db, image, design, ops, provenance_json={
+                "schema_version": 1, "implementation_version": "inspection-v1",
+                "skill": definition, "target_validation": target_validation,
+                "binding_mode": "run_snapshot" if image.task_run and image.task_run.analysis_skills_snapshot_json is not None else "current_skill_at_analysis",
+                "model_calls": list(calls),
+            }, **kwargs)
+
         # 重复检测
-        duplicate = _find_near_duplicate_image(db, image)
+        skill_ids = getattr(image.task, "analysis_skill_ids", None) or []
+        bound_skills = db.query(models.AnalysisSkill).filter(models.AnalysisSkill.id.in_(skill_ids)).all() if skill_ids else []
+        run_snapshot = image.task_run.analysis_skills_snapshot_json if image.task_run else None
+        if run_snapshot is not None:
+            bound_skills = [SimpleNamespace(**{key: value for key, value in item.items() if key != "sha256"}) for item in run_snapshot]
+            skill_ids = [item.id for item in bound_skills]
+
+        def reject(status, message):
+            nonlocal definition
+            for skill in bound_skills:
+                definition = skill_snapshot(skill)
+                record("", message, status=status, skill_id=skill.id, skill_key=str(skill.id))
+            if not bound_skills:
+                record("", message, status=status)
+        # A different checklist/version must be evaluated even on an identical image.
+        duplicate = _find_near_duplicate_image(db, image) if not skill_ids else None
         if duplicate:
-            _record_analysis(
-                db, image, "", f"近似页面，跳过重复分析: 已分析过 {duplicate.file_path}", status="skipped",
+            record(
+                "", f"近似页面，跳过重复分析: 已分析过 {duplicate.file_path}", status="skipped",
             )
             return
         context = _analysis_context(image, db)
         # 判断目标页面（对所有 skill 共用一次）
         try:
-            is_target, reason = await analyzer.is_target_page(image.file_path, context)
-            if not is_target and not _allow_watch_homepage_target_fallback(image, reason):
-                _record_analysis(db, image, "", f"非目标页面，跳过分析: {reason}", status="skipped")
+            with model_purpose("target_validation"):
+                is_target, reason = await analyzer.is_target_page(image.file_path, context)
+            target_validation = {"is_target": is_target, "reason": reason}
+            if not is_target:
+                reject("skipped", f"非目标页面，跳过分析: {reason}")
                 return
         except Exception as e:
-            _record_analysis(db, image, "", f"目标页面判断失败: {e}", status="failed")
+            reject("failed", f"目标页面判断失败: {e}")
             return
-
-        # 获取任务绑定的 skill 列表
-        task = image.task
-        skill_ids = getattr(task, "analysis_skill_ids", None) or []
 
         # 没有选择 skill → 使用系统默认内置分析（向后兼容）
         if not skill_ids:
             try:
                 design, ops, status = await analyzer.analyze(image.file_path, context=context)
             except Exception as e:
-                _record_analysis(db, image, "", f"分析失败: {e}", status="failed")
+                record("", f"分析失败: {e}", status="failed")
                 return
-            analysis = _record_analysis(db, image, design or "", ops or "", status=status)
+            analysis = record(design or "", ops or "", status=status)
             await _embed_analysis(db, analysis, design, ops)
             return
 
         # 有选择 skill → 加载 skill 并按每个 skill 执行分析
-        skills = (
-            db.query(models.AnalysisSkill)
-            .filter(models.AnalysisSkill.id.in_(skill_ids))
-            .filter(models.AnalysisSkill.status == "active")
-            .all()
-        )
+        skills = [skill for skill in bound_skills if skill.status == "active"]
+        for skill in bound_skills:
+            if skill.status != "active":
+                definition = skill_snapshot(skill)
+                record("", "任务绑定的 Skill 已停用，请检查配置", status="failed", skill_id=skill.id, skill_key=str(skill.id))
+        if len(bound_skills) != len(set(skill_ids)):
+            definition = None
+            record("", "任务绑定的部分 Skill 已停用或不存在，请检查配置", status="failed")
         for skill in skills:
+            definition = skill_snapshot(skill)
             try:
                 if skill.is_system:
                     # 内置 skill：同时写入旧字段 + result_json
-                    design, ops, status = await analyzer.analyze(image.file_path, context=context)
+                    design, ops, status = await analyzer.analyze(image.file_path, context={**context, "analysis_prompt_override": skill.prompt})
                     result_json = {"design_analysis": design, "ops_analysis": ops} if design and ops else None
-                    analysis = _record_analysis(
-                        db, image, design or "", ops or "", status=status,
+                    validate_skill_output(result_json or {}, skill.output_schema_json or {})
+                    analysis = record(
+                        design or "", ops or "", status=status,
                         skill_id=skill.id, skill_key=f"system_{skill.profile}", result_json=result_json,
                     )
                     await _embed_analysis(db, analysis, design, ops, result_json=result_json)
                 else:
                     # 自定义 skill：只写入 result_json
-                    result, status = await analyzer.analyze_with_skill(image.file_path, skill, context)
-                    analysis = _record_analysis(
-                        db, image, "", "", status=status,
+                    with model_purpose(f"skill:{skill.id}"):
+                        result, status = await analyzer.analyze_with_skill(image.file_path, skill, context)
+                    inspection = None
+                    if skill.skill_type == "inspection":
+                        with Image.open(_resolve_image_path(image.file_path)) as screenshot:
+                            inspection = build_inspection(result, Specification.model_validate(definition["specification_json"]),
+                                                          image, calls, definition, screenshot.size)
+                    analysis = record(
+                        "", "", status=status,
                         skill_id=skill.id, skill_key=str(skill.id), result_json=result,
+                        inspection_json=inspection,
                     )
                     await _embed_skill_result(db, analysis, result)
             except Exception as e:
-                _record_analysis(
-                    db, image, "", f"Skill {skill.name} 分析失败: {e}", status="failed",
+                record(
+                    "", f"Skill {skill.name} 分析失败: {e}", status="failed",
                     skill_id=skill.id, skill_key=str(skill.id),
                 )
     finally:
@@ -260,12 +294,9 @@ async def _embed_skill_result(db, analysis, result_json):
     if not result_json:
         return
     analysis_id = analysis.id
-    texts = []
-    if isinstance(result_json, dict):
-        for v in result_json.values():
-            if isinstance(v, str):
-                texts.append(v)
-    combined_text = "\n".join(texts).strip()
+    import json
+    content = analysis.inspection_json.get("checks") if analysis.inspection_json else result_json
+    combined_text = json.dumps(content, ensure_ascii=False)
     try:
         if combined_text:
             vector = await embedder.embed_single(combined_text)
@@ -330,6 +361,7 @@ def list_images(
             image=schemas.ImageOut.model_validate(image),
             analysis=schemas.AnalysisOut.model_validate(image.analysis) if image.analysis else None,
             similarity=None,
+            analyses=[schemas.AnalysisOut.model_validate(item) for item in image.analyses],
         )
         for image in images
     ]
@@ -349,6 +381,15 @@ def get_image_file(image_id: UUID, db: Session = Depends(get_db), user: models.U
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Image file not found on disk")
     return FileResponse(file_path)
+
+
+@router.get("/{image_id}/analysis-history")
+def analysis_history(image_id: UUID, db: Session = Depends(get_db), user: models.User = Depends(get_current_user)):
+    image = _get_owned_image(db, image_id, user)
+    return [
+        {"revision_id": str(revision.id), "archived_at": revision.archived_at, "analysis": revision.payload_json}
+        for analysis in image.analyses for revision in analysis.revisions
+    ]
 
 @router.post("/{image_id}/analyze")
 def trigger_analyze(

@@ -18,6 +18,7 @@ async def search(query: schemas.SearchQuery, db: Session = Depends(get_db), user
             schemas.SearchResult(
                 image=schemas.ImageOut.model_validate(image),
                 analysis=schemas.AnalysisOut.model_validate(analysis) if analysis else None,
+                analyses=[schemas.AnalysisOut.model_validate(item) for item in image.analyses],
                 similarity=None,
                 search_mode="vector",
             )
@@ -32,6 +33,7 @@ async def search(query: schemas.SearchQuery, db: Session = Depends(get_db), user
         results.append(schemas.SearchResult(
             image=schemas.ImageOut.model_validate(image),
             analysis=schemas.AnalysisOut.model_validate(analysis) if analysis else None,
+            analyses=[schemas.AnalysisOut.model_validate(item) for item in image.analyses],
             similarity=None,  # 仅按相关性排序，不显示具体数值
             search_mode="text",
         ))

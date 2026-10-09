@@ -2690,7 +2690,7 @@ class FlowRegressionTests(unittest.TestCase):
             db.commit()
             db.close()
 
-    def test_watch_homepage_analysis_allows_search_result_misclassification(self):
+    def test_watch_homepage_analysis_does_not_override_negative_target_verdict(self):
         from app import crud, schemas
         from app.database import SessionLocal
         from app.routers import images as images_router
@@ -2735,8 +2735,8 @@ class FlowRegressionTests(unittest.TestCase):
             asyncio.run(images_router._analyze_and_embed(image.id))
             analysis = crud.get_analysis_by_image(db, image.id)
 
-            self.assertEqual(analysis.status, "success")
-            self.assertEqual(analysis.design_analysis, "设计分析")
+            self.assertEqual(analysis.status, "skipped")
+            self.assertFalse(analysis.design_analysis)
             self.assertEqual(fake_analyzer.context["prompt_profile"], "watch")
         finally:
             images_router.analyzer = old_analyzer

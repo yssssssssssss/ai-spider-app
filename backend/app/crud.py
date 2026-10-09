@@ -54,12 +54,15 @@ def list_images(
     analysis_status: Optional[str] = None,
     embedding_status: Optional[str] = None,
     user_id: Optional[UUID] = None,
+    run_id: Optional[UUID] = None,
 ) -> List[models.Image]:
     q = db.query(models.Image)
     if user_id is not None:
         q = q.join(models.Task, models.Image.task_id == models.Task.id).filter(models.Task.created_by == user_id)
     if task_id is not None:
         q = q.filter(models.Image.task_id == task_id)
+    if run_id is not None:
+        q = q.filter(models.Image.task_run_id == run_id)
     if analysis_status or embedding_status:
         q = q.outerjoin(models.Analysis, and_(
             models.Analysis.image_id == models.Image.id,
@@ -79,9 +82,18 @@ def list_images(
 
 def create_analysis(db: Session, image_id: UUID, design: str, ops: str, status: str = "success",
                     skill_id: UUID | None = None, skill_key: str | None = None,
-                    result_json: dict | None = None) -> models.Analysis:
+                    result_json: dict | None = None, provenance_json: dict | None = None,
+                    inspection_json: dict | None = None) -> models.Analysis:
+    db.query(models.Image).filter(models.Image.id == image_id).with_for_update().first()
     db_analysis = get_analysis_by_image_and_skill(db, image_id, skill_id)
     if db_analysis:
+        db.add(models.AnalysisRevision(
+            analysis_id=db_analysis.id,
+            payload_json=schemas.AnalysisOut.model_validate(db_analysis).model_dump(mode="json"),
+        ))
+        # Reanalysis invalidates old vectors; a failed new embedding must not leave
+        # the old result searchable as if it belonged to the new conclusion.
+        db.query(models.Embedding).filter(models.Embedding.analysis_id == db_analysis.id).delete()
         db_analysis.design_analysis = design
         db_analysis.ops_analysis = ops
         db_analysis.status = status
@@ -92,8 +104,9 @@ def create_analysis(db: Session, image_id: UUID, design: str, ops: str, status: 
             db_analysis.skill_id = skill_id
         if skill_key:
             db_analysis.skill_key = skill_key
-        if result_json is not None:
-            db_analysis.result_json = result_json
+        db_analysis.result_json = result_json
+        db_analysis.provenance_json = provenance_json
+        db_analysis.inspection_json = inspection_json
     else:
         db_analysis = models.Analysis(
             image_id=image_id,
@@ -105,6 +118,8 @@ def create_analysis(db: Session, image_id: UUID, design: str, ops: str, status: 
             skill_id=skill_id,
             skill_key=skill_key,
             result_json=result_json,
+            provenance_json=provenance_json,
+            inspection_json=inspection_json,
         )
         db.add(db_analysis)
     db.commit()
@@ -118,7 +133,7 @@ def get_analysis_by_image_and_skill(db: Session, image_id: UUID, skill_id: UUID 
         q = q.filter(models.Analysis.skill_id.is_(None))
     else:
         q = q.filter(models.Analysis.skill_id == skill_id)
-    return q.first()
+    return q.populate_existing().first()
 
 
 def get_analysis_by_image(db: Session, image_id: UUID) -> Optional[models.Analysis]:
@@ -466,6 +481,12 @@ def create_task_run(
     device_id: Optional[UUID] = None,
     created_by: Optional[UUID] = None,
 ) -> models.TaskRun:
+    from app.services.inspection import skill_snapshot
+    task = get_task(db, task_id)
+    skill_ids = task.analysis_skill_ids if task else []
+    skill_definitions = db.query(models.AnalysisSkill).filter(models.AnalysisSkill.id.in_(skill_ids or [])).all()
+    if {str(skill.id) for skill in skill_definitions} != {str(skill_id) for skill_id in skill_ids or []}:
+        raise ValueError("任务绑定的 Skill 不存在，请更新配置后再运行")
     last_attempt = (
         db.query(func.max(models.TaskRun.attempt_no))
         .filter(models.TaskRun.task_id == task_id)
@@ -480,6 +501,7 @@ def create_task_run(
         log_path=log_path,
         device_id=device_id,
         created_by=created_by,
+        analysis_skills_snapshot_json=[skill_snapshot(skill) for skill in skill_definitions],
     )
     db.add(run)
     db.commit()

@@ -13,7 +13,10 @@ from app.database import get_db
 from app.services import worker_dispatch
 from app.services.jd_new_floor_analyzer import jd_new_floor_analyzer
 from app.services.jd_secondary_tab_analyzer import FRAME_KEYS, jd_secondary_tab_analyzer
+from app.services.model_trace import capture_model_calls, report_provenance
+from app.services import jd_new_floor_analyzer as floor_module, jd_secondary_tab_analyzer as secondary_module
 from app.services.promotion_detector import promotion_detector
+from app.services import promotion_detector as promotion_module
 
 
 router = APIRouter(prefix="/worker", tags=["worker"])
@@ -152,7 +155,10 @@ async def detect_promotion_overlay(
     if len(content) > 15 * 1024 * 1024:
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="image too large")
     try:
-        return (await promotion_detector.detect_png(content)).to_dict()
+        with capture_model_calls("promotion_detection") as calls:
+            report = (await promotion_detector.detect_png(content)).to_dict()
+        report["provenance"] = report_provenance(promotion_module.__file__, calls)
+        return report
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except Exception as exc:
@@ -168,7 +174,10 @@ async def analyze_jd_new_floor(
     if len(content) > 15 * 1024 * 1024:
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="image too large")
     try:
-        return (await jd_new_floor_analyzer.analyze_png(content)).to_dict()
+        with capture_model_calls("jd_new_floor_audit") as calls:
+            report = (await jd_new_floor_analyzer.analyze_png(content)).to_dict()
+        report["provenance"] = report_provenance(floor_module.__file__, calls)
+        return report
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except Exception as exc:
@@ -184,7 +193,10 @@ async def locate_jd_secondary_tab(
     if len(content) > 15 * 1024 * 1024:
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="image too large")
     try:
-        return await jd_secondary_tab_analyzer.locate_z1_png(content)
+        with capture_model_calls("jd_secondary_tab_locator") as calls:
+            report = await jd_secondary_tab_analyzer.locate_z1_png(content)
+        report["provenance"] = report_provenance(secondary_module.__file__, calls)
+        return report
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except Exception as exc:
@@ -213,7 +225,10 @@ async def analyze_jd_secondary_tab(
     if any(len(content) > 15 * 1024 * 1024 for content in contents.values()):
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="image too large")
     try:
-        return (await jd_secondary_tab_analyzer.analyze_pngs(contents, z1_top, z1_bottom)).to_dict()
+        with capture_model_calls("jd_secondary_tab_audit") as calls:
+            report = (await jd_secondary_tab_analyzer.analyze_pngs(contents, z1_top, z1_bottom)).to_dict()
+        report["provenance"] = report_provenance(secondary_module.__file__, calls)
+        return report
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except Exception as exc:

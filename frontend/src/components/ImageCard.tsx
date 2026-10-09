@@ -1,14 +1,27 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { imageFileUrl } from '../api';
+import { getImageAnalysisHistory, imageFileUrl } from '../api';
+import AnalysisDetails, { EvidencePreview } from './AnalysisDetails';
 
 export default function ImageCard({ result }: { result: any }) {
   const image = result.image;
-  const analysis = result.analysis;
+  const [history, setHistory] = useState<any[]>([]);
+  const [selection, setSelection] = useState('');
+  const [evidence, setEvidence] = useState<any>(null);
+  const current = result.analyses?.length ? result.analyses : (result.analysis ? [result.analysis] : []);
+  const choices = [
+    ...current.map((item: any) => ({ key: item.id, analysis: item, label: `当前 · ${item.provenance_json?.skill?.name || item.skill_key || '默认分析'}` })),
+    ...history.map(item => ({ key: item.revision_id, analysis: item.analysis, label: `历史 · ${item.analysis.provenance_json?.skill?.name || item.analysis.skill_key || '默认分析'} · ${item.archived_at}` })),
+  ];
+  const cardAnalysis = result.analysis || current[0];
+  const analysis = choices.find(item => item.key === selection)?.analysis || cardAnalysis;
   const [open, setOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
   useEffect(() => {
     setImageError(false);
+    setSelection('');
+    setEvidence(null);
+    setHistory([]);
   }, [image.id]);
   useEffect(() => {
     if (!open) return undefined;
@@ -18,18 +31,24 @@ export default function ImageCard({ result }: { result: any }) {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [open]);
-  const statusLabel = analysis?.status === 'success' ? '已分析' :
-    analysis?.status === 'partial' ? '部分分析' :
-    analysis?.status === 'skipped' ? '已跳过' :
-    analysis?.status === 'pending' ? '待分析' :
-    analysis ? '失败' : '待分析';
-  const statusColor = analysis?.status === 'success' ? 'rgba(48,209,88,0.9)' :
-    analysis?.status === 'partial' ? 'rgba(255,159,10,0.9)' :
-    analysis?.status === 'failed' ? 'rgba(255,69,58,0.9)' :
-    analysis?.status === 'skipped' ? 'rgba(142,142,147,0.9)' :
-    analysis?.status === 'pending' ? 'rgba(142,142,147,0.9)' :
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    getImageAnalysisHistory(image.id).then(({ data }) => { if (!cancelled) setHistory(data); }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [open, image.id]);
+  const statusLabel = cardAnalysis?.status === 'success' ? '已分析' :
+    cardAnalysis?.status === 'partial' ? '部分分析' :
+    cardAnalysis?.status === 'skipped' ? '已跳过' :
+    cardAnalysis?.status === 'pending' ? '待分析' :
+    cardAnalysis ? '失败' : '待分析';
+  const statusColor = cardAnalysis?.status === 'success' ? 'rgba(48,209,88,0.9)' :
+    cardAnalysis?.status === 'partial' ? 'rgba(255,159,10,0.9)' :
+    cardAnalysis?.status === 'failed' ? 'rgba(255,69,58,0.9)' :
+    cardAnalysis?.status === 'skipped' ? 'rgba(142,142,147,0.9)' :
+    cardAnalysis?.status === 'pending' ? 'rgba(142,142,147,0.9)' :
     'rgba(142,142,147,0.9)';
-  const embeddingStatus = analysis?.embedding_status;
+  const embeddingStatus = cardAnalysis?.embedding_status;
   const embeddingLabel = embeddingStatus === 'success' ? '已向量化' :
     embeddingStatus === 'failed' ? '向量化失败' :
     '待向量化';
@@ -130,40 +149,13 @@ export default function ImageCard({ result }: { result: any }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-            {/* 内置分析：旧字段向后兼容 */}
-            {analysis?.design_analysis && (
-              <section>
-                <div style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: 8 }}>设计分析</div>
-                <p style={{ lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-                  {analysis.design_analysis}
-                </p>
-              </section>
-            )}
-            {analysis?.ops_analysis && (
-              <section>
-                <div style={{ color: '#0a84ff', fontWeight: 600, marginBottom: 8 }}>运营分析</div>
-                <p style={{ lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-                  {analysis.ops_analysis}
-                </p>
-              </section>
-            )}
-            {/* 自定义 skill 结果：result_json 动态渲染 */}
-            {analysis?.result_json && typeof analysis.result_json === 'object' && (
-              Object.entries(analysis.result_json)
-                .filter(([key]) => key !== 'design_analysis' && key !== 'ops_analysis')
-                .map(([key, value]) => (
-                  <section key={key}>
-                    <div style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: 8 }}>{key}</div>
-                    <p style={{ lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-                      {typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
-                    </p>
-                  </section>
-                ))
-            )}
-            {/* 无任何分析内容 */}
-            {!analysis?.design_analysis && !analysis?.ops_analysis && !analysis?.result_json && (
-              <p style={{ color: 'var(--text-tertiary)' }}>暂无分析结果</p>
-            )}
+            {choices.length > 0 && <label>分析与历史版本
+              <select value={selection || analysis?.id || ''} onChange={e => { setSelection(e.target.value); setEvidence(null); }}>
+                {choices.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}
+              </select>
+            </label>}
+            {analysis ? <AnalysisDetails analysis={analysis} onEvidence={setEvidence} /> : <p>暂无分析结果</p>}
+            <EvidencePreview evidence={evidence} />
           </div>
         </div>
       </div>
@@ -257,7 +249,7 @@ export default function ImageCard({ result }: { result: any }) {
               {statusLabel}
             </span>
             <span
-              title={analysis?.embedding_error || embeddingLabel}
+              title={cardAnalysis?.embedding_error || embeddingLabel}
               style={{
                 padding: '2px 8px',
                 borderRadius: 'var(--radius-pill)',
@@ -303,9 +295,9 @@ export default function ImageCard({ result }: { result: any }) {
             </span>
           </div>
 
-          {analysis?.embedding_status === 'failed' && (
+          {cardAnalysis?.embedding_status === 'failed' && (
             <p
-              title={analysis.embedding_error || ''}
+              title={cardAnalysis.embedding_error || ''}
               style={{
                 fontSize: '0.8125rem',
                 lineHeight: 1.5,
@@ -313,13 +305,15 @@ export default function ImageCard({ result }: { result: any }) {
                 marginBottom: 12,
               }}
             >
-              {analysis.embedding_error ? `向量化失败：${analysis.embedding_error.slice(0, 80)}` : '向量化失败'}
+              {cardAnalysis.embedding_error ? `向量化失败：${cardAnalysis.embedding_error.slice(0, 80)}` : '向量化失败'}
             </p>
           )}
 
-          {analysis && (
+          {cardAnalysis?.inspection_json && <p>规范 {cardAnalysis.inspection_json.specification.version} · 符合 {cardAnalysis.inspection_json.summary.pass} · 不符合 {cardAnalysis.inspection_json.summary.fail} · 待确认 {cardAnalysis.inspection_json.summary.uncertain}</p>}
+
+          {cardAnalysis && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {analysis.design_analysis && (
+              {cardAnalysis.design_analysis && (
                 <div>
                   <div
                     style={{
@@ -334,12 +328,12 @@ export default function ImageCard({ result }: { result: any }) {
                     设计分析
                   </div>
                   <p style={{ fontSize: '0.875rem', lineHeight: 1.6 }}>
-                    {analysis.design_analysis.slice(0, 120)}
-                    {analysis.design_analysis.length > 120 ? '...' : ''}
+                    {cardAnalysis.design_analysis.slice(0, 120)}
+                    {cardAnalysis.design_analysis.length > 120 ? '...' : ''}
                   </p>
                 </div>
               )}
-              {analysis.ops_analysis && (
+              {cardAnalysis.ops_analysis && (
                 <div>
                   <div
                     style={{
@@ -354,8 +348,8 @@ export default function ImageCard({ result }: { result: any }) {
                     运营分析
                   </div>
                   <p style={{ fontSize: '0.875rem', lineHeight: 1.6 }}>
-                    {analysis.ops_analysis.slice(0, 120)}
-                    {analysis.ops_analysis.length > 120 ? '...' : ''}
+                    {cardAnalysis.ops_analysis.slice(0, 120)}
+                    {cardAnalysis.ops_analysis.length > 120 ? '...' : ''}
                   </p>
                 </div>
               )}

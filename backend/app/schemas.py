@@ -45,6 +45,8 @@ class AnalysisOut(OrmModel):
     skill_id: Optional[UUID] = None
     skill_key: Optional[str] = None
     result_json: dict | list | None = None
+    provenance_json: dict | None = None
+    inspection_json: dict | None = None
 
 class ScrollPromoConfigInput(BaseModel):
     target_app: Literal["京东"] = "京东"
@@ -169,6 +171,7 @@ class AnalysisSkillCreate(BaseModel):
     description: Optional[str] = None
     prompt: str
     output_schema_json: dict | list | None = None
+    specification_json: dict | None = None
     scenario_tags_json: list[str] = Field(default_factory=list)
     profile: str = "default"
     skill_type: str = "analysis"
@@ -180,6 +183,7 @@ class AnalysisSkillUpdate(BaseModel):
     description: Optional[str] = None
     prompt: Optional[str] = None
     output_schema_json: dict | list | None = None
+    specification_json: dict | None = None
     scenario_tags_json: Optional[list[str]] = None
     profile: Optional[str] = None
     skill_type: Optional[str] = None
@@ -192,6 +196,7 @@ class AnalysisSkillOut(OrmModel):
     description: Optional[str] = None
     prompt: str
     output_schema_json: dict | list | None = None
+    specification_json: dict | None = None
     scenario_tags_json: list | dict | None = None
     profile: str
     skill_type: str
@@ -243,6 +248,7 @@ class TaskRunOut(OrmModel):
     failure_reason: Optional[str] = None
     goal_validation_json: dict | list | None = None
     result_json: dict | list | None = None
+    analysis_skills_snapshot_json: list[dict] | None = None
     log_path: Optional[str] = None
     output_dir: Optional[str] = None
     device_id: Optional[UUID] = None
@@ -303,6 +309,7 @@ class WorkerArtifactOut(BaseModel):
 
 
 class WorkerPromotionDetectionOut(BaseModel):
+    provenance: dict = Field(default_factory=dict)
     promo_present: bool
     promo_state: Literal["expanded", "collapsed", "none", "uncertain"]
     promo_bbox_norm: Optional[List[int]] = None
@@ -323,6 +330,7 @@ class WorkerJdNewFloorAnalysisOut(BaseModel):
     regions: dict
     checks: dict
     summary: dict
+    provenance: dict = Field(default_factory=dict)
 
 
 class WorkerJdSecondaryTabLocatorOut(BaseModel):
@@ -333,6 +341,7 @@ class WorkerJdSecondaryTabLocatorOut(BaseModel):
     bbox_px: List[int]
     visible_texts: List[str]
     evidence: str
+    provenance: dict = Field(default_factory=dict)
 
 
 class WorkerJdSecondaryTabAnalysisOut(BaseModel):
@@ -343,6 +352,7 @@ class WorkerJdSecondaryTabAnalysisOut(BaseModel):
     frames: dict
     checks: dict
     summary: dict
+    provenance: dict = Field(default_factory=dict)
 
 
 class ComparisonAssetCreate(BaseModel):
@@ -465,6 +475,7 @@ class SearchResult(BaseModel):
     analysis: Optional[AnalysisOut] = None
     similarity: Optional[float] = None
     search_mode: Optional[str] = None
+    analyses: List[AnalysisOut] = Field(default_factory=list)
 
 class ApproveRequest(BaseModel):
     admin_id: Optional[str] = None

@@ -8,7 +8,7 @@ from fastapi import HTTPException
 from openpyxl import Workbook
 from sqlalchemy.orm import Session
 
-from app import crud
+from app import crud, schemas
 from app.config import settings
 
 
@@ -30,15 +30,7 @@ def _safe_project_path(path: str | None) -> Path | None:
 def _analysis_dict(analysis):
     if not analysis:
         return None
-    return {
-        "id": str(analysis.id),
-        "status": analysis.status,
-        "embedding_status": analysis.embedding_status,
-        "embedding_error": analysis.embedding_error,
-        "design_analysis": analysis.design_analysis,
-        "ops_analysis": analysis.ops_analysis,
-        "analyzed_at": analysis.analyzed_at.isoformat() if analysis.analyzed_at else None,
-    }
+    return schemas.AnalysisOut.model_validate(analysis).model_dump(mode="json")
 
 
 def _image_dict(image):
@@ -57,6 +49,11 @@ def _image_dict(image):
         "captured_at": image.captured_at.isoformat() if image.captured_at else None,
         "created_at": image.created_at.isoformat() if image.created_at else None,
         "analysis": _analysis_dict(image.analysis),
+        "analyses": [_analysis_dict(item) for item in image.analyses],
+        "analysis_history": [
+            {"revision_id": str(revision.id), "archived_at": revision.archived_at.isoformat(), "analysis": revision.payload_json}
+            for item in image.analyses for revision in item.revisions
+        ],
     }
 
 
@@ -95,6 +92,7 @@ def task_export_payload(db: Session, task_id: UUID, user_id: UUID | None = None)
                 "failure_reason": run.failure_reason,
                 "goal_validation_json": run.goal_validation_json,
                 "result_json": run.result_json,
+                "analysis_skills_snapshot_json": run.analysis_skills_snapshot_json,
                 "log_path": run.log_path,
                 "output_dir": run.output_dir,
                 "device_id": str(run.device_id) if run.device_id else None,
@@ -177,9 +175,7 @@ def excel_bytes(payload: dict) -> bytes:
     ws = wb.active
     ws.title = "overview"
     root_key = "task" if "task" in payload else "plan"
-    ws.append(["field", "value"])
-    for key, value in payload[root_key].items():
-        ws.append([key, json.dumps(value, ensure_ascii=False) if isinstance(value, (dict, list)) else value])
+    _append_dict_rows(ws, [{"field": key, "value": value} for key, value in payload[root_key].items()])
 
     runs = wb.create_sheet("runs")
     run_rows = payload.get("runs", [])
@@ -190,7 +186,14 @@ def excel_bytes(payload: dict) -> bytes:
     _append_dict_rows(images, [_flatten_image(row) for row in image_rows])
 
     analyses = wb.create_sheet("analysis")
-    _append_dict_rows(analyses, [_flatten_analysis(row) for row in image_rows if row.get("analysis")])
+    _append_dict_rows(analyses, [
+        {**analysis, "image_id": row["id"], "image_path": row["file_path"]}
+        for row in image_rows for analysis in (row.get("analyses") or ([row["analysis"]] if row.get("analysis") else []))
+    ])
+    history = wb.create_sheet("analysis_history")
+    _append_dict_rows(history, [
+        {"image_id": row["id"], **revision} for row in image_rows for revision in row.get("analysis_history", [])
+    ])
 
     failures = wb.create_sheet("failures")
     failure_rows = [row for row in run_rows if row.get("failure_reason") or row.get("status") in ("failed", "timeout")]
@@ -210,10 +213,27 @@ def _append_dict_rows(sheet, rows: list[dict]):
     if not rows:
         sheet.append(["empty"])
         return
-    keys = sorted({key for row in rows for key in row.keys()})
-    sheet.append(keys)
+    expanded = []
+    # Excel silently truncates long cells. Use numbered columns so even a full
+    # specification/history snapshot can be reconstructed without data loss.
+    # 16000 code points also fit when every character uses two UTF-16 units.
     for row in rows:
-        sheet.append([_cell_value(row.get(key)) for key in keys])
+        data = {}
+        for key, value in row.items():
+            value = _cell_value(value)
+            if isinstance(value, str) and len(value) > 16000:
+                for index, offset in enumerate(range(0, len(value), 16000), start=1):
+                    data[f"{key}__part_{index:05}"] = value[offset:offset + 16000]
+            else:
+                data[key] = value
+        expanded.append(data)
+    keys = sorted({key for row in expanded for key in row.keys()})
+    sheet.append(keys)
+    for row in expanded:
+        sheet.append([row.get(key) for key in keys])
+        for cell in sheet[sheet.max_row]:
+            if isinstance(cell.value, str):
+                cell.data_type = "s"
 
 
 def _cell_value(value):
@@ -225,6 +245,8 @@ def _cell_value(value):
 def _flatten_image(row: dict) -> dict:
     data = dict(row)
     data.pop("analysis", None)
+    data.pop("analyses", None)
+    data.pop("analysis_history", None)
     return data
 
 

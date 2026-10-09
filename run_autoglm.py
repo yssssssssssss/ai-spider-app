@@ -725,6 +725,8 @@ def run_with_autoglm(
         model_config=model_config,
         agent_config=agent_config,
     )
+    from worker.model_trace import trace_phone_client
+    trace_phone_client(agent.model_client, output_dir)
 
     task = _append_login_page_stop_rule(_append_auto_screenshot_stop_rule(task))
     capture_policy = ScreenCapturePolicy(enabled=capture_screenshots, capture_changes=not final_capture)

@@ -379,10 +379,10 @@ def task_images(task_id: UUID, skip: int = 0, limit: int = 100, run_id: UUID | N
         schemas.SearchResult(
             image=schemas.ImageOut.model_validate(image),
             analysis=schemas.AnalysisOut.model_validate(image.analysis) if image.analysis else None,
+            analyses=[schemas.AnalysisOut.model_validate(item) for item in image.analyses],
             similarity=None,
         )
-        for image in crud.list_images(db, skip=skip, limit=limit, task_id=task_id, user_id=scope_user_id)
-        if (run_id is None or image.task_run_id == run_id)
+        for image in crud.list_images(db, skip=skip, limit=limit, task_id=task_id, user_id=scope_user_id, run_id=run_id)
         if _is_visible_task_image(image)
     ]
 

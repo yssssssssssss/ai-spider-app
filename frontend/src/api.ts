@@ -86,6 +86,7 @@ export const getTaskProgress = (id: string) => api.get(`/admin/tasks/${id}/progr
 export const getTaskImages = (id: string, params?: any) => api.get(`/admin/tasks/${id}/images`, { params });
 export const exportTaskUrl = (id: string, format: 'json' | 'xlsx' | 'zip') => withToken(`/api/admin/tasks/${id}/export?format=${format}`);
 export const createImage = (data: any) => api.post('/images', data);
+export const getImageAnalysisHistory = (id: string) => api.get(`/images/${id}/analysis-history`);
 export const listDevices = () => api.get('/admin/devices');
 export const refreshDevices = () => api.post('/admin/devices/refresh');
 export const listWatchPlans = (params?: any) => api.get('/admin/watch-plans', { params });

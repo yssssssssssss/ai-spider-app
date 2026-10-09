@@ -178,6 +178,12 @@ export default function AdminTaskResults() {
             ))}
           </div>
           {logs && <pre className="log-preview">{logs}</pre>}
+          {Array.isArray(runReport?.model_calls) && runReport.model_calls.length > 0 && <details>
+            <summary>手机控制模型调用记录</summary>
+            {runReport.model_calls.map((call: any, index: number) => <p key={index}>
+              {call.endpoint_host} · 请求 {call.requested_model} · 返回 {call.response_model || '接口未提供模型名称'} · {call.status} · {call.duration_ms} ms
+            </p>)}
+          </details>}
           {goalValidation && (
             <div className="goal-validation-panel">
               <div className="goal-validation-head">

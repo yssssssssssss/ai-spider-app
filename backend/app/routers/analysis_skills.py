@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 from app import models, schemas
 from app.database import get_db
 from app.services.auth import get_current_user, require_at_least
+from app.services.inspection import Specification, validate_output_schema
+from jsonschema.exceptions import SchemaError
 
 router = APIRouter(prefix="/admin/analysis-skills", tags=["analysis-skills"])
 
@@ -15,6 +17,21 @@ router = APIRouter(prefix="/admin/analysis-skills", tags=["analysis-skills"])
 def _clean_name(value: str | None, fallback: str) -> str:
     name = re.sub(r"\s+", " ", str(value or "").strip())
     return name[:120] or fallback
+
+
+def _validate_definition(skill_type, specification, schema):
+    try:
+        if schema is not None:
+            if not isinstance(schema, dict):
+                raise ValueError("输出 Schema 必须是 JSON 对象")
+            validate_output_schema(schema)
+        if skill_type == "inspection":
+            return Specification.model_validate(specification).model_dump()
+        if specification is not None:
+            raise ValueError("规范检查须选择 inspection 类型")
+        return None
+    except (ValueError, SchemaError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("", response_model=list[schemas.AnalysisSkillOut])
@@ -57,6 +74,7 @@ def create_skill(
         description=body.description,
         prompt=body.prompt.strip(),
         output_schema_json=body.output_schema_json or {},
+        specification_json=_validate_definition(body.skill_type, body.specification_json, body.output_schema_json),
         scenario_tags_json=body.scenario_tags_json or [],
         profile=body.profile or "default",
         skill_type=body.skill_type or "analysis",
@@ -80,6 +98,20 @@ def update_skill(
     skill = db.query(models.AnalysisSkill).filter(models.AnalysisSkill.id == skill_id).first()
     if not skill or skill.status == "deleted":
         raise HTTPException(status_code=404, detail="Analysis skill not found")
+    effective_type = body.skill_type if body.skill_type is not None else skill.skill_type
+    if skill.is_system and effective_type != skill.skill_type:
+        raise HTTPException(status_code=400, detail="系统 Skill 不可修改类型，请新建规范巡查 Skill")
+    specification = body.specification_json if "specification_json" in body.model_fields_set else skill.specification_json
+    schema = body.output_schema_json if body.output_schema_json is not None else skill.output_schema_json
+    normalized_spec = _validate_definition(effective_type, specification, schema)
+    # One version per semantic edit, including rules/schema changes without a prompt edit.
+    definition_changed = any(
+        field in body.model_fields_set and getattr(body, field) != getattr(skill, field)
+        for field in ("name", "description", "prompt", "output_schema_json", "specification_json", "scenario_tags_json", "profile", "skill_type")
+    )
+    if definition_changed:
+        skill.version += 1
+    skill.specification_json = normalized_spec
     if body.name is not None:
         skill.name = _clean_name(body.name, "未命名 Skill")
     if body.description is not None:
@@ -88,7 +120,6 @@ def update_skill(
         if not body.prompt.strip():
             raise HTTPException(status_code=400, detail="Skill prompt is required")
         skill.prompt = body.prompt.strip()
-        skill.version += 1
     if body.output_schema_json is not None:
         skill.output_schema_json = body.output_schema_json
     if body.scenario_tags_json is not None:

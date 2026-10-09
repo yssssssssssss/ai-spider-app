@@ -359,6 +359,8 @@ def ensure_schema():
             _ensure_column(conn, inspector, "analysis", "skill_id", "UUID")
             _ensure_column(conn, inspector, "analysis", "skill_key", "VARCHAR")
             _ensure_column(conn, inspector, "analysis", "result_json", "JSONB")
+            _ensure_column(conn, inspector, "analysis", "provenance_json", "JSONB")
+            _ensure_column(conn, inspector, "analysis", "inspection_json", "JSONB")
             # 移除旧的 image_id unique 约束（同一图片可有多个 skill 的分析）
             try:
                 conn.execute(text("ALTER TABLE analysis DROP CONSTRAINT IF EXISTS analysis_image_id_key"))
@@ -382,6 +384,7 @@ def ensure_schema():
         if "task_runs" in tables:
             _ensure_column(conn, inspector, "task_runs", "goal_validation_json", "JSONB DEFAULT '{}'::jsonb")
             _ensure_column(conn, inspector, "task_runs", "result_json", "JSONB DEFAULT '{}'::jsonb")
+            _ensure_column(conn, inspector, "task_runs", "analysis_skills_snapshot_json", "JSONB")
             _ensure_column(conn, inspector, "task_runs", "worker_node_key", "VARCHAR")
             _ensure_column(conn, inspector, "task_runs", "worker_claimed_at", "TIMESTAMP")
             _ensure_column(conn, inspector, "task_runs", "worker_lease_expires_at", "TIMESTAMP")
@@ -411,6 +414,7 @@ def ensure_schema():
             _ensure_default_comparison_skills(conn)
         if "analysis_skills" in tables:
             _migrate_analysis_skills_table(conn, inspector)
+            _ensure_column(conn, inspector, "analysis_skills", "specification_json", "JSONB")
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_analysis_skills_status ON analysis_skills(status)"))
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_analysis_skills_profile_status ON analysis_skills(profile, status)"))
             _ensure_default_analysis_skills(conn)

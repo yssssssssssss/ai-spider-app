@@ -10,6 +10,8 @@ from typing import Any
 
 from worker.artifacts import ArtifactTracker
 from worker.client import WorkerClient
+from worker.model_trace import read_model_calls
+from worker.inspection_report import normalize_floor_reports
 
 
 LEASE_HEARTBEAT_SECONDS = 30
@@ -120,6 +122,14 @@ def execute_claim(repo_root: Path, client: WorkerClient, node_key: str, claim: d
         except Exception as exc:
             with log_path.open("a", encoding="utf-8") as log_file:
                 _write_log_line(log_file, f"artifact upload failed {artifact.path}: {exc}")
+
+    model_calls = read_model_calls(artifacts_dir)
+    if model_calls:
+        result_json = {**(result_json or {}), "model_calls": model_calls}
+    if result_json:
+        inspections = normalize_floor_reports(result_json, task, run_id, str(device["serial"]))
+        if inspections:
+            result_json["inspection_reports"] = inspections
 
     try:
         client.extend_lease(run_id, node_key)

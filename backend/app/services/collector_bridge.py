@@ -13,6 +13,7 @@ from app import crud, schemas
 from app.services.goal_validator import missing_goal_failure_reason, validate_task_run_goals
 from app.services.task_events import push_event, task_event
 from app.services.oss_uploader import oss_uploader
+from app.config import settings
 
 
 def _is_collectable_image_file(filename: str) -> bool:
@@ -50,6 +51,13 @@ def _finish_run(db, task_uuid: UUID, run_uuid: UUID | None, status: str, *, exit
 
     crud.update_task_status(db, task_uuid, "completed" if final_status == "completed" else "failed")
     if run_uuid:
+        from app.services.model_trace import read_phone_model_calls
+        run = crud.get_task_run(db, run_uuid)
+        result_json = None
+        if run and run.output_dir:
+            calls = read_phone_model_calls(os.path.join(settings.PROJECT_ROOT, run.output_dir))
+            if calls:
+                result_json = {**(run.result_json or {}), "model_calls": calls}
         crud.update_task_run(
             db,
             run_uuid,
@@ -58,6 +66,7 @@ def _finish_run(db, task_uuid: UUID, run_uuid: UUID | None, status: str, *, exit
             exit_code=exit_code,
             failure_reason=final_failure_reason,
             goal_validation_json=goal_validation,
+            result_json=result_json,
         )
         crud.release_device_for_run(db, run_uuid)
     try:

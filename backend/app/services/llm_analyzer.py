@@ -3,10 +3,13 @@ import base64
 import httpx
 import os
 import re
+import time
 from io import BytesIO
 from typing import Optional, Tuple
 from PIL import Image
 from app.config import settings
+from app.services.model_trace import record_model_call, trace_time
+from app.services.inspection import Specification, inspection_prompt, validate_skill_output
 
 MAX_VLM_IMAGE_SIDE = 2048
 DEFAULT_TEMPERATURE_MODEL_PREFIXES = ("gpt-5", "o1", "o3", "o4")
@@ -85,19 +88,19 @@ class LLMAnalyzer:
                 "base_url": settings.VLM_BASE_URL.rstrip("/"),
                 "model": settings.VLM_MODEL,
             })
-        if settings.PHONE_AGENT_API_KEY:
-            providers.append({
-                "name": "modelscope_vlm",
-                "api_key": settings.PHONE_AGENT_API_KEY,
-                "base_url": settings.PHONE_AGENT_BASE_URL.rstrip("/"),
-                "model": settings.MODELSCOPE_VLM_MODEL,
-            })
         if settings.OPENAI_API_KEY:
             providers.append({
                 "name": "openai",
                 "api_key": settings.OPENAI_API_KEY,
                 "base_url": settings.OPENAI_BASE_URL.rstrip("/"),
                 "model": settings.VLM_MODEL,
+            })
+        if settings.PHONE_AGENT_API_KEY:
+            providers.append({
+                "name": "modelscope_vlm",
+                "api_key": settings.PHONE_AGENT_API_KEY,
+                "base_url": settings.PHONE_AGENT_BASE_URL.rstrip("/"),
+                "model": settings.MODELSCOPE_VLM_MODEL,
             })
         return providers
 
@@ -123,7 +126,8 @@ class LLMAnalyzer:
 
     def _extract_json(self, text: str) -> Optional[dict]:
         try:
-            return json.loads(text)
+            value = json.loads(text)
+            return value if isinstance(value, dict) else None
         except json.JSONDecodeError:
             pass
         m = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', text, re.DOTALL)
@@ -234,9 +238,10 @@ class LLMAnalyzer:
         content = self._strip_finish_wrapper(text)
         parsed = self._extract_json(content)
         if parsed is None:
-            lowered = content.lower()
-            return ("true" in lowered or "符合" in content, content[:200])
-        return bool(parsed.get("is_target")), str(parsed.get("reason") or "")
+            raise ValueError("目标页判断必须返回 JSON 对象")
+        if type(parsed.get("is_target")) is not bool:
+            raise ValueError("目标页判断 is_target 必须是 JSON 布尔值")
+        return parsed["is_target"], str(parsed.get("reason") or "")
 
     def _chat_payload(self, provider: dict[str, str], prompt: str, base64_image: str) -> dict:
         return self._chat_images_payload(provider, prompt, [base64_image])
@@ -284,15 +289,28 @@ class LLMAnalyzer:
         base64_images: list[str],
         max_tokens: int = 2048,
     ) -> str:
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{provider['base_url']}/chat/completions",
-                headers={"Authorization": f"Bearer {provider['api_key']}"},
-                json=self._chat_images_payload(provider, prompt, base64_images, max_tokens),
-                timeout=120.0,
-            )
-            self._raise_for_status_with_detail(resp)
-            return self._response_content(resp.text)
+        started, clock = trace_time(), time.monotonic()
+        response_model = None
+        error = None
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    f"{provider['base_url']}/chat/completions",
+                    headers={"Authorization": f"Bearer {provider['api_key']}"},
+                    json=self._chat_images_payload(provider, prompt, base64_images, max_tokens),
+                    timeout=120.0,
+                )
+                self._raise_for_status_with_detail(resp)
+                # Some gateways emit concatenated JSON chunks instead of one object.
+                first, _ = json.JSONDecoder().raw_decode(resp.text.lstrip())
+                response_model = first.get("model")
+                return self._response_content(resp.text)
+        except Exception as exc:
+            error = exc
+            raise
+        finally:
+            record_model_call(provider, started, round((time.monotonic() - clock) * 1000),
+                              response_model=response_model, error=error)
 
     async def complete_images(
         self,
@@ -349,7 +367,10 @@ class LLMAnalyzer:
 
         # 构建 skill 专用 prompt
         context_lines = self._context_lines(context)
-        prompt = skill.prompt
+        spec = getattr(skill, "specification_json", None)
+        prompt = inspection_prompt(Specification.model_validate(spec)) if skill.skill_type == "inspection" else skill.prompt
+        if skill.skill_type == "inspection" and skill.prompt:
+            prompt += "\n补充说明：\n" + skill.prompt
         if context_lines:
             prompt += "\n\n用户需求上下文：\n" + "\n".join(context_lines)
         # 要求 JSON 输出
@@ -359,7 +380,8 @@ class LLMAnalyzer:
         content = await self._complete_with_fallback(prompt, base64_image)
         content = self._strip_finish_wrapper(content)
         parsed = self._extract_json(content)
-        if parsed:
+        if parsed is not None:
+            validate_skill_output(parsed, skill.output_schema_json or {})
             return parsed, "success"
         else:
             return {"raw_text": content[:2000]}, "partial"
