@@ -1,0 +1,324 @@
+{
+  "venue": {
+    "venue_name": "开荒收纳双11大促会场",
+    "venue_id": "RA101013510085203643",
+    "project_id": "01940823",
+    "identity_cell": "开荒收纳双11大促会场\nRA101013510085203643\n通天塔项目ID:01940823",
+    "official_url": "https://pro.m.jd.com/mall/active/sKCs9xoMqBjYctXbQqjHycyTGuG/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/sKCs9xoMqBjYctXbQqjHycyTGuG/1791734400000?source=preview&endpoint=&pageId=6489092&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p09-r08-RA101013510085203643",
+    "source_page": 9,
+    "source_row": 8,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:25.851Z",
+    "qr_file": "qrcodes/p09-r08-RA101013510085203643.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/sKCs9xoMqBjYctXbQqjHycyTGuG/1791734400000?source=preview&endpoint=&pageId=6489092&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_940117916114623119",
+    "tab_selector": ".bab_opt_mod.module_376617916114625276 .tabs_bar",
+    "upper_module": "自定义业务模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_694617916114621952",
+          "bab_opt_mod_1_1",
+          "module_118098473",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "精细开荒保洁7.5折\n爆款衣柜收纳3.2折\n专区收纳换季5折"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_296517916114622446",
+          "bab_opt_mod_1_2",
+          "module_118098475",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_342717916114622821",
+          "bab_opt_mod_1_3",
+          "module_118098474",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 115.078125,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.9140625,
+          "left": 0
+        },
+        "text": "7折\n满899可用\n限部分开荒保洁商品\n5折\n满1000可用\n限部分专区收纳商品\n7.5折\n满899可用\n限部分开荒保洁商品\n7折\n满3000可用\n限部分全屋收纳商品"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_467417916114622983",
+          "bab_opt_mod_1_4",
+          "module_118098477",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 319.9140625,
+          "width": 390,
+          "height": 8,
+          "top": 319.9140625,
+          "right": 390,
+          "bottom": 327.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_940117916114623119",
+          "bab_opt_mod_1_5",
+          "module_118098476",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 327.9140625,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 403.828125,
+          "left": 0
+        },
+        "text": "¥1899\n\n¥\n\n1899\n\n¥3299\n\n¥\n\n3299\n\n¥229\n\n¥\n\n229\n\n¥1088\n\n¥\n\n1088\n\n好物低价购\n\n¥\n\n1899\n\n¥3299\n\n¥\n\n3299\n\n¥229\n\n¥\n\n229\n\n¥1088\n\n¥\n\n1088\n\n¥1899\n\n¥\n\n1899\n\n¥3299\n\n¥\n\n3299\n\n¥229\n\n¥\n\n229\n\n¥1088\n\n¥\n\n"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_434917916114623245",
+          "bab_opt_mod_1_6",
+          "module_118098478",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 403.828125,
+          "width": 390,
+          "height": 8,
+          "top": 403.828125,
+          "right": 390,
+          "bottom": 411.828125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_376617916114625276",
+          "bab_opt_mod_1_7",
+          "module_118098479",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 411.828125,
+          "width": 390,
+          "height": 534.84375,
+          "top": 411.828125,
+          "right": 390,
+          "bottom": 946.671875,
+          "left": 0
+        },
+        "text": "精选推荐\n开荒保洁\n换季收纳\n家电清洗\n衣鞋洗护\n￥3299\n100+好评\n趋势好物\n京东家政全屋收纳2居室（60-80平米）秋雅归序・精致收纳服务兑换券 限北京上海广州区域\n好评率95%\n￥229\n54好评\n趋势好物\n京东家政床品除尘除螨 床垫除螨上门服务 高温杀菌消毒 1张床兑换券\n上海家政保洁热卖榜\n·第27名\n￥1088\n200+好评\n衣柜收纳4小时"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_8",
+          "inject_preview"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 946.671875,
+          "width": 390,
+          "height": 0,
+          "top": 946.671875,
+          "right": 390,
+          "bottom": 946.671875,
+          "left": 0
+        },
+        "text": ""
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 411.828125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/sKCs9xoMqBjYctXbQqjHycyTGuG/1791734400000",
+      "title": "开荒双11会场",
+      "measured_at": "2026-10-11T11:18:35.286Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_940117916114623119",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 403.828125,
+          "width": 390,
+          "height": 75.9140625
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_376617916114625276 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 411.828125,
+          "right": 390,
+          "bottom": 453.421875,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,326 @@
+{
+  "venue": {
+    "venue_name": "个护双11会场",
+    "venue_id": "RA092417533821532361",
+    "project_id": "02209041",
+    "identity_cell": "个护双11会场\nRA092417533821532361\n通天塔项目ID:02209041",
+    "official_url": "https://pro.m.jd.com/mall/active/3VuYKn8h1yudHKdjZvnJ5pZQMbDE/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3VuYKn8h1yudHKdjZvnJ5pZQMbDE/1791734400000?source=preview&endpoint=&pageId=6473472&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p01-r01-RA092417533821532361",
+    "source_page": 1,
+    "source_row": 1,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:18.226Z",
+    "qr_file": "qrcodes/p01-r01-RA092417533821532361.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3VuYKn8h1yudHKdjZvnJ5pZQMbDE/1791734400000?source=preview&endpoint=&pageId=6473472&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_117922215",
+    "tab_selector": ".bab_opt_mod.module_388717907451509650 .tabs_bar",
+    "upper_module": "上方业务模块",
+    "semantic_boundary_verified": false,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_170217907453013040",
+          "bab_opt_mod_1_1",
+          "module_117922209",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_299517916099605552",
+          "bab_opt_mod_1_2",
+          "module_118089160",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_283017907451507894",
+          "bab_opt_mod_1_3",
+          "module_117922210",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 114.734375,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.5703125,
+          "left": 0
+        },
+        "text": "9折\n满49可用\n限京东超市部分商品\n8.8折\n满119可用\n限京东超市部分商品\n9折\n满99可用\n限京东超市部分商品"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_727717907451507526",
+          "bab_opt_mod_1_4",
+          "module_117922211",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 319.5703125,
+          "width": 390,
+          "height": 8,
+          "top": 319.5703125,
+          "right": 390,
+          "bottom": 327.5703125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_227817907451507968",
+          "bab_opt_mod_1_5",
+          "module_117922212",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 327.5703125,
+          "width": 390,
+          "height": 0,
+          "top": 327.5703125,
+          "right": 390,
+          "bottom": 327.5703125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_423717907451507992",
+          "bab_opt_mod_1_6",
+          "module_117922214",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 327.5703125,
+          "width": 390,
+          "height": 8,
+          "top": 327.5703125,
+          "right": 390,
+          "bottom": 335.5703125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_7",
+          "module_117922215",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 335.5703125,
+          "width": 390,
+          "height": 141.53125,
+          "top": 335.5703125,
+          "right": 390,
+          "bottom": 477.1015625,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层8-浮层模板-117922215\n1.组件未生效，请检查有效时间"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_388717907451509650",
+          "bab_opt_mod_1_8",
+          "module_117922216",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 477.1015625,
+          "width": 390,
+          "height": 3100.59375,
+          "top": 477.1015625,
+          "right": 390,
+          "bottom": 3577.6953125,
+          "left": 0
+        },
+        "text": "更多佳选好物\n洗发护发\n美发造型\n身体清洁\n身体护理\n口腔护理\n女性护理\n成人尿裤\n￥9.9\n5万+好评\n【京东试用返券】非遗丨控油滋养\n含二裂酵母洗发水热卖榜\n·第4名\n￥149\n5000+好评\n换购\n【防刮伤】焕醒剃须刀5刀头\n本店商品热卖榜\n·第1名\n￥29.9\n10万+好评\n赠品\n冷酸灵抗敏感美白牙膏4支装430g\n冷酸灵牙膏热卖榜\n·第6名\n￥31"
+      }
+    ],
+    "semantic_review": "上方含楼层异常提示或未辨明模块，不能认定为正常业务边界。",
+    "tab_top": 477.1015625
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/3VuYKn8h1yudHKdjZvnJ5pZQMbDE/1791734400000",
+      "title": "个护会场",
+      "measured_at": "2026-10-11T10:59:45.637Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_117922215",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 335.5703125,
+          "right": 390,
+          "bottom": 477.1015625,
+          "width": 390,
+          "height": 141.53125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "14px",
+          "font-weight": "400",
+          "line-height": "16.1px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_388717907451509650 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 477.1015625,
+          "right": 390,
+          "bottom": 518.6953125,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 0,
+        "relationship": "touching",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

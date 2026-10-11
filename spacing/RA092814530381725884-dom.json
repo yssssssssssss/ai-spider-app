@@ -1,0 +1,282 @@
+{
+  "venue": {
+    "venue_name": "26Y双十一水饮会场",
+    "venue_id": "RA092814530381725884",
+    "project_id": "02209110",
+    "identity_cell": "26Y双十一水饮会场\nRA092814530381725884\n通天塔项目ID:02209110",
+    "official_url": "https://pro.m.jd.com/mall/active/obKzUVNYWHx7Uca2Y6qdS8Dqow8/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/obKzUVNYWHx7Uca2Y6qdS8Dqow8/1791734400000?source=preview&endpoint=&pageId=6473630&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p01-r28-RA092814530381725884",
+    "source_page": 1,
+    "source_row": 28,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:18.239Z",
+    "qr_file": "qrcodes/p01-r28-RA092814530381725884.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/obKzUVNYWHx7Uca2Y6qdS8Dqow8/1791734400000?source=preview&endpoint=&pageId=6473630&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_922917905783898000",
+    "tab_selector": ".bab_opt_mod.module_988617905783900335 .tabs_bar",
+    "upper_module": "自定义业务模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_471017905783897321",
+          "bab_opt_mod_1_1",
+          "module_117864450",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_970017905783897534",
+          "bab_opt_mod_1_2",
+          "module_117864452",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_922917905783898000",
+          "bab_opt_mod_1_3",
+          "module_117864451",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 280.75,
+          "left": 0
+        },
+        "text": "¥1.18\n\n¥\n\n1\n\n.18\n\n¥1.2\n\n¥\n\n1\n\n.2\n\n¥3.06\n\n¥\n\n3\n\n.06\n\n¥1.2\n\n¥\n\n1\n\n.2\n\n好物低价购\n\n¥\n\n1\n\n.09\n\n¥3.1\n\n¥\n\n3\n\n.1\n\n¥3.1\n\n¥\n\n3\n\n.1\n\n¥3.3\n\n¥\n\n3\n\n.3\n\n¥1.28\n\n¥\n\n1\n\n.28\n\n¥3.99\n\n¥\n\n3\n\n.99\n\n¥3.1\n\n¥\n\n3"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_923017905783898031",
+          "bab_opt_mod_1_4",
+          "module_117864454",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 280.75,
+          "width": 390,
+          "height": 8,
+          "top": 280.75,
+          "right": 390,
+          "bottom": 288.75,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_988617905783900335",
+          "bab_opt_mod_1_5",
+          "module_117864453",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 288.75,
+          "width": 390,
+          "height": 1301.53125,
+          "top": 288.75,
+          "right": 390,
+          "bottom": 1590.28125,
+          "left": 0
+        },
+        "text": "超值好物\n冬季养生\n茗茶推荐\n酒饮专区\n冲饮谷物\n￥1.28\n【清爽可口】正宗新茶高山绿茶醇香耐泡散装自己喝茶叶信阳原产 高山绿茶1包*5克\n1000+条好评\n买贵双倍赔\n￥3.1\n粗粮小米糊免煮即食小米粉家庭装冲泡代餐五谷杂粮营养早餐 30g*1袋（限购2单）\n2000+条好评\n买贵双倍赔\n￥3.1\n荷叶山楂刮油减肥茶花草茶养生茶包茶叶 荷叶山楂茶5g*1"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_6",
+          "inject_preview"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 1590.28125,
+          "width": 390,
+          "height": 0,
+          "top": 1590.28125,
+          "right": 390,
+          "bottom": 1590.28125,
+          "left": 0
+        },
+        "text": ""
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 288.75
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/obKzUVNYWHx7Uca2Y6qdS8Dqow8/1791734400000",
+      "title": "水饮好物会场",
+      "measured_at": "2026-10-11T11:01:08.418Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_922917905783898000",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 280.75,
+          "width": 390,
+          "height": 75.9140625
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_988617905783900335 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 288.75,
+          "right": 390,
+          "bottom": 330.34375,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

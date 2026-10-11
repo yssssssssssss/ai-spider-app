@@ -1,0 +1,306 @@
+{
+  "venue": {
+    "venue_name": "免税双11大促会场",
+    "venue_id": "RA092813472754712774",
+    "project_id": "02209018",
+    "identity_cell": "免税双11大促会场\nRA092813472754712774\n通天塔项目ID:02209018",
+    "official_url": "https://pro.m.jd.com/mall/active/2itw5wwjPPpkjXBEfXLY6i4N2k9W/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/2itw5wwjPPpkjXBEfXLY6i4N2k9W/1791734400000?source=preview&endpoint=&pageId=6473388&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p05-r02-RA092813472754712774",
+    "source_page": 5,
+    "source_row": 2,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:22.576Z",
+    "qr_file": "qrcodes/p05-r02-RA092813472754712774.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/2itw5wwjPPpkjXBEfXLY6i4N2k9W/1791734400000?source=preview&endpoint=&pageId=6473388&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_118044038",
+    "tab_selector": ".bab_opt_mod.module_589517905744509098 .tabs_bar",
+    "upper_module": "上方业务模块",
+    "semantic_boundary_verified": false,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_376117905744505499",
+          "bab_opt_mod_1_1",
+          "module_118044032",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "仅剩\n0\n0\n时\n0\n0\n分\n0\n0\n秒"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_706117905744506075",
+          "bab_opt_mod_1_2",
+          "module_118044034",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_909117905744506438",
+          "bab_opt_mod_1_3",
+          "module_118044033",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 115.078125,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.9140625,
+          "left": 0
+        },
+        "text": "9.5折\n满1可用\n限购 [王府井免税海南会员购旗舰店] 店铺部分商品\n8.9折\n满1可用\n限购 [京东免税会员购官方旗舰店] 店铺部分商品\n9.5折\n满1可用\n限购 [京东免税会员购官方旗舰店] 店铺部分商品"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_175717905744506624",
+          "bab_opt_mod_1_4",
+          "module_118044036",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 319.9140625,
+          "width": 390,
+          "height": 8,
+          "top": 319.9140625,
+          "right": 390,
+          "bottom": 327.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_974617905744506918",
+          "bab_opt_mod_1_5",
+          "module_118044037",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 327.9140625,
+          "width": 390,
+          "height": 8,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 335.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_6",
+          "module_118044038",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 335.9140625,
+          "width": 390,
+          "height": 141.53125,
+          "top": 335.9140625,
+          "right": 390,
+          "bottom": 477.4453125,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层8-浮层模板-118044038\n1.组件未生效，请检查有效时间"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_589517905744509098",
+          "bab_opt_mod_1_7",
+          "module_118044039",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 477.4453125,
+          "width": 390,
+          "height": 1605.171875,
+          "top": 477.4453125,
+          "right": 390,
+          "bottom": 2082.6171875,
+          "left": 0
+        },
+        "text": "爆品推荐\n会员购精选\n离岛免税精选\n低价热卖\n美妆香化\n低价热卖\n3C数码\n趋势好物\n￥1919\n茅台贵州飞天茅台53度2026年酱香型白酒500ml 纯粮名酒 礼物 53度 500mL 1瓶\n免费上门退换\n闪电退款\n好评率100%\n趋势好物\n￥463.24\n17条好评\n娇韵诗（CLARINS）轻透养肤防晒乳 高倍防晒隔离养肤护肤品生日礼物 润粉色（双瓶装）"
+      }
+    ],
+    "semantic_review": "上方含楼层异常提示或未辨明模块，不能认定为正常业务边界。",
+    "tab_top": 477.4453125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/2itw5wwjPPpkjXBEfXLY6i4N2k9W/1791734400000",
+      "title": "免税双11会场",
+      "measured_at": "2026-10-11T11:09:29.913Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_118044038",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 335.9140625,
+          "right": 390,
+          "bottom": 477.4453125,
+          "width": 390,
+          "height": 141.53125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "14px",
+          "font-weight": "400",
+          "line-height": "16.1px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_589517905744509098 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 477.4453125,
+          "right": 390,
+          "bottom": 519.0390625,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 0,
+        "relationship": "touching",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

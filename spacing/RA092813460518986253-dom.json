@@ -1,0 +1,306 @@
+{
+  "venue": {
+    "venue_name": "到家检测护理会场",
+    "venue_id": "RA092813460518986253",
+    "project_id": "01818005",
+    "identity_cell": "到家检测护理会场\nRA092813460518986253\n通天塔项目ID:01818005",
+    "official_url": "https://pro.m.jd.com/mall/active/47PPDAFLiPRGz7CaNruEuS4GQEgH/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/47PPDAFLiPRGz7CaNruEuS4GQEgH/1791734400000?source=preview&endpoint=&pageId=6473323&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p04-r12-RA092813460518986253",
+    "source_page": 4,
+    "source_row": 12,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:21.845Z",
+    "qr_file": "qrcodes/p04-r12-RA092813460518986253.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/47PPDAFLiPRGz7CaNruEuS4GQEgH/1791734400000?source=preview&endpoint=&pageId=6473323&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_146417905743716494",
+    "tab_selector": ".bab_opt_mod.module_219117905743718807 .tabs_bar",
+    "upper_module": "权益券包",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_130817905743716310",
+          "bab_opt_mod_1_1",
+          "module_118030541",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 16,
+          "top": 45,
+          "right": 390,
+          "bottom": 61,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_315717905743716128",
+          "bab_opt_mod_1_2",
+          "module_118030537",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 61,
+          "width": 390,
+          "height": 197.59375,
+          "top": 61,
+          "right": 390,
+          "bottom": 258.59375,
+          "left": 0
+        },
+        "text": "呼吸道检测低至7折\n中医护理至高减60\n上门打针换药99元起"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_146417905743716494",
+          "bab_opt_mod_1_3",
+          "module_118030542",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 258.59375,
+          "width": 390,
+          "height": 115.078125,
+          "top": 258.59375,
+          "right": 390,
+          "bottom": 373.671875,
+          "left": 0
+        },
+        "text": "5折\n满50可用\n限到家检测商品\n￥8\n满10可用\n限康复师上门服务商品\n￥6\n满10可用\n限京东护士到家自营旗舰店部分商品\n￥10\n满100可用\n限到家检测商品\n￥10\n满100可用\n限京东到家快检自营旗舰店部分商品\n￥27\n满100可用\n限到家检测商品"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_703117905743716533",
+          "bab_opt_mod_1_4",
+          "module_118030543",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 373.671875,
+          "width": 390,
+          "height": 8,
+          "top": 373.671875,
+          "right": 390,
+          "bottom": 381.671875,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_525117905743716584",
+          "bab_opt_mod_1_5",
+          "module_118030544",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 381.671875,
+          "width": 390,
+          "height": 0,
+          "top": 381.671875,
+          "right": 390,
+          "bottom": 381.671875,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_657517905743716628",
+          "bab_opt_mod_1_6",
+          "module_118030545",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 381.671875,
+          "width": 390,
+          "height": 8,
+          "top": 381.671875,
+          "right": 390,
+          "bottom": 389.671875,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_219117905743718807",
+          "bab_opt_mod_1_7",
+          "module_118030547",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 389.671875,
+          "width": 390,
+          "height": 1706.578125,
+          "top": 389.671875,
+          "right": 390,
+          "bottom": 2096.25,
+          "left": 0
+        },
+        "text": "推荐\n到家快检\n护士到家\n低价热卖\n趋势好物\n￥99\n5万+条好评\n呼吸道病原12联检测\n已售100万+\n100万+条评价\n趋势好物\n￥169\n69条好评\n中医综合调理(僵硬疼痛失眠祛湿)\n好评率93%\n趋势好物\n￥90\n1条好评\n【京东护士到家】上门打针（1次/1人/1针） 居家打黄体酮/生长激素/升白针/胰岛素 京东自营服务\n好评率100%\n￥99\n20"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 389.671875
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/47PPDAFLiPRGz7CaNruEuS4GQEgH/1791734400000",
+      "title": "检测护理会场",
+      "measured_at": "2026-10-11T11:07:27.055Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_146417905743716494",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 258.59375,
+          "right": 390,
+          "bottom": 373.671875,
+          "width": 390,
+          "height": 115.078125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_219117905743718807 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 389.671875,
+          "right": 390,
+          "bottom": 431.265625,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 16,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

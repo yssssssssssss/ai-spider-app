@@ -1,0 +1,306 @@
+{
+  "venue": {
+    "venue_name": "京东电器11.11会场",
+    "venue_id": "RA092413435922556127",
+    "project_id": "02207523",
+    "identity_cell": "京东电器11.11会场\nRA092413435922556127\n通天塔项目ID:02207523",
+    "official_url": "https://pro.m.jd.com/mall/active/3mX3zACTBAygzDFwdUpLmCHf9HGw/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3mX3zACTBAygzDFwdUpLmCHf9HGw/1791734400000?source=preview&endpoint=&pageId=6469646&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p01-r09-RA092413435922556127",
+    "source_page": 1,
+    "source_row": 9,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:18.230Z",
+    "qr_file": "qrcodes/p01-r09-RA092413435922556127.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3mX3zACTBAygzDFwdUpLmCHf9HGw/1791734400000?source=preview&endpoint=&pageId=6469646&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_150917902286413445",
+    "tab_selector": ".bab_opt_mod.module_133617902286415933 .tabs_bar",
+    "upper_module": "自定义业务模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_352517902286412299",
+          "bab_opt_mod_1_1",
+          "module_118028919",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_997517902286412810",
+          "bab_opt_mod_1_2",
+          "module_118028920",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_538417902286413148",
+          "bab_opt_mod_1_3",
+          "module_118028921",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 115.078125,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.9140625,
+          "left": 0
+        },
+        "text": "9.5折\n满1可用\n限小家电商品\n￥50\n满1000可用\n限店铺内部分商品\n￥100\n满2000可用\n限店铺内部分商品\n9折\n满1000可用\n限京东电器自营旗舰店部分商品"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_325317902286413319",
+          "bab_opt_mod_1_4",
+          "module_118028923",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 319.9140625,
+          "width": 390,
+          "height": 8,
+          "top": 319.9140625,
+          "right": 390,
+          "bottom": 327.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_150917902286413445",
+          "bab_opt_mod_1_5",
+          "module_118028922",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 327.9140625,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 403.828125,
+          "left": 0
+        },
+        "text": "¥1998\n\n¥\n\n1998\n\n¥1689\n\n¥\n\n1689\n\n¥3998.52\n\n¥\n\n3998\n\n.52\n\n¥3290\n\n¥\n\n3290\n\n好物低价购\n\n¥\n\n1999\n\n¥119\n\n¥\n\n119\n\n¥2090\n\n¥\n\n2090\n\n¥289\n\n¥\n\n289\n\n¥1763.6\n\n¥\n\n1763\n\n.6\n\n¥165.56\n\n¥\n\n165\n\n.56\n\n¥182"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_877517902286413572",
+          "bab_opt_mod_1_6",
+          "module_118028924",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 403.828125,
+          "width": 390,
+          "height": 8,
+          "top": 403.828125,
+          "right": 390,
+          "bottom": 411.828125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_133617902286415933",
+          "bab_opt_mod_1_7",
+          "module_118028925",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 411.828125,
+          "width": 390,
+          "height": 3102.671875,
+          "top": 411.828125,
+          "right": 390,
+          "bottom": 3514.5,
+          "left": 0
+        },
+        "text": "推荐\n11.11提前抢\n焕新省到家\n跨品类套购\n白条免息\n采销严选\n直播间大额券\n微信域优惠\n￥4351\n200+好评\n趋势好物\n容声方糖515新升级双系统双循环\n30天价保\n店内冰箱热卖榜\n·第26名\n￥1598\n1万+好评\nAUFIT空调奥克斯出品1.5匹自清洁\n买贵双倍赔\n30天价保\n可抗菌易拆洗空调热卖榜\n·第1名\n￥310\n2000+好评\n趋势好物"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 411.828125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/3mX3zACTBAygzDFwdUpLmCHf9HGw/1791734400000",
+      "title": "家电1111会场",
+      "measured_at": "2026-10-11T11:00:03.256Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_150917902286413445",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 403.828125,
+          "width": 390,
+          "height": 75.9140625
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_133617902286415933 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 411.828125,
+          "right": 390,
+          "bottom": 453.421875,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

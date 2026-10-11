@@ -1,0 +1,342 @@
+{
+  "venue": {
+    "venue_name": "测试加白会场",
+    "venue_id": "RA100820575851108347",
+    "project_id": "02206926",
+    "identity_cell": "测试加白会场\nRA100820575851108347\n通天塔项目ID:02206926",
+    "official_url": null,
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3wJ1HDQpN8ANz8a6X2EdC7s7TuN/1791734400000?source=preview&endpoint=&pageId=6485435&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p09-r15-RA100820575851108347",
+    "source_page": 9,
+    "source_row": 15,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:25.853Z",
+    "qr_file": "qrcodes/p09-r15-RA100820575851108347.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3wJ1HDQpN8ANz8a6X2EdC7s7TuN/1791734400000?source=preview&endpoint=&pageId=6485435&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_118062233",
+    "tab_selector": ".bab_opt_mod.module_200717914642842798 .tabs_bar",
+    "upper_module": "上方业务模块",
+    "semantic_boundary_verified": false,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_731817914642840260",
+          "bab_opt_mod_1_1",
+          "module_118062227",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "测试需替换\n测试需替换\n测试需替换"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_2",
+          "module_118062228",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 158.2734375,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 355.109375,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层3-楼层间隔-118062228\n1.因为区块焦点楼层【4-官方会场权益】被过滤，所以楼层3被同步过滤"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_3",
+          "module_118062229",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 355.109375,
+          "width": 390,
+          "height": 186.453125,
+          "top": 355.109375,
+          "right": 390,
+          "bottom": 541.5625,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层4-官方会场权益-118062229\n1.素材组id 08473068，预览时间对应的分期无素材，请进入素材管理查看预览时间对应分期下的素材\n2.素材组08473068素材为空"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_380317914642840726",
+          "bab_opt_mod_1_4",
+          "module_118062231",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 541.5625,
+          "width": 390,
+          "height": 8,
+          "top": 541.5625,
+          "right": 390,
+          "bottom": 549.5625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_129117914642840764",
+          "bab_opt_mod_1_5",
+          "module_118062230",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 549.5625,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 549.5625,
+          "right": 390,
+          "bottom": 625.4765625,
+          "left": 0
+        },
+        "text": "核桃榜\n\n超值抢购中\n\n手机榜\n\n805万人买过\n\n洗鞋机榜\n\n6.2万人买过\n\n烘干机榜\n\n24.2万人买过\n\n每日坚果榜\n\n1760万人买过\n\n山核桃坚果\n\n537.2万人买过\n\n夏威夷果榜\n\n1084万人买过\n\n腰果榜\n\n1139万人买过\n\n混合坚果榜\n\n超值抢购中\n\n碧根果榜\n\n1063万人买过\n\n葵花籽炒货\n\n2270万人买过\n\n开心果榜\n\n107"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_247517914642840800",
+          "bab_opt_mod_1_6",
+          "module_118062232",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 625.4765625,
+          "width": 390,
+          "height": 8,
+          "top": 625.4765625,
+          "right": 390,
+          "bottom": 633.4765625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_7",
+          "module_118062233",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 633.4765625,
+          "width": 390,
+          "height": 141.53125,
+          "top": 633.4765625,
+          "right": 390,
+          "bottom": 775.0078125,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层8-浮层模板-118062233\n1.组件未生效，请检查有效时间"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_200717914642842798",
+          "bab_opt_mod_1_8",
+          "module_118062234",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 775.0078125,
+          "width": 390,
+          "height": 856.59375,
+          "top": 775.0078125,
+          "right": 390,
+          "bottom": 1631.6015625,
+          "left": 0
+        },
+        "text": "推荐\n家居家装\n数码家电\n美妆个护\n食品生鲜\n母婴文娱\n运动出行\n宠物园艺\n医药健康\n本地生活\n网络跑丢了，请稍后再试\n重试\n加载中\n加载中\n加载中\n加载中\n加载中\n加载中\n加载中\n加载中\n加载中"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_9",
+          "inject_preview"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 1631.6015625,
+          "width": 390,
+          "height": 0,
+          "top": 1631.6015625,
+          "right": 390,
+          "bottom": 1631.6015625,
+          "left": 0
+        },
+        "text": ""
+      }
+    ],
+    "semantic_review": "上方含楼层异常提示或未辨明模块，不能认定为正常业务边界。",
+    "tab_top": 775.0078125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/3wJ1HDQpN8ANz8a6X2EdC7s7TuN/1791734400000",
+      "title": "测试加白会场",
+      "measured_at": "2026-10-11T11:18:41.154Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_118062233",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 633.4765625,
+          "right": 390,
+          "bottom": 775.0078125,
+          "width": 390,
+          "height": 141.53125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "14px",
+          "font-weight": "400",
+          "line-height": "16.1px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_200717914642842798 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 775.0078125,
+          "right": 390,
+          "bottom": 816.6015625,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 0,
+        "relationship": "touching",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,347 @@
+{
+  "venue": {
+    "venue_name": "母婴好物逛京东会场",
+    "venue_id": "RA092415151876126410",
+    "project_id": "02209502",
+    "identity_cell": "母婴好物逛京东会场\nRA092415151876126410\n通天塔项目ID:02209502",
+    "official_url": "https://pro.m.jd.com/mall/active/4Ao4XAmdh1Vk5esFwSGK52hLnjM8/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/4Ao4XAmdh1Vk5esFwSGK52hLnjM8/1791734400000?source=preview&endpoint=&pageId=6474535&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p02-r06-RA092415151876126410",
+    "source_page": 2,
+    "source_row": 6,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:20.218Z",
+    "qr_file": "qrcodes/p02-r06-RA092415151876126410.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/4Ao4XAmdh1Vk5esFwSGK52hLnjM8/1791734400000?source=preview&endpoint=&pageId=6474535&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_117863421",
+    "tab_selector": ".bab_opt_mod.module_501017905917353967 .tabs_bar",
+    "upper_module": "上方业务模块",
+    "semantic_boundary_verified": false,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_837117905917351306",
+          "bab_opt_mod_1_1",
+          "module_117863414",
+          "flex_cube",
+          "flex_cube_floor",
+          "touTuFlex",
+          "responsiveHeaderImage"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 106.078125,
+          "top": 45,
+          "right": 390,
+          "bottom": 151.078125,
+          "left": 0
+        },
+        "text": "仅剩\n0\n0\n时\n0\n0\n分\n0\n0\n秒\n爆款尿裤0元试\n抢券199减100\n1分钱锁多重礼"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_856817907564895066",
+          "bab_opt_mod_1_2",
+          "module_117938600",
+          "hotzone"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 151.078125,
+          "width": 390,
+          "height": 115.0859375,
+          "top": 151.078125,
+          "right": 390,
+          "bottom": 266.1640625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_312217905917351387",
+          "bab_opt_mod_1_3",
+          "module_117863416",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 265.6640625,
+          "width": 390,
+          "height": 8,
+          "top": 265.6640625,
+          "right": 390,
+          "bottom": 273.6640625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_662217905917351561",
+          "bab_opt_mod_1_4",
+          "module_117863417",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 273.6640625,
+          "width": 390,
+          "height": 115.078125,
+          "top": 273.6640625,
+          "right": 390,
+          "bottom": 388.7421875,
+          "left": 0
+        },
+        "text": "￥100\n满199可用\n限伊利商品\n9.4折\n满1可用\n限购 [合生元旗舰店] 店铺部分商品\n9.6折\n满1可用\n限美素佳儿自营部分奶粉商品\n8.5折\n满1可用\n限部分商品\n8.5折\n满1可用\n限部分自营奶粉商品\n￥30\n满310可用\n限购 [a2至初官方旗舰店] 店铺部分商品\n￥5\n满399可用\n限购 [君乐宝母婴旗舰店] 店铺商品\n￥5\n满5.1可用\n限"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_314217905917351601",
+          "bab_opt_mod_1_5",
+          "module_117863418",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 388.7421875,
+          "width": 390,
+          "height": 8,
+          "top": 388.7421875,
+          "right": 390,
+          "bottom": 396.7421875,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_628617905917351631",
+          "bab_opt_mod_1_6",
+          "module_117863419",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 396.7421875,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 396.7421875,
+          "right": 390,
+          "bottom": 472.65625,
+          "left": 0
+        },
+        "text": "帮宝适纸尿裤\n\n爆款尿裤0元试\n\n母婴直播主会场\n\n安心育儿-真低价\n\n飞鹤双11狂欢\n\n下单赢iPhone18\n\n伊利金领冠\n\n母婴试用盛典\n\n大牌1元试用\n\n爱他美奶粉\n\n1分钱锁定多重礼\n\n帮宝适纸尿裤\n\n爆款尿裤0元试\n\n母婴直播主会场\n\n安心育儿-真低价\n\n飞鹤双11狂欢\n\n下单赢iPhone18\n\n伊利金领冠\n\n母婴试用盛典\n\n大牌1元试用\n\n爱"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_706917905917351660",
+          "bab_opt_mod_1_7",
+          "module_117863420",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 472.65625,
+          "width": 390,
+          "height": 8,
+          "top": 472.65625,
+          "right": 390,
+          "bottom": 480.65625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_8",
+          "module_117863421",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 480.65625,
+          "width": 390,
+          "height": 141.53125,
+          "top": 480.65625,
+          "right": 390,
+          "bottom": 622.1875,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层9-浮层模板-117863421\n1.组件未生效，请检查有效时间"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_501017905917353967",
+          "bab_opt_mod_1_9",
+          "module_117863424",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 622.1875,
+          "width": 390,
+          "height": 1619.71875,
+          "top": 622.1875,
+          "right": 390,
+          "bottom": 2241.90625,
+          "left": 0
+        },
+        "text": "低价热卖\n奶粉\n尿裤\n洗护\n喂养\n成人奶粉\n车床\n辅食\n寝居\n妈妈专区\n趋势好物\n￥1270.58\n1万+条好评\n飞鹤星飞帆婴幼儿配方奶粉 2段(6-12月)700g*6罐 【预售】\n萌宝安心尝\n10万+条评价\n趋势好物\n￥6.9\n5万+条好评\n施巴（Sebamed）儿童柔润洗发水20ml无泪配方温和清洁婴儿宝宝洗发露德国进口\n已售60万+\n好评率99%\n￥"
+      }
+    ],
+    "semantic_review": "上方含楼层异常提示或未辨明模块，不能认定为正常业务边界。",
+    "tab_top": 622.1875
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/4Ao4XAmdh1Vk5esFwSGK52hLnjM8/1791734400000",
+      "title": "母婴会场",
+      "measured_at": "2026-10-11T11:02:21.665Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_117863421",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 480.65625,
+          "right": 390,
+          "bottom": 622.1875,
+          "width": 390,
+          "height": 141.53125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "14px",
+          "font-weight": "400",
+          "line-height": "16.1px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_501017905917353967 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 622.1875,
+          "right": 390,
+          "bottom": 680.40625,
+          "width": 390,
+          "height": 58.21875
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 0,
+        "relationship": "touching",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

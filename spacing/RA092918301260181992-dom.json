@@ -1,0 +1,266 @@
+{
+  "venue": {
+    "venue_name": "厨具双十一会场",
+    "venue_id": "RA092918301260181992",
+    "project_id": "02210604",
+    "identity_cell": "厨具双十一会场\nRA092918301260181992\n通天塔项目ID:02210604",
+    "official_url": "https://pro.m.jd.com/mall/active/3QVAZhMv7qPo7pvubsYSRfcEFkw5/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3QVAZhMv7qPo7pvubsYSRfcEFkw5/1791734400000?source=preview&endpoint=&pageId=6477284&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p06-r19-RA092918301260181992",
+    "source_page": 6,
+    "source_row": 19,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:23.437Z",
+    "qr_file": "qrcodes/p06-r19-RA092918301260181992.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3QVAZhMv7qPo7pvubsYSRfcEFkw5/1791734400000?source=preview&endpoint=&pageId=6477284&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_894617911735316616",
+    "tab_selector": ".bab_opt_mod.module_957217911735454777 .tabs_bar",
+    "upper_module": "权益券包",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_874017911735316608",
+          "bab_opt_mod_1_1",
+          "module_117978815",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_343917911735316609",
+          "bab_opt_mod_1_2",
+          "module_117978816",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_894617911735316616",
+          "bab_opt_mod_1_3",
+          "module_117978817",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 96.6953125,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 301.53125,
+          "left": 0
+        },
+        "text": "5折\n满1可用\n限厨具商品\n8折\n满1可用\n限厨房用商品\n9折\n满1可用\n限厨房用商品"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_487717911735316611",
+          "bab_opt_mod_1_4",
+          "module_117978818",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 301.53125,
+          "width": 390,
+          "height": 8,
+          "top": 301.53125,
+          "right": 390,
+          "bottom": 309.53125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_957217911735454777",
+          "bab_opt_mod_1_5",
+          "module_117978854",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 309.53125,
+          "width": 390,
+          "height": 3121.390625,
+          "top": 309.53125,
+          "right": 390,
+          "bottom": 3430.921875,
+          "left": 0
+        },
+        "text": "￥499\n2000+好评\n赠品\nGLASSLOCK盖朗保鲜盒5件套多规格\n保鲜盒热卖榜\n·第6名\n￥228\n500+好评\n换购\n霜山304不锈钢厨房料理5件套装\n免费上门退换\n闪电退款\n料理盆热卖榜\n·第14名\n￥307.1\n1万+好评\n换购\n【全网热销】保温饭盒3层2.5L\n本店商品热卖榜\n·第1名\n￥158\n5万+好评\n赠品\n儿童保温杯学生双盖礼物600"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 309.53125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/3QVAZhMv7qPo7pvubsYSRfcEFkw5/1791734400000",
+      "title": "厨具会场",
+      "measured_at": "2026-10-11T11:12:50.984Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_894617911735316616",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 301.53125,
+          "width": 390,
+          "height": 96.6953125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_957217911735454777 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 309.53125,
+          "right": 390,
+          "bottom": 361.53125,
+          "width": 390,
+          "height": 52
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

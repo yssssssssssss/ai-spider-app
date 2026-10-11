@@ -1,0 +1,305 @@
+{
+  "venue": {
+    "venue_name": "地毯地垫双11会场",
+    "venue_id": "RA101011470562832927",
+    "project_id": "02214537",
+    "identity_cell": "地毯地垫双11会场\nRA101011470562832927\n通天塔项目ID:02214537",
+    "official_url": null,
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/9LhmKGmTyotk15AR6mYka8SWTGv/1791734400000?source=preview&endpoint=&pageId=6488791&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p10-r04-RA101011470562832927",
+    "source_page": 10,
+    "source_row": 4,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:26.552Z",
+    "qr_file": "qrcodes/p10-r04-RA101011470562832927.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/9LhmKGmTyotk15AR6mYka8SWTGv/1791734400000?source=preview&endpoint=&pageId=6488791&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_838717916040271333",
+    "tab_selector": ".bab_opt_mod.module_206917916040273796 .tabs_bar",
+    "upper_module": "自定义业务模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_170917916040270060",
+          "bab_opt_mod_1_1",
+          "module_118091319",
+          "flex_cube",
+          "flex_cube_floor",
+          "touTuFlex",
+          "responsiveHeaderImage"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "仅剩\n3\n3\n天\n0\n4\n时\n4\n0\n分"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_2",
+          "module_118091320",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 158.2734375,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 355.109375,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层3-楼层间隔-118091320\n1.因为区块焦点楼层【4-官方会场权益】被过滤，所以楼层3被同步过滤"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_3",
+          "module_118091331",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 355.109375,
+          "width": 390,
+          "height": 169.7109375,
+          "top": 355.109375,
+          "right": 390,
+          "bottom": 524.8203125,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层4-官方会场权益-118091331\n1.部分素材因缺失平铺而过滤\n2.素材不足一行过滤"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_270117916040271178",
+          "bab_opt_mod_1_4",
+          "module_118091347",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 524.8203125,
+          "width": 390,
+          "height": 8,
+          "top": 524.8203125,
+          "right": 390,
+          "bottom": 532.8203125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_838717916040271333",
+          "bab_opt_mod_1_5",
+          "module_118091340",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 532.8203125,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 532.8203125,
+          "right": 390,
+          "bottom": 608.734375,
+          "left": 0
+        },
+        "text": "¥23.9\n\n¥\n\n23\n\n.9\n\n入户地垫榜\n\n89.2万人买过\n\n¥23.9\n\n¥\n\n23\n\n.9\n\n床边毯榜\n\n5.8万人买过\n\n好物低价购\n\n¥\n\n26\n\n.8\n\n楼梯垫榜\n\n超值抢购中\n\n¥36.9\n\n¥\n\n36\n\n.9\n\n厨房地垫榜\n\n超值抢购中\n\n¥34\n\n¥\n\n34\n\n转椅地垫榜\n\n超值抢购中\n\n¥7.9\n\n¥\n\n7\n\n.9\n\n厨房地垫榜\n\n"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_452417916040271487",
+          "bab_opt_mod_1_6",
+          "module_118091351",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 608.734375,
+          "width": 390,
+          "height": 8,
+          "top": 608.734375,
+          "right": 390,
+          "bottom": 616.734375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_206917916040273796",
+          "bab_opt_mod_1_7",
+          "module_118091350",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 616.734375,
+          "width": 390,
+          "height": 3102.671875,
+          "top": 616.734375,
+          "right": 390,
+          "bottom": 3719.40625,
+          "left": 0
+        },
+        "text": "推荐\n客厅地毯\n床边毯\n入户地垫\n浴室地垫\n更多好物\n￥39.9\n500+好评\n满赠\n【无痕去污】免拆洗布艺清洁剂\n已售1万+\n好评率98%\n￥49.9\n2万+好评\n满2件，总价打9折；满3件，总价打8...\n巨奇严选粘毛器滚筒24CM420撕\n买贵双倍赔\n粘毛器热卖榜\n·第20名\n￥7.8\n1万+好评\n换购\n离草布基双面胶带20mm*20m\n布基胶带热卖榜"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 616.734375
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/9LhmKGmTyotk15AR6mYka8SWTGv/1791734400000",
+      "title": "地毯地垫会场",
+      "measured_at": "2026-10-11T11:19:57.732Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_838717916040271333",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 532.8203125,
+          "right": 390,
+          "bottom": 608.734375,
+          "width": 390,
+          "height": 75.9140625
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_206917916040273796 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 616.734375,
+          "right": 390,
+          "bottom": 658.328125,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

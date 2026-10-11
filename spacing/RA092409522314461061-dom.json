@@ -1,0 +1,226 @@
+{
+  "venue": {
+    "venue_name": "原厂养护会场",
+    "venue_id": "RA092409522314461061",
+    "project_id": "02207428",
+    "identity_cell": "原厂养护会场\nRA092409522314461061\n通天塔项目ID:02207428",
+    "official_url": "https://pro.m.jd.com/mall/active/3HEHX4WHdANJ7mN1ESifnzGhKoPz/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3HEHX4WHdANJ7mN1ESifnzGhKoPz/1791734400000?source=preview&endpoint=&pageId=6468796&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p02-r30-RA092409522314461061",
+    "source_page": 2,
+    "source_row": 30,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:20.229Z",
+    "qr_file": "qrcodes/p02-r30-RA092409522314461061.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3HEHX4WHdANJ7mN1ESifnzGhKoPz/1791734400000?source=preview&endpoint=&pageId=6468796&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_583117902147461799",
+    "tab_selector": ".bab_opt_mod.module_519517902147463747 .tabs_bar",
+    "upper_module": "权益券包",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_807617902147461559",
+          "bab_opt_mod_1_1",
+          "module_118053786",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 168.4765625,
+          "top": 45,
+          "right": 390,
+          "bottom": 213.4765625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_583117902147461799",
+          "bab_opt_mod_1_2",
+          "module_118053788",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 213.4765625,
+          "width": 390,
+          "height": 194.34375,
+          "top": 213.4765625,
+          "right": 390,
+          "bottom": 407.8203125,
+          "left": 0
+        },
+        "text": "9.8折\n满1可用\n限原厂商品\n立即领取\n9.1折\n满100可用\n限日产部分售后类产品商品\n10.15开抢"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_519517902147463747",
+          "bab_opt_mod_1_3",
+          "module_118053793",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 407.8203125,
+          "width": 390,
+          "height": 1525.0703125,
+          "top": 407.8203125,
+          "right": 390,
+          "bottom": 1932.890625,
+          "left": 0
+        },
+        "text": "推荐\n本田\n丰田\n日产\n大众\n宝马\n奥迪\n奔驰\n沃尔沃\n起亚\n奇瑞\n问界\n\n新能源车品京东自营专区\n6131人关注\n奥迪（AUDI）维修保养京东自营旗舰店\n2453人关注\n福特维修保养京东自营旗舰店\n58人关注\n五菱车品旗舰店\n1819人关注\n长安汽车原厂配件旗舰店\n4.8万人关注\n宝马（BMW）汽车配件京东自营专区\n2.5万人关注\n德科（ACDelco）京"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 407.8203125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/3HEHX4WHdANJ7mN1ESifnzGhKoPz/1791734400000",
+      "title": "原厂养护会场",
+      "measured_at": "2026-10-11T11:05:09.924Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_583117902147461799",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 213.4765625,
+          "right": 390,
+          "bottom": 407.8203125,
+          "width": 390,
+          "height": 194.34375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_519517902147463747 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 407.8203125,
+          "right": 390,
+          "bottom": 454.6171875,
+          "width": 390,
+          "height": 46.796875
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "8px",
+          "border-top-right-radius": "8px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 0,
+        "relationship": "touching",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

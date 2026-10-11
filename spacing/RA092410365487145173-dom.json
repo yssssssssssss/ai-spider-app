@@ -1,0 +1,346 @@
+{
+  "venue": {
+    "venue_name": "3C数码11.11会场",
+    "venue_id": "RA092410365487145173",
+    "project_id": "02052133",
+    "identity_cell": "3C数码11.11会场\nRA092410365487145173\n通天塔项目ID:02052133",
+    "official_url": "https://pro.m.jd.com/mall/active/2wBcUAUTCQ2VWGA2whV9gQUpFaV/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/2wBcUAUTCQ2VWGA2whV9gQUpFaV/1791734400000?source=preview&endpoint=&pageId=6469094&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p07-r11-RA092410365487145173",
+    "source_page": 7,
+    "source_row": 11,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:24.284Z",
+    "qr_file": "qrcodes/p07-r11-RA092410365487145173.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/2wBcUAUTCQ2VWGA2whV9gQUpFaV/1791734400000?source=preview&endpoint=&pageId=6469094&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_898617914398905159",
+    "tab_selector": ".bab_opt_mod.module_746117902174172250 .tabs_bar",
+    "upper_module": "上方业务模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_788617902174170382",
+          "bab_opt_mod_1_1",
+          "floatLayer"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 0,
+          "top": 45,
+          "right": 390,
+          "bottom": 45,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_374417902174163177",
+          "bab_opt_mod_1_2",
+          "module_117863964",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "至高直降千元"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_258917902174170037",
+          "bab_opt_mod_1_3",
+          "module_117863965",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 4,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 200.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_779117902174170306",
+          "bab_opt_mod_1_4",
+          "module_117863967",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 200.8359375,
+          "width": 390,
+          "height": 0,
+          "top": 200.8359375,
+          "right": 390,
+          "bottom": 200.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_883917902174170266",
+          "bab_opt_mod_1_5",
+          "module_117863968",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 200.8359375,
+          "width": 390,
+          "height": 4,
+          "top": 200.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_592217902174170212",
+          "bab_opt_mod_1_6",
+          "module_117863966",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 115.078125,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.9140625,
+          "left": 0
+        },
+        "text": "￥500\n满4000可用\n限店铺内部分vivo手机商品\n￥300\n满999可用\n限荣耀京东自营店铺部分商品\n8.8折\n满1可用\n限部分键盘鼠标商品\n7.5折\n满1可用\n限图书部分商品\n￥20\n满159可用\n限图书部分商品\n￥9\n满10可用\n限拍拍二手自营部分商品\n￥50\n满99可用\n限部分平台商品\n￥5\n满5.01可用\n限部分文教文化用品商品\n￥4\n满4.0"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_898617914398905159",
+          "bab_opt_mod_1_7",
+          "module_118006649",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 330.3125,
+          "width": 390,
+          "height": 118.546875,
+          "top": 330.3125,
+          "right": 390,
+          "bottom": 448.859375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_384017902174170343",
+          "bab_opt_mod_1_8",
+          "module_117863969",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 459.2578125,
+          "width": 390,
+          "height": 8,
+          "top": 459.2578125,
+          "right": 390,
+          "bottom": 467.2578125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_746117902174172250",
+          "bab_opt_mod_1_9",
+          "module_117863971",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 467.2578125,
+          "width": 390,
+          "height": 3102.671875,
+          "top": 467.2578125,
+          "right": 390,
+          "bottom": 3569.9296875,
+          "left": 0
+        },
+        "text": "推荐\n电脑整机\n办公设备\n手机通讯\n潮玩数码\n图书文娱\n打印耗材\n实用配件\n办公文具\n￥1299\n企业预估到手价\n换购\nOPPO A6x 青出于蓝 6GB+128GB\n以旧换新\n好评率100%\n￥45199\n企业预估到手价\n趋势好物\n戴尔 DGX Spark GB10 128G+2T\n以旧换新\n好评率100%\n￥2634.45\n企业预估到手价\n换购\n惠普(H"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 467.2578125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/2wBcUAUTCQ2VWGA2whV9gQUpFaV/1791734400000",
+      "title": "3C数码会场",
+      "measured_at": "2026-10-11T11:14:21.808Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_898617914398905159",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 330.3125,
+          "right": 390,
+          "bottom": 448.859375,
+          "width": 390,
+          "height": 118.546875
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "14px",
+          "font-weight": "400",
+          "line-height": "16.1px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_746117902174172250 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 467.2578125,
+          "right": 390,
+          "bottom": 508.8515625,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 18.3984375,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

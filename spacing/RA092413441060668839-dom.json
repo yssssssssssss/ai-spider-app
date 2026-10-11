@@ -1,0 +1,264 @@
+{
+  "venue": {
+    "venue_name": "水晶文玩双十一会场",
+    "venue_id": "RA092413441060668839",
+    "project_id": "02207751",
+    "identity_cell": "水晶文玩双十一会场\nRA092413441060668839\n通天塔项目ID:02207751",
+    "official_url": "https://pro.m.jd.com/mall/active/26qM53cmYKbrW2YfQG2ZPjbM4x6p/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/26qM53cmYKbrW2YfQG2ZPjbM4x6p/1791734400000?source=preview&endpoint=&pageId=6469679&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p02-r16-RA092413441060668839",
+    "source_page": 2,
+    "source_row": 16,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:20.222Z",
+    "qr_file": "qrcodes/p02-r16-RA092413441060668839.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/26qM53cmYKbrW2YfQG2ZPjbM4x6p/1791734400000?source=preview&endpoint=&pageId=6469679&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_468917902286536059",
+    "tab_selector": ".bab_opt_mod.module_826417902286537842 .tabs_bar",
+    "upper_module": "自定义业务模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_847317902286535618",
+          "bab_opt_mod_1_1",
+          "module_117837585",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "官方直降15%"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_520617902286536025",
+          "bab_opt_mod_1_2",
+          "module_117837589",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_468917902286536059",
+          "bab_opt_mod_1_3",
+          "module_117837588",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 280.75,
+          "left": 0
+        },
+        "text": "¥288\n\n¥\n\n288\n\n¥898\n\n¥\n\n898\n\n¥699\n\n¥\n\n699\n\n¥350.58\n\n¥\n\n350\n\n.58\n\n好物低价购\n\n¥\n\n245\n\n¥79.68\n\n¥\n\n79\n\n.68\n\n¥299\n\n¥\n\n299\n\n¥319\n\n¥\n\n319\n\n¥259\n\n¥\n\n259\n\n¥148\n\n¥\n\n148\n\n¥422\n\n¥\n\n422\n\n¥46.7\n\n¥\n\n4"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_444217902286536098",
+          "bab_opt_mod_1_4",
+          "module_117837590",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 280.75,
+          "width": 390,
+          "height": 8,
+          "top": 280.75,
+          "right": 390,
+          "bottom": 288.75,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_826417902286537842",
+          "bab_opt_mod_1_5",
+          "module_117837591",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 288.75,
+          "width": 390,
+          "height": 2599.296875,
+          "top": 288.75,
+          "right": 390,
+          "bottom": 2888.046875,
+          "left": 0
+        },
+        "text": "精品推荐\n水晶玛瑙\n文玩把件\n合香珠\n￥139\n库克和田玉碧玉菩提手串\n官方直降15%\n好评率100%\n30天价保\n免费上门退换\n3期免息\n￥439\n天然奇楠沉香手串520情人节礼物\n好评率100%\n材质保障\n￥136\n铜镀银吊坠手工涂砂平安福\n官方直降15%\n好评率100%\n材质保障\n￥96\n静风格双圈茶晶手串\n官方直降15%\n好评率100%\n材质保障\n￥"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 288.75
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/26qM53cmYKbrW2YfQG2ZPjbM4x6p/1791734400000",
+      "title": "水晶文玩会场",
+      "measured_at": "2026-10-11T11:03:49.470Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_468917902286536059",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 280.75,
+          "width": 390,
+          "height": 75.9140625
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_826417902286537842 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 288.75,
+          "right": 390,
+          "bottom": 346.96875,
+          "width": 390,
+          "height": 58.21875
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

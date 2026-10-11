@@ -1,0 +1,323 @@
+{
+  "venue": {
+    "venue_name": "国产摩托车装备会场",
+    "venue_id": "RA092414495798648455",
+    "project_id": "02207896",
+    "identity_cell": "国产摩托车装备会场\nRA092414495798648455\n通天塔项目ID:02207896",
+    "official_url": "https://pro.m.jd.com/mall/active/5t6K3WLPQkMLYBMiXEkUDKx84xi/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/5t6K3WLPQkMLYBMiXEkUDKx84xi/1791734400000?source=preview&endpoint=&pageId=6470195&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p11-r14-RA092414495798648455",
+    "source_page": 11,
+    "source_row": 14,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:27.441Z",
+    "qr_file": "qrcodes/p11-r14-RA092414495798648455.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/5t6K3WLPQkMLYBMiXEkUDKx84xi/1791734400000?source=preview&endpoint=&pageId=6470195&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_118049995",
+    "tab_selector": ".bab_opt_mod.module_673517902325990994 .tabs_bar",
+    "upper_module": "上方业务模块",
+    "semantic_boundary_verified": false,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_881217902325988832",
+          "bab_opt_mod_1_1",
+          "floatLayer"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 0,
+          "top": 45,
+          "right": 390,
+          "bottom": 45,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_101717902325987336",
+          "bab_opt_mod_1_2",
+          "module_118049993",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_3",
+          "module_118049994",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 158.2734375,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 355.109375,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层3-楼层间隔-118049994\n1.因为区块焦点楼层【4-官方会场权益】被过滤，所以楼层3被同步过滤"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_4",
+          "module_118049995",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 355.109375,
+          "width": 390,
+          "height": 186.453125,
+          "top": 355.109375,
+          "right": 390,
+          "bottom": 541.5625,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层4-官方会场权益-118049995\n1.素材组id 08462581，预览时间对应的分期无素材，请进入素材管理查看预览时间对应分期下的素材\n2.素材组08462581素材为空"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_978817902325988454",
+          "bab_opt_mod_1_5",
+          "module_118049997",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 541.5625,
+          "width": 390,
+          "height": 8,
+          "top": 541.5625,
+          "right": 390,
+          "bottom": 549.5625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_470817902325988580",
+          "bab_opt_mod_1_6",
+          "module_118049996",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 549.5625,
+          "width": 390,
+          "height": 0,
+          "top": 549.5625,
+          "right": 390,
+          "bottom": 549.5625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_398417902325988709",
+          "bab_opt_mod_1_7",
+          "module_118049999",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 549.5625,
+          "width": 390,
+          "height": 8,
+          "top": 549.5625,
+          "right": 390,
+          "bottom": 557.5625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_673517902325990994",
+          "bab_opt_mod_1_8",
+          "module_118050000",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 557.5625,
+          "width": 390,
+          "height": 1605.171875,
+          "top": 557.5625,
+          "right": 390,
+          "bottom": 2162.734375,
+          "left": 0
+        },
+        "text": "摩托车头盔\n摩托车骑行服\n骑士手套\n骑行靴\n摩托车护具\n趋势好物\n￥368\n100+条好评\nKAESE摩托车头盔碳纤维头盔复古全盔玻璃钢春夏男踏板巡航机车小盔体女 玻璃钢亮黑（茶色镜片） 大码（60-61cm）\n免费上门退换\n闪电退款\n1000+条评价\n趋势好物\n￥1498\n44条好评\nMULAN木兰二代拉力盔二代陆游新款摩托车头盔ADV越野越野拉力盔碳纤维"
+      }
+    ],
+    "semantic_review": "上方含楼层异常提示或未辨明模块，不能认定为正常业务边界。",
+    "tab_top": 557.5625
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/5t6K3WLPQkMLYBMiXEkUDKx84xi/1791734400000",
+      "title": "骑士装备会场",
+      "measured_at": "2026-10-11T11:23:10.555Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_118049995",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 355.109375,
+          "right": 390,
+          "bottom": 541.5625,
+          "width": 390,
+          "height": 186.453125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "14px",
+          "font-weight": "400",
+          "line-height": "16.1px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_673517902325990994 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 557.5625,
+          "right": 390,
+          "bottom": 599.15625,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 16,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

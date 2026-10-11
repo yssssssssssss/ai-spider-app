@@ -1,0 +1,326 @@
+{
+  "venue": {
+    "venue_name": "滋补保健大促会场",
+    "venue_id": "RA092910045164228103",
+    "project_id": "02209843",
+    "identity_cell": "滋补保健大促会场\nRA092910045164228103\n通天塔项目ID:02209843",
+    "official_url": "https://pro.m.jd.com/mall/active/3yPN23ahSJsy8U4B6jMn8wwsr33n/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3yPN23ahSJsy8U4B6jMn8wwsr33n/1791734400000?source=preview&endpoint=&pageId=6475132&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p01-r14-RA092910045164228103",
+    "source_page": 1,
+    "source_row": 14,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:18.231Z",
+    "qr_file": "qrcodes/p01-r14-RA092910045164228103.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3yPN23ahSJsy8U4B6jMn8wwsr33n/1791734400000?source=preview&endpoint=&pageId=6475132&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_753217906474938685",
+    "tab_selector": ".bab_opt_mod.module_558017906474941153 .tabs_bar",
+    "upper_module": "自定义业务模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_872517916277435696",
+          "bab_opt_mod_1_1",
+          "module_118121946",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 16,
+          "top": 45,
+          "right": 390,
+          "bottom": 61,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_757317906474937439",
+          "bab_opt_mod_1_2",
+          "module_117871792",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 61,
+          "width": 390,
+          "height": 197.59375,
+          "top": 61,
+          "right": 390,
+          "bottom": 258.59375,
+          "left": 0
+        },
+        "text": "每满200减30"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_194017906474938083",
+          "bab_opt_mod_1_3",
+          "module_117871796",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 258.59375,
+          "width": 390,
+          "height": 8,
+          "top": 258.59375,
+          "right": 390,
+          "bottom": 266.59375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_508717906474938399",
+          "bab_opt_mod_1_4",
+          "module_117871797",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 266.59375,
+          "width": 390,
+          "height": 115.078125,
+          "top": 266.59375,
+          "right": 390,
+          "bottom": 381.671875,
+          "left": 0
+        },
+        "text": "￥20\n满20.01可用\n限滋补保健宠物商品\n5折\n满10可用\n限滋补保健宠物商品\n￥3\n满3.01可用\n限滋补保健宠物商品\n￥6\n满6.01可用\n限滋补保健宠物商品\n￥10\n满21可用\n限购 [Swisse斯维诗官方旗舰店] 店铺部分商品\n￥75\n满500可用\n限营养保健部分商品\n￥5\n满199可用\n限购 [万宁海外旗舰店] 店铺部分商品\n￥2\n满2.01"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_862017906474938556",
+          "bab_opt_mod_1_5",
+          "module_117871798",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 381.671875,
+          "width": 390,
+          "height": 8,
+          "top": 381.671875,
+          "right": 390,
+          "bottom": 389.671875,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_753217906474938685",
+          "bab_opt_mod_1_6",
+          "module_117871799",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 389.671875,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 389.671875,
+          "right": 390,
+          "bottom": 465.5859375,
+          "left": 0
+        },
+        "text": "脉拓辅酶Q10\n\n同价11.11\n\n品酷巧克力30g\n\n品酷巧克力30g\n\n皇家处方粮臻选\n\n双十一抢先囤\n\n爱沃克大猫3支\n\n内外同驱\n\n钙尔奇\n\n爆品低至5折\n\n佳膳悠选\n\n中老年营养补充\n\n大宠爱11.11开抢\n\nPLUS享折上折\n\n汤臣倍健\n\n享10重礼\n\n合生元小超金\n\n合生元小超金\n\n品酷原味30g\n\n品酷原味30g\n\n肽敏舒1+HMO奶粉\n\n雀"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_477417906474938800",
+          "bab_opt_mod_1_7",
+          "module_117871800",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 465.5859375,
+          "width": 390,
+          "height": 8,
+          "top": 465.5859375,
+          "right": 390,
+          "bottom": 473.5859375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_558017906474941153",
+          "bab_opt_mod_1_8",
+          "module_117871802",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 473.5859375,
+          "width": 390,
+          "height": 2586.828125,
+          "top": 473.5859375,
+          "right": 390,
+          "bottom": 3060.4140625,
+          "left": 0
+        },
+        "text": "推荐\n营养保健\n传统滋补\n宠物健康\n医疗保健\n送礼滋补\n高性价比\n￥259\nMove Free益节氨糖软骨素钙片绿瓶120粒 维骨力成人中老年人美国原装进口\n10万+条好评\n￥225\n钙尔奇钙片中老年人补钙100粒*3 金钻K2钙镁片维生素D维生素K 金钙尔奇\n10万+条好评\n￥349\n鹰牌花旗参西洋参茶3g*40包/盒人参皂苷 送父母长辈领导无礼袋\n2万+"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 473.5859375
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/3yPN23ahSJsy8U4B6jMn8wwsr33n/1791734400000",
+      "title": "营养保健会场",
+      "measured_at": "2026-10-11T11:00:14.738Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_753217906474938685",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 389.671875,
+          "right": 390,
+          "bottom": 465.5859375,
+          "width": 390,
+          "height": 75.9140625
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_558017906474941153 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 473.5859375,
+          "right": 390,
+          "bottom": 515.1796875,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

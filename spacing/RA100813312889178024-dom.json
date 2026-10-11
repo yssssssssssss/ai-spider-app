@@ -1,0 +1,306 @@
+{
+  "venue": {
+    "venue_name": "笔记本双11会场",
+    "venue_id": "RA100813312889178024",
+    "project_id": "02212575",
+    "identity_cell": "笔记本双11会场\nRA100813312889178024\n通天塔项目ID:02212575",
+    "official_url": null,
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/46a7yPwnZzMFRMajCwnJ8DG1cRun/1791734400000?source=preview&endpoint=&pageId=6483644&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p05-r01-RA100813312889178024",
+    "source_page": 5,
+    "source_row": 1,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:22.575Z",
+    "qr_file": "qrcodes/p05-r01-RA100813312889178024.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/46a7yPwnZzMFRMajCwnJ8DG1cRun/1791734400000?source=preview&endpoint=&pageId=6483644&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_167817916337311409",
+    "tab_selector": ".bab_opt_mod.module_334817915370446247 .tabs_bar",
+    "upper_module": "权益券包",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_138417914374907891",
+          "bab_opt_mod_1_1",
+          "module_118034565",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_457917914374908375",
+          "bab_opt_mod_1_2",
+          "module_118034570",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_244217914374908335",
+          "bab_opt_mod_1_3",
+          "module_118034569",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 0,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_419317915375252995",
+          "bab_opt_mod_1_4",
+          "module_118062562",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 212.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_167817916337311409",
+          "bab_opt_mod_1_5",
+          "module_118131137",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 212.8359375,
+          "width": 390,
+          "height": 115.078125,
+          "top": 212.8359375,
+          "right": 390,
+          "bottom": 327.9140625,
+          "left": 0
+        },
+        "text": "￥20\n满21可用\n限部分笔记本游戏本商品\n￥100\n满101可用\n限部分惠普笔记本电脑商品\n￥50\n满51可用\n限戴尔及外星人电脑部分商品\n￥100\n满101可用\n限戴尔、外星人、新秀丽部分商品\n￥50\n满50.1可用\n限部分惠普笔记本商品\n￥50\n满51可用\n限部分笔记本游戏本商品\n￥300\n满4000可用\n限荣耀笔记本部分商品\n￥100\n满100.1可"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_183717914374908295",
+          "bab_opt_mod_1_6",
+          "module_118034568",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 327.9140625,
+          "width": 390,
+          "height": 8,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 335.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_334817915370446247",
+          "bab_opt_mod_1_7",
+          "module_118062563",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 335.9140625,
+          "width": 390,
+          "height": 2653.421875,
+          "top": 335.9140625,
+          "right": 390,
+          "bottom": 2989.3359375,
+          "left": 0
+        },
+        "text": "推荐\n国家补贴\n以旧换新\n轻薄优选\n酷玩潮本\n￥7799\n200+好评\n换购\n联想LOQ15 电竞游戏笔记本\n游戏本热卖榜\n·第14名\n￥5299\n1万+好评\n赠品\n【国家补贴】REDMI Book 16焕新\n以旧换新\n10月『笔记本电脑金榜』\n·TOP20\n￥5499\n37好评\n换购\n联想小新16SE高能轻薄本\n180天只换不修\n笔记本电脑热卖榜\n·第24"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 335.9140625
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/46a7yPwnZzMFRMajCwnJ8DG1cRun/1791734400000",
+      "title": "笔记本会场",
+      "measured_at": "2026-10-11T11:09:26.655Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_167817916337311409",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 212.8359375,
+          "right": 390,
+          "bottom": 327.9140625,
+          "width": 390,
+          "height": 115.078125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_334817915370446247 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 335.9140625,
+          "right": 390,
+          "bottom": 377.5078125,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

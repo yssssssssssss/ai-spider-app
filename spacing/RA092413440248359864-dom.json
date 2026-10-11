@@ -1,0 +1,306 @@
+{
+  "venue": {
+    "venue_name": "双十一汽车保养会场",
+    "venue_id": "RA092413440248359864",
+    "project_id": "02207572",
+    "identity_cell": "双十一汽车保养会场\nRA092413440248359864\n通天塔项目ID:02207572",
+    "official_url": "https://pro.m.jd.com/mall/active/3eNPft47KV4RwXqGWfRQjt5ze2zM/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3eNPft47KV4RwXqGWfRQjt5ze2zM/1791734400000?source=preview&endpoint=&pageId=6469654&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p10-r16-RA092413440248359864",
+    "source_page": 10,
+    "source_row": 16,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:26.556Z",
+    "qr_file": "qrcodes/p10-r16-RA092413440248359864.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3eNPft47KV4RwXqGWfRQjt5ze2zM/1791734400000?source=preview&endpoint=&pageId=6469654&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_203217902286494708",
+    "tab_selector": ".bab_opt_mod.module_669317902286496576 .tabs_bar",
+    "upper_module": "自定义业务模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_373417902286494237",
+          "bab_opt_mod_1_1",
+          "module_117808565",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_763917902286494421",
+          "bab_opt_mod_1_2",
+          "module_117808567",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_624717902286494612",
+          "bab_opt_mod_1_3",
+          "module_117808566",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 77.9921875,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 282.828125,
+          "left": 0
+        },
+        "text": "9折\n满1可用\n限汽车保养商品\n立即领取"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_178717902286494669",
+          "bab_opt_mod_1_4",
+          "module_117808569",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 282.828125,
+          "width": 390,
+          "height": 8,
+          "top": 282.828125,
+          "right": 390,
+          "bottom": 290.828125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_203217902286494708",
+          "bab_opt_mod_1_5",
+          "module_117808568",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 290.828125,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 290.828125,
+          "right": 390,
+          "bottom": 366.7421875,
+          "left": 0
+        },
+        "text": "昆仑润滑\n\n曼牌滤清器\n\n马勒\n\n科德宝\n\n嘉实多\n\n壳牌\n\n美孚\n\n胜牌\n\n统一润滑油\n\n中国石化\n\n昆仑润滑\n\n曼牌滤清器\n\n马勒\n\n科德宝\n\n嘉实多\n\n壳牌\n\n美孚\n\n胜牌"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_275217902286494735",
+          "bab_opt_mod_1_6",
+          "module_117808571",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 366.7421875,
+          "width": 390,
+          "height": 8,
+          "top": 366.7421875,
+          "right": 390,
+          "bottom": 374.7421875,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_669317902286496576",
+          "bab_opt_mod_1_7",
+          "module_117808570",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 374.7421875,
+          "width": 390,
+          "height": 2501.59375,
+          "top": 374.7421875,
+          "right": 390,
+          "bottom": 2876.3359375,
+          "left": 0
+        },
+        "text": "美嘉壳机油\n国家补贴\nPLUS会员\n滤清器\n低价热卖\n国产机油\n养护品\n跨境优品\n￥168\n2000+好评\n换购\n壳牌极净0W20 SP/C6/C5 1L机油\n本店商品热卖榜\n·第18名\n￥168\n500+好评\n换购\n壳牌极净0W30 SP/C3 1L机油\n本店商品热卖榜\n·第15名\n￥118\n100+好评\n换购\n壳牌陨石灰0w20 SQ/C51L机油\n10"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 374.7421875
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/3eNPft47KV4RwXqGWfRQjt5ze2zM/1791734400000",
+      "title": "汽车保养会场",
+      "measured_at": "2026-10-11T11:21:14.823Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_203217902286494708",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 290.828125,
+          "right": 390,
+          "bottom": 366.7421875,
+          "width": 390,
+          "height": 75.9140625
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_669317902286496576 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 374.7421875,
+          "right": 390,
+          "bottom": 416.3359375,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

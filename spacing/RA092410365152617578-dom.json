@@ -1,0 +1,284 @@
+{
+  "venue": {
+    "venue_name": "26Y双11排行榜会场",
+    "venue_id": "RA092410365152617578",
+    "project_id": "02207139",
+    "identity_cell": "26Y双11排行榜会场\nRA092410365152617578\n通天塔项目ID:02207139",
+    "official_url": "https://pro.m.jd.com/mall/active/31EY4qAXgWEktySBHNXP7JeL16s6/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/31EY4qAXgWEktySBHNXP7JeL16s6/1791734400000?source=preview&endpoint=&pageId=6477787&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p08-r03-RA092410365152617578",
+    "source_page": 8,
+    "source_row": 3,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:25.056Z",
+    "qr_file": "qrcodes/p08-r03-RA092410365152617578.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/31EY4qAXgWEktySBHNXP7JeL16s6/1791734400000?source=preview&endpoint=&pageId=6477787&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_469617906871026752",
+    "tab_selector": ".bab_opt_mod.module_498517906871036480 .tabs_bar",
+    "upper_module": "自定义业务模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_374117916231248545",
+          "bab_opt_mod_1_1",
+          "module_118111884",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "天天打榜抽99京豆"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_2",
+          "module_117906257",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 158.2734375,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 355.109375,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层5-楼层间隔-117906257\n1.因为区块焦点楼层【253017906871026584】被过滤，所以楼层 5 被同步过滤"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_795417906871026670",
+          "bab_opt_mod_1_3",
+          "module_117906259",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 355.109375,
+          "width": 390,
+          "height": 8,
+          "top": 355.109375,
+          "right": 390,
+          "bottom": 363.109375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_469617906871026752",
+          "bab_opt_mod_1_4",
+          "module_117906260",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 363.109375,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 363.109375,
+          "right": 390,
+          "bottom": 439.0234375,
+          "left": 0
+        },
+        "text": "粉饼榜\n\n267万人买过\n\n随身wifi榜\n\n347万人买过\n\n洁面榜\n\n1590万人买过\n\n多功能手表\n\n13.8万人买过\n\n男士面霜榜\n\n1080万人买过\n\n电池榜\n\n3700万人买过\n\n蓝牙耳机榜\n\n885万人买过\n\n智能手环榜\n\n162万人买过\n\n移动电源榜\n\n540万人买过\n\n菜刀榜\n\n185万人买过\n\n老花镜榜\n\n204万人买过\n\n龙头起泡器\n\n"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_211117906871026846",
+          "bab_opt_mod_1_5",
+          "module_117906261",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 439.0234375,
+          "width": 390,
+          "height": 8,
+          "top": 439.0234375,
+          "right": 390,
+          "bottom": 447.0234375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_498517906871036480",
+          "bab_opt_mod_1_6",
+          "module_117906263",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 447.0234375,
+          "width": 390,
+          "height": 2249.9375,
+          "top": 447.0234375,
+          "right": 390,
+          "bottom": 2696.9609375,
+          "left": 0
+        },
+        "text": "推荐\n低价热卖\n家电爆品\n数码尖货\n超市好物\n美妆穿搭\n健康呵护\n母婴好物\n图书玩具\n运动出行\n家居家装\nFINO芬浓发膜护发素新一代浓厚红罐发膜230g护发修护【侯明昊同款】\n近15日售出超1万件\n潘婷胜肽泡弹发膜12ml*8京东自营高浓护发素护理柔顺弹韧柔亮深水泡弹\n近15日售出超1万件\n多芬（Dove）【成毅同款】密集修护小金碗发膜260g护发素柔顺干"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 447.0234375
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/31EY4qAXgWEktySBHNXP7JeL16s6/1791734400000",
+      "title": "排行榜会场",
+      "measured_at": "2026-10-11T11:15:43.620Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_469617906871026752",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 363.109375,
+          "right": 390,
+          "bottom": 439.0234375,
+          "width": 390,
+          "height": 75.9140625
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_498517906871036480 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 447.0234375,
+          "right": 390,
+          "bottom": 488.6171875,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

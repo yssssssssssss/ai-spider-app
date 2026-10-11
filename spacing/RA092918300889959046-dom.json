@@ -1,0 +1,305 @@
+{
+  "venue": {
+    "venue_name": "模型手办会场",
+    "venue_id": "RA092918300889959046",
+    "project_id": "02210774",
+    "identity_cell": "模型手办会场\nRA092918300889959046\n通天塔项目ID:02210774",
+    "official_url": "https://pro.m.jd.com/mall/active/2A2b32zFHPaomzYQFFBzFRB7h3aZ/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/2A2b32zFHPaomzYQFFBzFRB7h3aZ/1791734400000?source=preview&endpoint=&pageId=6477470&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p09-r10-RA092918300889959046",
+    "source_page": 9,
+    "source_row": 10,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:25.852Z",
+    "qr_file": "qrcodes/p09-r10-RA092918300889959046.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/2A2b32zFHPaomzYQFFBzFRB7h3aZ/1791734400000?source=preview&endpoint=&pageId=6477470&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_402217906778107480",
+    "tab_selector": ".bab_opt_mod.module_408817906778109343 .tabs_bar",
+    "upper_module": "权益券包",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_972217906778107617",
+          "bab_opt_mod_1_1",
+          "floatLayer"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 0,
+          "top": 45,
+          "right": 390,
+          "bottom": 45,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_684917906778106901",
+          "bab_opt_mod_1_2",
+          "module_118075229",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "立减300\n免费抽模型\n免费抽模型"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_713117906778107090",
+          "bab_opt_mod_1_3",
+          "module_118075230",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_402217906778107480",
+          "bab_opt_mod_1_4",
+          "module_118075231",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 115.078125,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.9140625,
+          "left": 0
+        },
+        "text": "9.5折\n满1可用\n限部分模玩手办类商品\n9.5折\n满1可用\n限部分模玩手办类商品\n8.5折\n满89可用\n限部分玩具类商品"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_281617906778107526",
+          "bab_opt_mod_1_5",
+          "module_118075232",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 319.9140625,
+          "width": 390,
+          "height": 8,
+          "top": 319.9140625,
+          "right": 390,
+          "bottom": 327.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_597817906778107591",
+          "bab_opt_mod_1_6",
+          "module_118075234",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 327.9140625,
+          "width": 390,
+          "height": 8,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 335.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_408817906778109343",
+          "bab_opt_mod_1_7",
+          "module_118075235",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 335.9140625,
+          "width": 390,
+          "height": 1605.171875,
+          "top": 335.9140625,
+          "right": 390,
+          "bottom": 1941.0859375,
+          "left": 0
+        },
+        "text": "国创模型\n万代模型\n手办周边\n网游周边\n趋势好物\n￥62\n1条好评\n遥绾惜摩动核白起敖丙带龙曹仁威远式拼装版国创机甲合金骨架模型 许愿-干将必出模型收藏高概\n30天价保\n免费上门退换\n闪电退款\n好评率100%\n趋势好物\n￥269.9\n63条好评\n藏道模型 1/100 创神系列 成品国创机甲机器人 金刚玩具 【现货】天罚\n闪电退款\n好评率95%\n官方直降15%"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 335.9140625
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/2A2b32zFHPaomzYQFFBzFRB7h3aZ/1791734400000",
+      "title": "模型手办会场",
+      "measured_at": "2026-10-11T11:18:41.141Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_402217906778107480",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.9140625,
+          "width": 390,
+          "height": 115.078125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_408817906778109343 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 335.9140625,
+          "right": 390,
+          "bottom": 377.5078125,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 16,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,260 @@
+{
+  "venue": {
+    "venue_name": "小天才爆款热卖会场",
+    "venue_id": "RA092918300466285648",
+    "project_id": "02210738",
+    "identity_cell": "小天才爆款热卖会场\nRA092918300466285648\n通天塔项目ID:02210738已加白",
+    "official_url": null,
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": true,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/35mRw8t5PDMS7EkjEhg8mwXHQvan/1791734400000?source=preview&endpoint=&pageId=6477459&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p06-r10-RA092918300466285648",
+    "source_page": 6,
+    "source_row": 10,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:23.434Z",
+    "qr_file": "qrcodes/p06-r10-RA092918300466285648.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/35mRw8t5PDMS7EkjEhg8mwXHQvan/1791734400000?source=preview&endpoint=&pageId=6477459&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_928217915315510204",
+    "tab_selector": ".bab_opt_mod.module_204617914515364993 .tabs_bar",
+    "upper_module": "热区模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_717917906778074258",
+          "bab_opt_mod_1_1",
+          "module_118002766",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "至高12期免息"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_737917915132714817",
+          "bab_opt_mod_1_2",
+          "module_118054679",
+          "hotzone"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 229.8359375,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 426.671875,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_136617915313734642",
+          "bab_opt_mod_1_3",
+          "module_118054680",
+          "hotzone"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 426.171875,
+          "width": 390,
+          "height": 428.8203125,
+          "top": 426.171875,
+          "right": 390,
+          "bottom": 854.9921875,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_708517915313974130",
+          "bab_opt_mod_1_4",
+          "module_118054681",
+          "hotzone"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 854.4921875,
+          "width": 390,
+          "height": 426.7421875,
+          "top": 854.4921875,
+          "right": 390,
+          "bottom": 1281.234375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_855417915314334847",
+          "bab_opt_mod_1_5",
+          "module_118054682",
+          "hotzone"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 1280.734375,
+          "width": 390,
+          "height": 430.5546875,
+          "top": 1280.734375,
+          "right": 390,
+          "bottom": 1711.2890625,
+          "left": 0
+        },
+        "text": ""
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 2679.0625
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/35mRw8t5PDMS7EkjEhg8mwXHQvan/1791734400000",
+      "title": "小天才会场",
+      "measured_at": "2026-10-11T11:12:37.896Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 844
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_928217915315510204",
+        "status": "outside_viewport",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 1304.8203125,
+          "right": 390,
+          "bottom": 1809.5625,
+          "width": 390,
+          "height": 504.7421875
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgb(253, 179, 87)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "-0.5px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_204617914515364993 .tabs_bar",
+        "status": "outside_viewport",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 1835.0625,
+          "right": 390,
+          "bottom": 1876.65625,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "needs_visible_targets"
+      }
+    ]
+  }
+}

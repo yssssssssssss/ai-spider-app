@@ -1,0 +1,323 @@
+{
+  "venue": {
+    "venue_name": "旅行箱包双11会场",
+    "venue_id": "RA100913310465253116",
+    "project_id": "01513257",
+    "identity_cell": "旅行箱包双11会场\nRA100913310465253116\n通天塔项目ID:01513257",
+    "official_url": "https://pro.m.jd.com/mall/active/29bp4aZMGgjeFvMu3Fp76YSCNzC9/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/29bp4aZMGgjeFvMu3Fp76YSCNzC9/1791734400000?source=preview&endpoint=&pageId=6486245&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p01-r25-RA100913310465253116",
+    "source_page": 1,
+    "source_row": 25,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:18.238Z",
+    "qr_file": "qrcodes/p01-r25-RA100913310465253116.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/29bp4aZMGgjeFvMu3Fp76YSCNzC9/1791734400000?source=preview&endpoint=&pageId=6486245&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_118093094",
+    "tab_selector": ".bab_opt_mod.module_289817915238717694 .tabs_bar",
+    "upper_module": "上方业务模块",
+    "semantic_boundary_verified": false,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_499417915238715523",
+          "bab_opt_mod_1_1",
+          "floatLayer"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 0,
+          "top": 45,
+          "right": 390,
+          "bottom": 45,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_240417915238713949",
+          "bab_opt_mod_1_2",
+          "module_118093092",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 106.078125,
+          "top": 45,
+          "right": 390,
+          "bottom": 151.078125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_3",
+          "module_118093093",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 151.078125,
+          "width": 390,
+          "height": 158.2734375,
+          "top": 151.078125,
+          "right": 390,
+          "bottom": 309.3515625,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层3-楼层间隔-118093093\n1.因为区块焦点楼层【4-官方会场权益】被过滤，所以楼层3被同步过滤"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_4",
+          "module_118093094",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 309.3515625,
+          "width": 390,
+          "height": 152.96875,
+          "top": 309.3515625,
+          "right": 390,
+          "bottom": 462.3203125,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层4-官方会场权益-118093094\n1.滑动样式下，素材数量不足3，楼层被过滤"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_762817915238715122",
+          "bab_opt_mod_1_5",
+          "module_118093096",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 462.3203125,
+          "width": 390,
+          "height": 8,
+          "top": 462.3203125,
+          "right": 390,
+          "bottom": 470.3203125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_873217915238715250",
+          "bab_opt_mod_1_6",
+          "module_118093095",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 470.3203125,
+          "width": 390,
+          "height": 0,
+          "top": 470.3203125,
+          "right": 390,
+          "bottom": 470.3203125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_353317915238715398",
+          "bab_opt_mod_1_7",
+          "module_118093097",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 470.3203125,
+          "width": 390,
+          "height": 8,
+          "top": 470.3203125,
+          "right": 390,
+          "bottom": 478.3203125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_289817915238717694",
+          "bab_opt_mod_1_8",
+          "module_118093098",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 478.3203125,
+          "width": 390,
+          "height": 1904.671875,
+          "top": 478.3203125,
+          "right": 390,
+          "bottom": 2382.9921875,
+          "left": 0
+        },
+        "text": "推荐\n京东专享\n前侧开盖箱\nTrunk箱\n宽拉杆箱\n潮流设计箱\n￥139.89\n5000+好评\n大嘴猴20英寸登机箱3-5天出行\n买贵双倍赔\n免费上门退换\n闪电退款\n大嘴猴行李箱热卖榜\n·第5名\n￥498.99\n5000+好评\n米家20英寸铝框箱3-5天出行\n买贵双倍赔\nTSA密码锁行李箱热卖榜\n·第28名\n￥588\n1万+好评\n趋势好物\n美旅箱包20英寸登"
+      }
+    ],
+    "semantic_review": "上方含楼层异常提示或未辨明模块，不能认定为正常业务边界。",
+    "tab_top": 478.3203125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/29bp4aZMGgjeFvMu3Fp76YSCNzC9/1791734400000",
+      "title": "旅行箱包会场",
+      "measured_at": "2026-10-11T11:01:01.579Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_118093094",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 309.3515625,
+          "right": 390,
+          "bottom": 462.3203125,
+          "width": 390,
+          "height": 152.96875
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "14px",
+          "font-weight": "400",
+          "line-height": "16.1px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_289817915238717694 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 478.3203125,
+          "right": 390,
+          "bottom": 519.9140625,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 16,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

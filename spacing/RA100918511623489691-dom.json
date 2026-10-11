@@ -1,0 +1,304 @@
+{
+  "venue": {
+    "venue_name": "11.11童装童鞋会场",
+    "venue_id": "RA100918511623489691",
+    "project_id": "00002449",
+    "identity_cell": "11.11童装童鞋会场\nRA100918511623489691\n通天塔项目ID:00002449",
+    "official_url": null,
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3Af6mZNcf5m795T8dtDVfDwWVNhJ/1791734400000?source=preview&endpoint=&pageId=6487725&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p04-r30-RA100918511623489691",
+    "source_page": 4,
+    "source_row": 30,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:21.853Z",
+    "qr_file": "qrcodes/p04-r30-RA100918511623489691.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3Af6mZNcf5m795T8dtDVfDwWVNhJ/1791734400000?source=preview&endpoint=&pageId=6487725&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_437017915430812101",
+    "tab_selector": ".bab_opt_mod.module_884317915430814574 .tabs_bar",
+    "upper_module": "权益券包",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_317617915430811623",
+          "bab_opt_mod_1_1",
+          "module_118088119",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "仅剩\n3\n3\n天\n0\n4\n时\n5\n0\n分"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_909217915430811790",
+          "bab_opt_mod_1_2",
+          "module_118088120",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_437017915430812101",
+          "bab_opt_mod_1_3",
+          "module_118088121",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 115.078125,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.9140625,
+          "left": 0
+        },
+        "text": "￥40\n满89可用\n限童装童鞋部分商品\n￥30\n满169可用\n限童装童鞋部分商品\n￥20\n满119可用\n限童装童鞋部分商品\n￥10\n满79可用\n限童装童鞋部分商品\n￥25\n满200可用\n限童装童鞋部分商品\n￥60\n满480可用\n限童装童鞋部分商品\n￥150\n满1500可用\n限童装童鞋部分商品\n￥15\n满160可用\n限童装童鞋部分商品"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_470717915430812150",
+          "bab_opt_mod_1_4",
+          "module_118088122",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 319.9140625,
+          "width": 390,
+          "height": 8,
+          "top": 319.9140625,
+          "right": 390,
+          "bottom": 327.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_589717915430812223",
+          "bab_opt_mod_1_5",
+          "module_118088124",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 327.9140625,
+          "width": 390,
+          "height": 8,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 335.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_884317915430814574",
+          "bab_opt_mod_1_6",
+          "module_118088127",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 335.9140625,
+          "width": 390,
+          "height": 1349.328125,
+          "top": 335.9140625,
+          "right": 390,
+          "bottom": 1685.2421875,
+          "left": 0
+        },
+        "text": "推荐\n童装\n童鞋\n￥40\n巴拉巴拉宝宝内裤棉平角女童四角短裤亲肤儿童不夹PP三条装209925170023\n买贵双倍赔\n好评率100%\n￥82.3\n左西女童裤子2026秋装新款儿童弯刀裤刺绣直筒阔腿裤子潮 白色 140\n官方直降15%\n好评率100%\n￥149\n戴维贝拉（DAVE＆BELLA）女童洋气卫衣秋装宝宝长袖套头衫儿童上衣童装\n官方直降12%\n好评率"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_7",
+          "inject_preview"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 1685.2421875,
+          "width": 390,
+          "height": 0,
+          "top": 1685.2421875,
+          "right": 390,
+          "bottom": 1685.2421875,
+          "left": 0
+        },
+        "text": ""
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 335.9140625
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/3Af6mZNcf5m795T8dtDVfDwWVNhJ/1791734400000",
+      "title": "童装童鞋会场",
+      "measured_at": "2026-10-11T11:09:21.993Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_437017915430812101",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.9140625,
+          "width": 390,
+          "height": 115.078125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_884317915430814574 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 335.9140625,
+          "right": 390,
+          "bottom": 377.5078125,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 16,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

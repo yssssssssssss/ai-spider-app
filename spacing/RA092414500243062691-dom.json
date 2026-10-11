@@ -1,0 +1,306 @@
+{
+  "venue": {
+    "venue_name": "京喜IP会场",
+    "venue_id": "RA092414500243062691",
+    "project_id": "02207851",
+    "identity_cell": "京喜IP会场\nRA092414500243062691\n通天塔项目ID:02207851",
+    "official_url": "https://pro.m.jd.com/mall/active/2NgiFs1EAEeNsb42jaKBDhFyBtHi/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/2NgiFs1EAEeNsb42jaKBDhFyBtHi/1791734400000?source=preview&endpoint=&pageId=6470208&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p03-r04-RA092414500243062691",
+    "source_page": 3,
+    "source_row": 4,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:20.937Z",
+    "qr_file": "qrcodes/p03-r04-RA092414500243062691.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/2NgiFs1EAEeNsb42jaKBDhFyBtHi/1791734400000?source=preview&endpoint=&pageId=6470208&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_711917907329576147",
+    "tab_selector": ".bab_opt_mod.module_431717902326090110 .tabs_bar",
+    "upper_module": "自定义业务模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_519517902326086347",
+          "bab_opt_mod_1_1",
+          "module_117854674",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "仅剩\n3\n4\n天\n0\n4\n时\n5\n4\n分"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_615117902326086969",
+          "bab_opt_mod_1_2",
+          "module_117854676",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_399417902326087329",
+          "bab_opt_mod_1_3",
+          "module_117854675",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 115.078125,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.9140625,
+          "left": 0
+        },
+        "text": "￥50\n满99可用\n限部分商品\n￥20\n满40可用\n限部分商品\n￥10\n满20可用\n限部分商品\n￥4\n满8可用\n限部分商品\n￥15\n满30可用\n限部分商品\n9折\n满10可用\n限部分商品"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_139017907329576141",
+          "bab_opt_mod_1_4",
+          "module_117911657",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 319.9140625,
+          "width": 390,
+          "height": 8,
+          "top": 319.9140625,
+          "right": 390,
+          "bottom": 327.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_711917907329576147",
+          "bab_opt_mod_1_5",
+          "module_117911658",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 327.9140625,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 403.828125,
+          "left": 0
+        },
+        "text": "儿童成长专场\n\n0.99元起\n\n京喜IP会场\n\n迪士尼周边\n\n甄选好物\n\n品质标杆\n\n京喜c店会场\n\n全场5折起\n\n京喜悦己藏馆\n\n88折起\n\n儿童成长专场\n\n0.99元起\n\n京喜IP会场\n\n迪士尼周边\n\n甄选好物\n\n品质标杆\n\n京喜c店会场\n\n全场5折起\n\n京喜悦己藏馆\n\n88折起\n\n儿童成长专场\n\n0.99元起\n\n京喜IP会场\n\n迪士尼周边\n\n甄选好物\n"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_157017902326087528",
+          "bab_opt_mod_1_6",
+          "module_117854678",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 403.828125,
+          "width": 390,
+          "height": 8,
+          "top": 403.828125,
+          "right": 390,
+          "bottom": 411.828125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_431717902326090110",
+          "bab_opt_mod_1_7",
+          "module_117854677",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 411.828125,
+          "width": 390,
+          "height": 3102.671875,
+          "top": 411.828125,
+          "right": 390,
+          "bottom": 3514.5,
+          "left": 0
+        },
+        "text": "推荐\n低价热卖\n迪士尼\n小黄鸭\n水杯餐具\n联名小电\n生活日用\n积木玩具\n精美灯饰\n文创周边\n精选图书\n￥6.91\n500+好评\n赠品\n陶瓷ins可爱餐具肥肥鲨1碗\n包邮\n免费上门退换\n闪电退款\n已售2万+\n1万+条评价\n￥139\n200+好评\n换购\n疯狂动物城儿童迪士尼沙滩特技车\n闪电退款\n1000+条评价\n￥6.89\n100+好评\n小黄鸭B.duck ba"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 411.828125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/2NgiFs1EAEeNsb42jaKBDhFyBtHi/1791734400000",
+      "title": "京喜IP会场",
+      "measured_at": "2026-10-11T11:05:49.154Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_711917907329576147",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 403.828125,
+          "width": 390,
+          "height": 75.9140625
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_431717902326090110 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 411.828125,
+          "right": 390,
+          "bottom": 453.421875,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

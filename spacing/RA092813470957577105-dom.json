@@ -1,0 +1,262 @@
+{
+  "venue": {
+    "venue_name": "美孚好物节会场",
+    "venue_id": "RA092813470957577105",
+    "project_id": "02209005",
+    "identity_cell": "美孚好物节会场\nRA092813470957577105\n通天塔项目ID:02209005",
+    "official_url": "https://pro.m.jd.com/mall/active/2QnkCXhYqeMtBqkV4Tr2t4nS9ied/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:48",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/2QnkCXhYqeMtBqkV4Tr2t4nS9ied/1791734400000?source=preview&endpoint=&pageId=6473341&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p11-r17-RA092813470957577105",
+    "source_page": 11,
+    "source_row": 17,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:27.442Z",
+    "qr_file": "qrcodes/p11-r17-RA092813470957577105.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/2QnkCXhYqeMtBqkV4Tr2t4nS9ied/1791734400000?source=preview&endpoint=&pageId=6473341&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_740217907317562770",
+    "tab_selector": ".bab_opt_mod.module_195717914438548976 .tabs_bar",
+    "upper_module": "头图",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_740217907317562770",
+          "bab_opt_mod_1_1",
+          "module_118011747",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_913017914439115600",
+          "bab_opt_mod_1_2",
+          "module_118012207",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_422217914438545502",
+          "bab_opt_mod_1_3",
+          "module_118012208",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 212.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_195717914438548976",
+          "bab_opt_mod_1_4",
+          "module_118012209",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 212.8359375,
+          "width": 390,
+          "height": 856.59375,
+          "top": 212.8359375,
+          "right": 390,
+          "bottom": 1069.4296875,
+          "left": 0
+        },
+        "text": "推荐\n热销榜单\n门店同款\n小保养套餐\n大保养套餐\n￥221\n美孚（Mobil）全合成汽机油 5W-30 SN级4L 速霸2000 汽车保养京东养车京东自营\n20万+条好评\n￥309\n美孚（Mobil）全合成汽机油5W-30 SP级4L美孚1号极光银汽车保养京东养车自营\n200万+条好评\n￥629\n美孚（Mobil）全合成汽机油0W-20 SQ级4L金美汽车保"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_5",
+          "inject_preview"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 1069.4296875,
+          "width": 390,
+          "height": 0,
+          "top": 1069.4296875,
+          "right": 390,
+          "bottom": 1069.4296875,
+          "left": 0
+        },
+        "text": ""
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 212.8359375
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/2QnkCXhYqeMtBqkV4Tr2t4nS9ied/1791734400000",
+      "title": "美孚好物会场",
+      "measured_at": "2026-10-11T11:23:47.595Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_740217907317562770",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "width": 390,
+          "height": 151.8359375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_195717914438548976 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 212.8359375,
+          "right": 390,
+          "bottom": 254.4296875,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 16,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

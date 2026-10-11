@@ -1,0 +1,324 @@
+{
+  "venue": {
+    "venue_name": "苏泊尔好物节会场",
+    "venue_id": "RA092813475281858385",
+    "project_id": "02209024",
+    "identity_cell": "苏泊尔好物节会场\nRA092813475281858385\n通天塔项目ID:02209024",
+    "official_url": "https://pro.m.jd.com/mall/active/UxEHZjwcVmZwme3jbCgU24kaeRg/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:57",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/UxEHZjwcVmZwme3jbCgU24kaeRg/1791734400000?source=preview&endpoint=&pageId=6473418&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p12-r03-RA092813475281858385",
+    "source_page": 12,
+    "source_row": 3,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:28.475Z",
+    "qr_file": "qrcodes/p12-r03-RA092813475281858385.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/UxEHZjwcVmZwme3jbCgU24kaeRg/1791734400000?source=preview&endpoint=&pageId=6473418&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_738317905744781491",
+    "tab_selector": ".bab_opt_mod.module_950717905744783593 .tabs_bar",
+    "upper_module": "权益券包",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_265617905744781064",
+          "bab_opt_mod_1_1",
+          "module_118030874",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_516917905744781301",
+          "bab_opt_mod_1_2",
+          "module_118030876",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_738317905744781491",
+          "bab_opt_mod_1_3",
+          "module_118030875",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 115.078125,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.9140625,
+          "left": 0
+        },
+        "text": "￥30\n满200可用\n限京东苏泊尔自营商品\n9折\n满200可用\n限苏泊尔部分商品\n￥20\n满100可用\n限京东苏泊尔自营商品\n9折\n满200可用\n限苏泊尔部分商品\n￥30\n满300可用\n限京东苏泊尔自营商品\n9折\n满50可用\n限京东苏泊尔自营商品\n￥60\n满800可用\n限京东苏泊尔自营商品\n￥40\n满300可用\n限京东苏泊尔自营商品\n￥20\n满200可用\n限"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_336517905744781549",
+          "bab_opt_mod_1_4",
+          "module_118030878",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 319.9140625,
+          "width": 390,
+          "height": 8,
+          "top": 319.9140625,
+          "right": 390,
+          "bottom": 327.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_613417905744781586",
+          "bab_opt_mod_1_5",
+          "module_118030877",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 327.9140625,
+          "width": 390,
+          "height": 0,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 327.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_478817905744781619",
+          "bab_opt_mod_1_6",
+          "module_118030879",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 327.9140625,
+          "width": 390,
+          "height": 8,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 335.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_950717905744783593",
+          "bab_opt_mod_1_7",
+          "module_118030881",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 335.9140625,
+          "width": 390,
+          "height": 1349.328125,
+          "top": 335.9140625,
+          "right": 390,
+          "bottom": 1685.2421875,
+          "left": 0
+        },
+        "text": "推荐\n饭压专区\n电热专区\n水养专区\n烘焙专区\n料炸专区\n新势力区\n￥189\n苏泊尔（SUPOR）5升大容量 家用4-5人 智能预约多功能 0氟有钛天青瓷电饭煲电饭锅煮饭锅 SF50FC5074 微压\n5000+条好评\n￥468.99\n苏泊尔（SUPOR）20L家用风炉电烤箱 空气炸锅微蒸汽烤炸热风循环发酵一体机一键烘干广域温控 OD20AK812\n1万+条好"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_8",
+          "inject_preview"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 1685.2421875,
+          "width": 390,
+          "height": 0,
+          "top": 1685.2421875,
+          "right": 390,
+          "bottom": 1685.2421875,
+          "left": 0
+        },
+        "text": ""
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 335.9140625
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/UxEHZjwcVmZwme3jbCgU24kaeRg/1791734400000",
+      "title": "苏泊尔会场",
+      "measured_at": "2026-10-11T11:25:10.108Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_738317905744781491",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.9140625,
+          "width": 390,
+          "height": 115.078125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_950717905744783593 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 335.9140625,
+          "right": 390,
+          "bottom": 377.5078125,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 16,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

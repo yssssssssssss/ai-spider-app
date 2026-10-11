@@ -1,0 +1,246 @@
+{
+  "venue": {
+    "venue_name": "男女装双十一会场",
+    "venue_id": "RA092413435533221338",
+    "project_id": "02207742",
+    "identity_cell": "男女装双十一会场\nRA092413435533221338\n通天塔项目ID:02207742",
+    "official_url": "https://pro.m.jd.com/mall/active/SDizU2KKzZYkaN2QnakDbmLALHZ/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/SDizU2KKzZYkaN2QnakDbmLALHZ/1791734400000?source=preview&endpoint=&pageId=6469638&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p01-r08-RA092413435533221338",
+    "source_page": 1,
+    "source_row": 8,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:18.230Z",
+    "qr_file": "qrcodes/p01-r08-RA092413435533221338.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/SDizU2KKzZYkaN2QnakDbmLALHZ/1791734400000?source=preview&endpoint=&pageId=6469638&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_342717902286418436",
+    "tab_selector": ".bab_opt_mod.module_809917902286420399 .tabs_bar",
+    "upper_module": "权益券包",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_968517902286417773",
+          "bab_opt_mod_1_1",
+          "module_117912123",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_833217902286418522",
+          "bab_opt_mod_1_2",
+          "module_117912129",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 272.75,
+          "left": 0
+        },
+        "text": "趋势单品\n\n热卖疯抢中\n\n超级大牌\n\n直降15%起\n\n上新日历\n\n秋冬新品抢先购\n\n降温好物\n\n千元补贴\n\n爆品热卖\n\n限时低价\n\n趋势单品\n\n热卖疯抢中\n\n超级大牌\n\n直降15%起\n\n上新日历\n\n秋冬新品抢先购\n\n降温好物\n\n千元补贴\n\n爆品热卖\n\n限时低价\n\n趋势单品\n\n热卖疯抢中\n\n超级大牌\n\n直降15%起\n\n上新日历\n\n秋冬新品抢先购"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_342717902286418436",
+          "bab_opt_mod_1_3",
+          "module_117912127",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 272.75,
+          "width": 390,
+          "height": 115.078125,
+          "top": 272.75,
+          "right": 390,
+          "bottom": 387.828125,
+          "left": 0
+        },
+        "text": "￥30\n满500可用\n限购 [黑冰服饰官方旗舰店] 店铺商品\n9折\n满1可用\n限国内女装部分新品商品\n￥25\n满200可用\n限服饰部分商品\n￥60\n满480可用\n限服饰部分商品\n￥75\n满600可用\n限服饰部分商品\n8折\n满1可用\n限JD FASHION服饰部分商品\n9折\n满1可用\n限国内女装部分新品商品\n￥100\n满900可用\n限服饰部分商品\n￥150\n满"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_809917902286420399",
+          "bab_opt_mod_1_4",
+          "module_117912132",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 387.828125,
+          "width": 390,
+          "height": 1352.453125,
+          "top": 387.828125,
+          "right": 390,
+          "bottom": 1740.28125,
+          "left": 0
+        },
+        "text": "爆品推荐\n趋势单品\n潮流新品\n大牌必买\n大衣风衣\n羽绒外套\n针织毛衣\n保暖内搭\n休闲裤装\n￥1379\n比音勒芬【江疏影同款果岭冲锋衣】春秋款女休闲户外运动防水透湿夹克外套 26深紫色 XS\n买贵双倍赔\n好评率100%\n￥309\nGJFD【挚爱序章】法式缎面白色连衣裙高级感吊带不规则轻奢鱼尾裙长裙 奶米白 S （卡码拍大）\n官方直降15%\n好评率100%\n￥9"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 387.828125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/SDizU2KKzZYkaN2QnakDbmLALHZ/1791734400000",
+      "title": "男女装会场",
+      "measured_at": "2026-10-11T10:59:56.979Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_342717902286418436",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 272.75,
+          "right": 390,
+          "bottom": 387.828125,
+          "width": 390,
+          "height": 115.078125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_809917902286420399 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 387.828125,
+          "right": 390,
+          "bottom": 434.625,
+          "width": 390,
+          "height": 46.796875
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "8px",
+          "border-top-right-radius": "8px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 0,
+        "relationship": "touching",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

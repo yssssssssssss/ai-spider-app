@@ -1,0 +1,324 @@
+{
+  "venue": {
+    "venue_name": "机电机械双十一会场",
+    "venue_id": "RA101010543292593219",
+    "project_id": "02214340",
+    "identity_cell": "机电机械双十一会场\nRA101010543292593219\n通天塔项目ID:02214340",
+    "official_url": "https://pro.m.jd.com/mall/active/jQj4vAT9UVAHD6xaMHf3PmR3bKp/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/jQj4vAT9UVAHD6xaMHf3PmR3bKp/1791734400000?source=preview&endpoint=&pageId=6488544&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p09-r26-RA101010543292593219",
+    "source_page": 9,
+    "source_row": 26,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:25.856Z",
+    "qr_file": "qrcodes/p09-r26-RA101010543292593219.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/jQj4vAT9UVAHD6xaMHf3PmR3bKp/1791734400000?source=preview&endpoint=&pageId=6488544&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_118083933",
+    "tab_selector": ".bab_opt_mod.module_922917916008744732 .tabs_bar",
+    "upper_module": "上方业务模块",
+    "semantic_boundary_verified": false,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_553617916008740926",
+          "bab_opt_mod_1_1",
+          "module_118083927",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "测试需替换\n测试需替换\n测试需替换"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_2",
+          "module_118083928",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 158.2734375,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 355.109375,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层3-楼层间隔-118083928\n1.因为区块焦点楼层【4-官方会场权益】被过滤，所以楼层3被同步过滤"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_3",
+          "module_118083929",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 355.109375,
+          "width": 390,
+          "height": 186.453125,
+          "top": 355.109375,
+          "right": 390,
+          "bottom": 541.5625,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层4-官方会场权益-118083929\n1.素材组id 08476338，预览时间对应的分期无素材，请进入素材管理查看预览时间对应分期下的素材\n2.素材组08476338素材为空"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_299017916008742065",
+          "bab_opt_mod_1_4",
+          "module_118083931",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 541.5625,
+          "width": 390,
+          "height": 8,
+          "top": 541.5625,
+          "right": 390,
+          "bottom": 549.5625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_546717916008742198",
+          "bab_opt_mod_1_5",
+          "module_118083930",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 549.5625,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 549.5625,
+          "right": 390,
+          "bottom": 625.4765625,
+          "left": 0
+        },
+        "text": "¥24.8\n\n¥\n\n24\n\n.8\n\n¥32.8\n\n¥\n\n32\n\n.8\n\n¥211.23\n\n¥\n\n211\n\n.23\n\n¥25.9\n\n¥\n\n25\n\n.9\n\n好物低价购\n\n¥\n\n18\n\n.9\n\n¥11.65\n\n¥\n\n11\n\n.65\n\n¥119.9\n\n¥\n\n119\n\n.9\n\n¥17\n\n¥\n\n17\n\n¥3.13\n\n¥\n\n3\n\n.13\n\n¥14.9\n\n¥\n\n14\n\n.9"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_418517916008742328",
+          "bab_opt_mod_1_6",
+          "module_118083932",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 625.4765625,
+          "width": 390,
+          "height": 8,
+          "top": 625.4765625,
+          "right": 390,
+          "bottom": 633.4765625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_7",
+          "module_118083933",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 633.4765625,
+          "width": 390,
+          "height": 141.53125,
+          "top": 633.4765625,
+          "right": 390,
+          "bottom": 775.0078125,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层8-浮层模板-118083933\n1.组件未生效，请检查有效时间"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_922917916008744732",
+          "bab_opt_mod_1_8",
+          "module_118083934",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 775.0078125,
+          "width": 390,
+          "height": 3102.671875,
+          "top": 775.0078125,
+          "right": 390,
+          "bottom": 3877.6796875,
+          "left": 0
+        },
+        "text": "推荐\n五金工具\n家用电器\n手机数码\n家居厨卫\n美妆个护\n食品酒饮\n母婴文娱\n服饰鞋包\n运动出行\n￥99\n15好评\n趋势好物\n威克士工具收纳箱WA4232多功能手提式大容量五金工具收纳盒\n1-10寸五金工具箱热卖榜\n·第16名\n￥7.5\n33好评\n官方直降5%\n红柄+螺丝批车用螺丝刀6寸1支\n包邮\n闪电退款\n红柄带磁设计\n家用工具套装\n5寸一字螺丝刀\n￥257"
+      }
+    ],
+    "semantic_review": "上方含楼层异常提示或未辨明模块，不能认定为正常业务边界。",
+    "tab_top": 775.0078125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/jQj4vAT9UVAHD6xaMHf3PmR3bKp/1791734400000",
+      "title": "机电机械会场",
+      "measured_at": "2026-10-11T11:19:21.331Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_118083933",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 633.4765625,
+          "right": 390,
+          "bottom": 775.0078125,
+          "width": 390,
+          "height": 141.53125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "14px",
+          "font-weight": "400",
+          "line-height": "16.1px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_922917916008744732 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 775.0078125,
+          "right": 390,
+          "bottom": 816.6015625,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 0,
+        "relationship": "touching",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,325 @@
+{
+  "venue": {
+    "venue_name": "教育优惠狂欢购会场",
+    "venue_id": "RA100813312523074261",
+    "project_id": "02212546",
+    "identity_cell": "教育优惠狂欢购会场\nRA100813312523074261\n通天塔项目ID:02212546",
+    "official_url": "https://pro.m.jd.com/mall/active/aryvcGCnNMnfyTp86WzSEX8Qv67/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/aryvcGCnNMnfyTp86WzSEX8Qv67/1791734400000?source=preview&endpoint=&pageId=6483633&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p06-r25-RA100813312523074261",
+    "source_page": 6,
+    "source_row": 25,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:23.439Z",
+    "qr_file": "qrcodes/p06-r25-RA100813312523074261.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/aryvcGCnNMnfyTp86WzSEX8Qv67/1791734400000?source=preview&endpoint=&pageId=6483633&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_494617914374867080",
+    "tab_selector": ".bab_opt_mod.module_515317914374869493 .tabs_bar",
+    "upper_module": "自定义业务模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_571417914374867336",
+          "bab_opt_mod_1_1",
+          "floatLayer"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 0,
+          "top": 45,
+          "right": 390,
+          "bottom": 45,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_150117914374866358",
+          "bab_opt_mod_1_2",
+          "module_118005687",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 175.7578125,
+          "top": 45,
+          "right": 390,
+          "bottom": 220.7578125,
+          "left": 0
+        },
+        "text": "仅剩\n3\n2\n天\n0\n4\n时\n4\n6\n分"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_806517914374866512",
+          "bab_opt_mod_1_3",
+          "module_118005688",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 220.7578125,
+          "width": 390,
+          "height": 8,
+          "top": 220.7578125,
+          "right": 390,
+          "bottom": 228.7578125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_114517914374866789",
+          "bab_opt_mod_1_4",
+          "module_118005689",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 228.7578125,
+          "width": 390,
+          "height": 115.078125,
+          "top": 228.7578125,
+          "right": 390,
+          "bottom": 343.8359375,
+          "left": 0
+        },
+        "text": "￥300\n满1000可用\n限荣耀京东自营店铺部分商品\n￥200\n满1000可用\n限部分智能手表商品\n￥200\n满201可用\n限部分戴尔和外星人电脑商品\n￥10\n满99可用\n限限制品类的部分商品\n￥1000\n满5000可用\n限部分活动商品\n￥5\n满6可用\n限图书部分商品\n￥200\n满4000可用\n限笔记本电脑商品\n￥500\n满4000可用\n限笔记本电脑商品\n￥"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_305017914374866957",
+          "bab_opt_mod_1_5",
+          "module_118005691",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 343.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 343.8359375,
+          "right": 390,
+          "bottom": 351.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_494617914374867080",
+          "bab_opt_mod_1_6",
+          "module_118005690",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 351.8359375,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 351.8359375,
+          "right": 390,
+          "bottom": 427.75,
+          "left": 0
+        },
+        "text": "¥999\n\n¥\n\n999\n\n¥549\n\n¥\n\n549\n\n¥2399\n\n¥\n\n2399\n\n¥1999\n\n¥\n\n1999\n\n好物低价购\n\n¥\n\n3499\n\n¥2199\n\n¥\n\n2199\n\n¥3499\n\n¥\n\n3499\n\n¥8199\n\n¥\n\n8199\n\n¥599\n\n¥\n\n599\n\n¥8499\n\n¥\n\n8499\n\n¥999\n\n¥\n\n999\n\n¥10999\n\n¥\n\n1"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_429117914374867211",
+          "bab_opt_mod_1_7",
+          "module_118005692",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 427.75,
+          "width": 390,
+          "height": 8,
+          "top": 427.75,
+          "right": 390,
+          "bottom": 435.75,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_515317914374869493",
+          "bab_opt_mod_1_8",
+          "module_118005693",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 435.75,
+          "width": 390,
+          "height": 3102.671875,
+          "top": 435.75,
+          "right": 390,
+          "bottom": 3538.421875,
+          "left": 0
+        },
+        "text": "校园推荐\n手机\n电脑\n数码\n配件\n图书\n趋势好物\n￥10999\n10万+条好评\n惠普（HP）战66 14英寸轻薄笔记本电脑 标压锐龙7 H 255 16G 1T 2.5K屏 1年上门\n以旧换新\n已售30万+\n好评率99%\n趋势好物\n￥8199\n2条好评\nHUAWEI【教育优惠】MatePad Pro 12英寸 柔光版 华为平板电脑 3K屏 12GB+512G"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 435.75
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/aryvcGCnNMnfyTp86WzSEX8Qv67/1791734400000",
+      "title": "教育优惠会场",
+      "measured_at": "2026-10-11T11:13:18.382Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_494617914374867080",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 351.8359375,
+          "right": 390,
+          "bottom": 427.75,
+          "width": 390,
+          "height": 75.9140625
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_515317914374869493 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 435.75,
+          "right": 390,
+          "bottom": 477.34375,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,306 @@
+{
+  "venue": {
+    "venue_name": "3C数码11.11主会场",
+    "venue_id": "RA100913542413698758",
+    "project_id": "02213586",
+    "identity_cell": "3C数码11.11主会场\nRA100913542413698758\n通天塔项目ID:02213586",
+    "official_url": null,
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/2hHV4HZvKdemCXFqM8T1cKYwuP9Q/1791734400000?source=preview&endpoint=&pageId=6486369&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p05-r05-RA100913542413698758",
+    "source_page": 5,
+    "source_row": 5,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:22.577Z",
+    "qr_file": "qrcodes/p05-r05-RA100913542413698758.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/2hHV4HZvKdemCXFqM8T1cKYwuP9Q/1791734400000?source=preview&endpoint=&pageId=6486369&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_342417915252704350",
+    "tab_selector": ".bab_opt_mod.module_168617915252706887 .tabs_bar",
+    "upper_module": "自定义业务模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_283617915252702861",
+          "bab_opt_mod_1_1",
+          "module_118074768",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 175.7578125,
+          "top": 45,
+          "right": 390,
+          "bottom": 220.7578125,
+          "left": 0
+        },
+        "text": "奇趣文具3件8折 1分钱抽IP周边\n自营好书满300减120\n企业采购达量返千元E卡"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_866617915252703674",
+          "bab_opt_mod_1_2",
+          "module_118074772",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 220.7578125,
+          "width": 390,
+          "height": 8,
+          "top": 220.7578125,
+          "right": 390,
+          "bottom": 228.7578125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_632917915252704003",
+          "bab_opt_mod_1_3",
+          "module_118074773",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 228.7578125,
+          "width": 390,
+          "height": 115.078125,
+          "top": 228.7578125,
+          "right": 390,
+          "bottom": 343.8359375,
+          "left": 0
+        },
+        "text": "￥500\n满4000可用\n限店铺内部分vivo手机商品\n￥300\n满999可用\n限荣耀京东自营店铺部分商品\n8.8折\n满1可用\n限部分键盘鼠标商品\n7.5折\n满1可用\n限图书部分商品\n￥20\n满159可用\n限图书部分商品\n￥300\n满3000可用\n限指定Apple商品\n￥9\n满10可用\n限拍拍二手自营部分商品\n￥50\n满99可用\n限部分平台商品\n￥5\n满5."
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_874317915252704202",
+          "bab_opt_mod_1_4",
+          "module_118074774",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 343.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 343.8359375,
+          "right": 390,
+          "bottom": 351.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_342417915252704350",
+          "bab_opt_mod_1_5",
+          "module_118074775",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 351.8359375,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 351.8359375,
+          "right": 390,
+          "bottom": 427.75,
+          "left": 0
+        },
+        "text": "派克旗舰店\n\n羊年礼盒新上市\n\n华为路由\n\n享补贴10%\n\n充电宝会场\n\n直降85折\n\n3C拼团\n\n低至4折\n\n千兆网线\n\n爆款限时直降\n\n电竞11.11\n\n以旧换新低至0元\n\n图书馆\n\n答题抽免单\n\n一加16上新\n\n24期免息\n\n新书会场\n\n发书评赢补贴\n\n小米手机\n\n至高12期免息\n\n成长提升书\n\n满200减60\n\n原版杂志\n\n满200减60\n\n办公用纸"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_502917915252704504",
+          "bab_opt_mod_1_6",
+          "module_118074776",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 427.75,
+          "width": 390,
+          "height": 8,
+          "top": 427.75,
+          "right": 390,
+          "bottom": 435.75,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_168617915252706887",
+          "bab_opt_mod_1_7",
+          "module_118074778",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 435.75,
+          "width": 390,
+          "height": 1349.328125,
+          "top": 435.75,
+          "right": 390,
+          "bottom": 1785.078125,
+          "left": 0
+        },
+        "text": "猜你喜欢\n手机\n电脑\n数码\n影音\n办公\n图书\n文具\n配件\n￥3599\nApple/苹果【教育优惠】iPad 11英寸 A16芯片2025年款 平板电脑 (128GB WLAN版/学习办公娱乐)粉色\n1万+条好评\n以旧换新\n￥4399\n电小二【轻小2度电】快充户外电源2200W大功率大容量220V移动电源车载露营应急户外作业蓄电池2000Pro2\n1000+条"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 435.75
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/2hHV4HZvKdemCXFqM8T1cKYwuP9Q/1791734400000",
+      "title": "3C数码主会场",
+      "measured_at": "2026-10-11T11:09:46.852Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_342417915252704350",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 351.8359375,
+          "right": 390,
+          "bottom": 427.75,
+          "width": 390,
+          "height": 75.9140625
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_168617915252706887 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 435.75,
+          "right": 390,
+          "bottom": 477.34375,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

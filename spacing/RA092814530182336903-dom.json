@@ -1,0 +1,325 @@
+{
+  "venue": {
+    "venue_name": "居家11.11会场",
+    "venue_id": "RA092814530182336903",
+    "project_id": "02209054",
+    "identity_cell": "居家11.11会场\nRA092814530182336903\n通天塔项目ID:02209054",
+    "official_url": "https://pro.m.jd.com/mall/active/4Gw3ZRd5eJkt16bNrh5dhZqZA2qv/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/4Gw3ZRd5eJkt16bNrh5dhZqZA2qv/1791734400000?source=preview&endpoint=&pageId=6488866&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p07-r22-RA092814530182336903",
+    "source_page": 7,
+    "source_row": 22,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:24.288Z",
+    "qr_file": "qrcodes/p07-r22-RA092814530182336903.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/4Gw3ZRd5eJkt16bNrh5dhZqZA2qv/1791734400000?source=preview&endpoint=&pageId=6488866&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_547117916055048223",
+    "tab_selector": ".bab_opt_mod.module_323517916055051054 .tabs_bar",
+    "upper_module": "权益券包",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_440617916055048711",
+          "bab_opt_mod_1_1",
+          "floatLayer"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 0,
+          "top": 45,
+          "right": 390,
+          "bottom": 45,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_712917916055047822",
+          "bab_opt_mod_1_2",
+          "module_118087346",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "更多爆款低至5折"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_817417916055047934",
+          "bab_opt_mod_1_3",
+          "module_118087347",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_547117916055048223",
+          "bab_opt_mod_1_4",
+          "module_118087348",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 129.984375,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 334.8203125,
+          "left": 0
+        },
+        "text": "￥5\n满5.01可用\n限京喜部分商品\n￥4\n满6可用\n限京喜部分商品\n￥3\n满3.01可用\n限京喜部分商品"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_949217916055048392",
+          "bab_opt_mod_1_5",
+          "module_118087349",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 334.8203125,
+          "width": 390,
+          "height": 8,
+          "top": 334.8203125,
+          "right": 390,
+          "bottom": 342.8203125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_627417916055048472",
+          "bab_opt_mod_1_6",
+          "module_118087350",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 342.8203125,
+          "width": 390,
+          "height": 0,
+          "top": 342.8203125,
+          "right": 390,
+          "bottom": 342.8203125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_868317916055048633",
+          "bab_opt_mod_1_7",
+          "module_118087351",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 342.8203125,
+          "width": 390,
+          "height": 8,
+          "top": 342.8203125,
+          "right": 390,
+          "bottom": 350.8203125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_323517916055051054",
+          "bab_opt_mod_1_8",
+          "module_118087353",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 350.8203125,
+          "width": 390,
+          "height": 2876.890625,
+          "top": 350.8203125,
+          "right": 390,
+          "bottom": 3227.7109375,
+          "left": 0
+        },
+        "text": "推荐\n生活日用\n厨具\n家居饰品\n床上用品\n收纳用品\n农资园艺\n床品布艺\n茶水分离 | 双层防烫\n已售8万+\n5000+条好评\n包邮\n闪电退款\n￥14\n玻璃杯弹盖男士杯子商务车载1只\n水洗棉床单 | 柔软舒适\n2000+条评价\n包邮\n闪电退款\n￥19.9\nNanjiren水洗棉被单200x230cm\n【青少年专用】 | 【睡觉护脊助眠】\n5000+条评价\n包邮"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 350.8203125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/4Gw3ZRd5eJkt16bNrh5dhZqZA2qv/1791734400000",
+      "title": "居家会场",
+      "measured_at": "2026-10-11T11:15:03.741Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_547117916055048223",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 334.8203125,
+          "width": 390,
+          "height": 129.984375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_323517916055051054 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 350.8203125,
+          "right": 390,
+          "bottom": 392.4140625,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 16,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

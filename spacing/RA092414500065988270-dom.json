@@ -1,0 +1,285 @@
+{
+  "venue": {
+    "venue_name": "大牌相机双11会场",
+    "venue_id": "RA092414500065988270",
+    "project_id": "02207968",
+    "identity_cell": "大牌相机双11会场\nRA092414500065988270\n通天塔项目ID:02207968",
+    "official_url": null,
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/cjjKjcCscXem2JWp4DB859MRMPF/1791734400000?source=preview&endpoint=&pageId=6470206&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p01-r10-RA092414500065988270",
+    "source_page": 1,
+    "source_row": 10,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:18.230Z",
+    "qr_file": "qrcodes/p01-r10-RA092414500065988270.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/cjjKjcCscXem2JWp4DB859MRMPF/1791734400000?source=preview&endpoint=&pageId=6470206&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_103717902326032269",
+    "tab_selector": ".bab_opt_mod.module_427917902326034069 .tabs_bar",
+    "upper_module": "权益券包",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_864517902326031956",
+          "bab_opt_mod_1_1",
+          "module_117890880",
+          "flex_cube",
+          "flex_cube_floor",
+          "touTuFlex",
+          "responsiveHeaderImage"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "巅峰狂欢将在\n3\n1\n天\n0\n4\n时\n5\n9\n分\n后结束！"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_872017902326032061",
+          "bab_opt_mod_1_2",
+          "module_117890882",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_103717902326032269",
+          "bab_opt_mod_1_3",
+          "module_117890881",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 115.078125,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.9140625,
+          "left": 0
+        },
+        "text": "￥100\n满299可用\n限购 [佳能（Canon）数码旗舰店] 店铺部分商品\n￥499\n满5000可用\n限购 [佳能普晶摄影专卖店] 店铺部分商品\n￥300\n满3000可用\n限购 [佳能（Canon）影像旗舰店] 店铺部分商品\n￥600\n满5000可用\n限购 [佳能普晶专卖店] 店铺部分商品\n￥600\n满5000可用\n限购 [佳能普晶专卖店] 店铺部分商品"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_663317902326032320",
+          "bab_opt_mod_1_4",
+          "module_117890884",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 319.9140625,
+          "width": 390,
+          "height": 8,
+          "top": 319.9140625,
+          "right": 390,
+          "bottom": 327.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_427917902326034069",
+          "bab_opt_mod_1_5",
+          "module_117890883",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 327.9140625,
+          "width": 390,
+          "height": 1296.984375,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 1624.8984375,
+          "left": 0
+        },
+        "text": "超级新品\n大牌相机\n镜头特惠\n新品\n以旧换新\n4ee无所畏惧\n精选好物，低至8折起\n￥3499\n富士（FUJIFILM）X half/xhalf 微单相机 拍照旅行专用 入门级数码相机 复古模拟胶片 19种富士滤镜 白色\n好评率99%\n以旧换新\n￥11998\n松下L10 M43传感器大底卡片相机 相位混合对焦 实时LUT 多色滤镜 柔肤 自拍银色\n好评率10"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_6",
+          "inject_preview"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 1624.8984375,
+          "width": 390,
+          "height": 0,
+          "top": 1624.8984375,
+          "right": 390,
+          "bottom": 1624.8984375,
+          "left": 0
+        },
+        "text": ""
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 327.9140625
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/cjjKjcCscXem2JWp4DB859MRMPF/1791734400000",
+      "title": "大牌相机会场",
+      "measured_at": "2026-10-11T11:00:03.270Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_103717902326032269",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.9140625,
+          "width": 390,
+          "height": 115.078125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_427917902326034069 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 369.5078125,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

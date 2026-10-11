@@ -1,0 +1,266 @@
+{
+  "venue": {
+    "venue_name": "童书双十一会场",
+    "venue_id": "RA092417242292180823",
+    "project_id": "02205187",
+    "identity_cell": "童书双十一会场\nRA092417242292180823\n通天塔项目ID:02205187",
+    "official_url": "https://pro.m.jd.com/mall/active/g8SrhoqpkRDPADg4uXRDbyVKEQe/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/g8SrhoqpkRDPADg4uXRDbyVKEQe/1791734400000?source=preview&endpoint=&pageId=6471254&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p04-r11-RA092417242292180823",
+    "source_page": 4,
+    "source_row": 11,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:21.845Z",
+    "qr_file": "qrcodes/p04-r11-RA092417242292180823.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/g8SrhoqpkRDPADg4uXRDbyVKEQe/1791734400000?source=preview&endpoint=&pageId=6471254&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_561317902418645147",
+    "tab_selector": ".bab_opt_mod.module_859517906913906359 .tabs_bar",
+    "upper_module": "权益券包",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_984017906913902440",
+          "bab_opt_mod_1_1",
+          "module_117924832",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "满300减120"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_411317906913903739",
+          "bab_opt_mod_1_2",
+          "module_117924833",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_561317902418645147",
+          "bab_opt_mod_1_3",
+          "module_117907181",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 129.984375,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 334.8203125,
+          "left": 0
+        },
+        "text": "7折\n满1可用\n限部分图书商品\n7.5折\n满1可用\n限部分图书商品\n8折\n满1可用\n限部分图书商品\n8.5折\n满1可用\n限部分图书商品"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_372217902418645181",
+          "bab_opt_mod_1_4",
+          "module_117907182",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 334.8203125,
+          "width": 390,
+          "height": 8,
+          "top": 334.8203125,
+          "right": 390,
+          "bottom": 342.8203125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_859517906913906359",
+          "bab_opt_mod_1_5",
+          "module_117924834",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 342.8203125,
+          "width": 390,
+          "height": 3265.9453125,
+          "top": 342.8203125,
+          "right": 390,
+          "bottom": 3608.765625,
+          "left": 0
+        },
+        "text": "推荐\n国家补贴\n0-2岁\n3-6岁\n7-9岁\n10-14岁\n潮电数码1\n￥55\n5万+好评\n换购\n米小圈上学记一年级4册\n10月『童书金榜』\n·TOP20\n￥39.8\n1000+好评\n换购\n【8册】小熊多吉爱护自己绘本\n儿童绘本热卖榜\n·第24名\n￥243\n200+好评\n换购\n如何运转三部曲3册\n好评率98%\n大家都在买买买\n￥29.8\n1000+好评\n换购"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 342.8203125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/g8SrhoqpkRDPADg4uXRDbyVKEQe/1791734400000",
+      "title": "童书双11会场",
+      "measured_at": "2026-10-11T11:07:25.775Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_561317902418645147",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 334.8203125,
+          "width": 390,
+          "height": 129.984375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_859517906913906359 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 342.8203125,
+          "right": 390,
+          "bottom": 389.6171875,
+          "width": 390,
+          "height": 46.796875
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "8px",
+          "border-top-right-radius": "8px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

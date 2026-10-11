@@ -1,0 +1,302 @@
+{
+  "venue": {
+    "venue_name": "孝敬长辈养老服务会场",
+    "venue_id": "RA100919004497834424",
+    "project_id": "02214678",
+    "identity_cell": "孝敬长辈养老服务会场\nRA100919004497834424\n通天塔项目ID:02214678",
+    "official_url": "https://pro.m.jd.com/mall/active/CvA68m9ejmpzqmwfkWS4D5XTZcZ/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/CvA68m9ejmpzqmwfkWS4D5XTZcZ/1791734400000?source=preview&endpoint=&pageId=6488953&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p01-r04-RA100919004497834424",
+    "source_page": 1,
+    "source_row": 4,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:18.228Z",
+    "qr_file": "qrcodes/p01-r04-RA100919004497834424.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/CvA68m9ejmpzqmwfkWS4D5XTZcZ/1791734400000?source=preview&endpoint=&pageId=6488953&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_118089717",
+    "tab_selector": ".bab_opt_mod.module_800517916099346619 .tabs_bar",
+    "upper_module": "上方业务模块",
+    "semantic_boundary_verified": false,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_323217916099342725",
+          "bab_opt_mod_1_1",
+          "module_118089712",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_2",
+          "module_118089716",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 158.2734375,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 355.109375,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层3-楼层间隔-118089716\n1.因为区块焦点楼层【4-官方会场权益】被过滤，所以楼层3被同步过滤"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_3",
+          "module_118089717",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 355.109375,
+          "width": 390,
+          "height": 186.453125,
+          "top": 355.109375,
+          "right": 390,
+          "bottom": 541.5625,
+          "left": 0
+        },
+        "text": "该楼层未修改异常问题前，将不对用户实际展示。\n楼层4-官方会场权益-118089717\n1.素材组id 08476757，预览时间对应的分期无素材，请进入素材管理查看预览时间对应分期下的素材\n2.素材组08476757素材为空"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_702417916099344036",
+          "bab_opt_mod_1_4",
+          "module_118089718",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 541.5625,
+          "width": 390,
+          "height": 8,
+          "top": 541.5625,
+          "right": 390,
+          "bottom": 549.5625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_981117916099344344",
+          "bab_opt_mod_1_5",
+          "module_118089720",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 549.5625,
+          "width": 390,
+          "height": 8,
+          "top": 549.5625,
+          "right": 390,
+          "bottom": 557.5625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_800517916099346619",
+          "bab_opt_mod_1_6",
+          "module_118089722",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 557.5625,
+          "width": 390,
+          "height": 991.375,
+          "top": 557.5625,
+          "right": 390,
+          "bottom": 1548.9375,
+          "left": 0
+        },
+        "text": "保洁\n短时照护\n助浴\n做饭\n陪诊\n地面防滑\n趋势好物\n￥180\n100+条好评\n养老保洁3小时（＜90㎡家庭住房）单次兑换券\n1000+条评价\n趋势好物\n￥120\n100+条好评\n养老保洁2小时（＜55㎡家庭住房）单次兑换券\n1000+条评价\n趋势好物\n￥240\n100+条好评\n养老保洁4小时（＜120㎡家庭住房）单次兑换券\n趋势好物\n￥1199\n6条好评\n"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_7",
+          "inject_preview"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 1548.9375,
+          "width": 390,
+          "height": 0,
+          "top": 1548.9375,
+          "right": 390,
+          "bottom": 1548.9375,
+          "left": 0
+        },
+        "text": ""
+      }
+    ],
+    "semantic_review": "上方含楼层异常提示或未辨明模块，不能认定为正常业务边界。",
+    "tab_top": 557.5625
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/CvA68m9ejmpzqmwfkWS4D5XTZcZ/1791734400000",
+      "title": "养老服务会场",
+      "measured_at": "2026-10-11T10:59:51.235Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_118089717",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 355.109375,
+          "right": 390,
+          "bottom": 541.5625,
+          "width": 390,
+          "height": 186.453125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "14px",
+          "font-weight": "400",
+          "line-height": "16.1px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_800517916099346619 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 557.5625,
+          "right": 390,
+          "bottom": 604.359375,
+          "width": 390,
+          "height": 46.796875
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "8px",
+          "border-top-right-radius": "8px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 16,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

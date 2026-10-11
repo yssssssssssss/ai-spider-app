@@ -1,0 +1,289 @@
+{
+  "venue": {
+    "venue_name": "医用个护会场",
+    "venue_id": "RA100813312958694528",
+    "project_id": "02206342",
+    "identity_cell": "医用个护会场\nRA100813312958694528\n通天塔项目ID:02206342已加白 >",
+    "official_url": "https://pro.m.jd.com/mall/active/3NANJ4pMdWdEBgjJveh5KBpFbxsX/index.html",
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": true,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3NANJ4pMdWdEBgjJveh5KBpFbxsX/1791734400000?source=preview&endpoint=&pageId=6483646&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p01-r20-RA100813312958694528",
+    "source_page": 1,
+    "source_row": 20,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:18.236Z",
+    "qr_file": "qrcodes/p01-r20-RA100813312958694528.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/3NANJ4pMdWdEBgjJveh5KBpFbxsX/1791734400000?source=preview&endpoint=&pageId=6483646&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_704717916295853378",
+    "tab_selector": ".bab_opt_mod.module_302017914374963553 .tabs_bar",
+    "upper_module": "上方业务模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_693517915954339732",
+          "bab_opt_mod_1_1",
+          "module_118077377",
+          "customcode",
+          "shared"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 280.796875,
+          "top": 45,
+          "right": 390,
+          "bottom": 325.796875,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_924117914374960583",
+          "bab_opt_mod_1_2",
+          "module_118077378",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 325.796875,
+          "width": 390,
+          "height": 115.078125,
+          "top": 325.796875,
+          "right": 390,
+          "bottom": 440.875,
+          "left": 0
+        },
+        "text": "￥3\n满3.01可用\n限医疗器械部分商品\n￥2\n满2.01可用\n限医疗器械部分商品\n￥3\n满3.01可用\n限医疗器械部分商品\n￥10\n满118可用\n限限制品类的部分商品\n￥5\n满5.01可用\n限医疗器械部分商品\n￥2\n满2.01可用\n限医疗器械部分商品\n￥3\n满3.01可用\n限医疗器械部分商品\n￥3\n满3.01可用\n限医疗器械部分商品\n￥2\n满2.01可用\n"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_964017916435416444",
+          "bab_opt_mod_1_3",
+          "module_118136252",
+          "flex_cube",
+          "flex_cube_floor"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 440.875,
+          "width": 390,
+          "height": 228.09375,
+          "top": 440.875,
+          "right": 390,
+          "bottom": 668.96875,
+          "left": 0
+        },
+        "text": "倍舒痕小分子疤痕贴【剖腹产】淡疤止痒硅凝胶疤痕贴3x15cm1片装\n￥159\n倍舒痕医用硅凝胶 增生疤痕剖腹产祛疤专用修复15g\n￥349\n倍舒痕原装进口 医用硅凝胶祛疤膏 温和祛疤修复儿童适用15g\n￥349\n倍舒痕医用硅凝胶增生剖腹产外伤疤痕双眼皮手术15g*2\n￥714\n倍舒痕原装进口Dermatix儿童款医用硅凝胶烫伤疤痕修复15g【两支装】\n￥71"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_704717916295853378",
+          "bab_opt_mod_1_4",
+          "module_118126256",
+          "flex_cube",
+          "flex_cube_floor",
+          "pageInPage",
+          "shopFlex"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 668.96875,
+          "width": 390,
+          "height": 65.15625,
+          "top": 668.96875,
+          "right": 390,
+          "bottom": 734.125,
+          "left": 0
+        },
+        "text": "可复美京东自营旗舰店\n敷尔佳京东自营旗舰店\n芙清京东自营旗舰店\n京东健康医用金选个护自营旗舰店\n舒痕京东自营旗舰店"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_132517916419853185",
+          "bab_opt_mod_1_5",
+          "module_118135418",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 734.125,
+          "width": 390,
+          "height": 6,
+          "top": 734.125,
+          "right": 390,
+          "bottom": 740.125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_302017914374963553",
+          "bab_opt_mod_1_6",
+          "module_118077381",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 740.125,
+          "width": 390,
+          "height": 1345.8671875,
+          "top": 740.125,
+          "right": 390,
+          "bottom": 2085.9921875,
+          "left": 0
+        },
+        "text": "￥19.9\n可孚N95医用防护口罩3d立体防过敏花粉独立包装无菌型30只\n2万+条好评\n￥79.9\n小葵花妈妈婴儿胀气贴健脾消食贴肠胃贴防胀气宝宝肚脐贴积食3盒\n好评率99%\n￥59\nGALAKU飞机圣杯手办加热吮吸吞吐专用男生玩具性成人遥控屁股斐济非自动\n1000+条好评\n￥209\nKYOLENS腿部热敷电加热护膝盖艾灸绒长筒靴关节炎保暖老寒腿理疗仪神器\n"
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 740.125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/3NANJ4pMdWdEBgjJveh5KBpFbxsX/1791734400000",
+      "title": "医用个护会场",
+      "measured_at": "2026-10-11T11:00:33.476Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_704717916295853378",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 668.96875,
+          "right": 390,
+          "bottom": 734.125,
+          "width": 390,
+          "height": 65.15625
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_302017914374963553 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 740.125,
+          "right": 390,
+          "bottom": 778.2578125,
+          "width": 390,
+          "height": 38.1328125
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 6,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}

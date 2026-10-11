@@ -1,0 +1,324 @@
+{
+  "venue": {
+    "venue_name": "京东养车11.11会场",
+    "venue_id": "RA092813474646625787",
+    "project_id": "02208985",
+    "identity_cell": "京东养车11.11会场\nRA092813474646625787\n通天塔项目ID:02208985",
+    "official_url": null,
+    "launch_period": "全波段\n2026-10-12 00:00",
+    "end_time": "2026-11-13 23:59",
+    "whitelist_indicator": false,
+    "preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/5ywyBWwNEqoCMemtZj3bbLt7wJC/1791734400000?source=preview&endpoint=&pageId=6487740&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+    "preview_url_method": "decoded_qr_pixels",
+    "record_id": "p06-r18-RA092813474646625787",
+    "source_page": 6,
+    "source_row": 18,
+    "preview_time": "预览时间：10-12 00:00",
+    "collected_at": "2026-10-10T11:08:23.437Z",
+    "qr_file": "qrcodes/p06-r18-RA092813474646625787.png"
+  },
+  "requested_preview_url": "https://babelserv.m.jd.com/service/preview/mall/active/5ywyBWwNEqoCMemtZj3bbLt7wJC/1791734400000?source=preview&endpoint=&pageId=6487740&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+  "selectors": {
+    "status": "located",
+    "upper_selector": ".bab_opt_mod.module_311717915431818215",
+    "tab_selector": ".bab_opt_mod.module_500217915431820613 .tabs_bar",
+    "upper_module": "自定义业务模块",
+    "semantic_boundary_verified": true,
+    "inventory": [
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_217417915431817133",
+          "bab_opt_mod_1_1",
+          "module_118069933",
+          "flex_cube",
+          "flex_cube_floor",
+          "daCuTouTu"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 45,
+          "width": 390,
+          "height": 151.8359375,
+          "top": 45,
+          "right": 390,
+          "bottom": 196.8359375,
+          "left": 0
+        },
+        "text": "养车服务低至1.1元\n仅剩\n3\n4\n天\n0\n4\n时\n4\n7\n分"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_851817915431817411",
+          "bab_opt_mod_1_2",
+          "module_118069934",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 196.8359375,
+          "width": 390,
+          "height": 8,
+          "top": 196.8359375,
+          "right": 390,
+          "bottom": 204.8359375,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_508417915431817707",
+          "bab_opt_mod_1_3",
+          "module_118069935",
+          "flex_cube",
+          "flex_cube_floor",
+          "flexcubeCoupon"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 204.8359375,
+          "width": 390,
+          "height": 115.078125,
+          "top": 204.8359375,
+          "right": 390,
+          "bottom": 319.9140625,
+          "left": 0
+        },
+        "text": "￥7\n满16.9可用\n限部分洗车商品\n￥140\n满399可用\n限钣金喷漆商品\n￥8.8\n满9.9可用\n限汽车服务商品\n￥8.8\n满9.9可用\n限汽车服务商品\n￥10\n满29可用\n限部分洗车商品\n6折\n满139可用\n限部分洗车商品"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_141717915431817997",
+          "bab_opt_mod_1_4",
+          "module_118069936",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 319.9140625,
+          "width": 390,
+          "height": 8,
+          "top": 319.9140625,
+          "right": 390,
+          "bottom": 327.9140625,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_311717915431818215",
+          "bab_opt_mod_1_5",
+          "module_118069937",
+          "SsrCodeTemplate"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 327.9140625,
+          "width": 390,
+          "height": 75.9140625,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 403.828125,
+          "left": 0
+        },
+        "text": "¥1.9\n\n¥\n\n1\n\n.9\n\n¥299\n\n¥\n\n299\n\n¥9.9\n\n¥\n\n9\n\n.9\n\n¥683\n\n¥\n\n683\n\n好物低价购\n\n¥\n\n59\n\n.9\n\n洗车服务榜\n\n118万人买过\n\n¥1317.8\n\n¥\n\n1317\n\n.8\n\n轮胎服务榜\n\n46.2万人买过\n\n¥9.9\n\n¥\n\n9\n\n.9\n\n¥479\n\n¥\n\n479\n\n汽车保养榜\n\n48.1万人买过\n\n"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_360117915431818443",
+          "bab_opt_mod_1_6",
+          "module_118069938",
+          "jiange"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 403.828125,
+          "width": 390,
+          "height": 8,
+          "top": 403.828125,
+          "right": 390,
+          "bottom": 411.828125,
+          "left": 0
+        },
+        "text": ""
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "module_500217915431820613",
+          "bab_opt_mod_1_7",
+          "module_118069939",
+          "feeds"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 411.828125,
+          "width": 390,
+          "height": 1155.921875,
+          "top": 411.828125,
+          "right": 390,
+          "bottom": 1567.75,
+          "left": 0
+        },
+        "text": "洗车服务\n保养服务\n轮胎服务\n清洗美容\n车类易损\n两油一液\n￥16.9\n5万+条好评\n京东养车【标准洗车】1次 轿车/SUV/MPV通用 不满意重新洗（限工作日）\n买贵双倍赔\n已售100万+\n100万+条评价\n趋势好物\n￥39.9\n200+条好评\n京东养车【标准洗车】轿车 2次 不满意重新洗\n已售1万+\n2000+条评价\n官方直降5%\n￥179\n500+条好"
+      },
+      {
+        "classes": [
+          "bab_opt_mod",
+          "bab_opt_mod_1_8",
+          "inject_preview"
+        ],
+        "rect": {
+          "x": 0,
+          "y": 1567.75,
+          "width": 390,
+          "height": 0,
+          "top": 1567.75,
+          "right": 390,
+          "bottom": 1567.75,
+          "left": 0
+        },
+        "text": ""
+      }
+    ],
+    "semantic_review": "唯一feeds分类Tab与其同级最近可见业务楼层；中间仅有间隔组件或零高度模块。",
+    "tab_top": 411.828125
+  },
+  "measurement": {
+    "schema_version": 1,
+    "mode": "web_computed_style_and_geometry",
+    "audit_verdict": "not_evaluated",
+    "source": {
+      "url_without_query": "https://babelserv.m.jd.com/service/preview/mall/active/5ywyBWwNEqoCMemtZj3bbLt7wJC/1791734400000",
+      "title": "京东养车会场",
+      "measured_at": "2026-10-11T11:12:50.964Z",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_pixel_ratio": 1,
+      "visual_viewport": {
+        "width": 390,
+        "height": 844,
+        "scale": 1,
+        "offset_left": 0,
+        "offset_top": 0
+      },
+      "scroll_css_px": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "design_unit_calibration": "not_provided",
+    "elements": [
+      {
+        "id": "upper-module",
+        "selector": ".bab_opt_mod.module_311717915431818215",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 327.9140625,
+          "right": 390,
+          "bottom": 403.828125,
+          "width": 390,
+          "height": 75.9140625
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "line-height": "18.4px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      },
+      {
+        "id": "category-tabs",
+        "selector": ".bab_opt_mod.module_500217915431820613 .tabs_bar",
+        "status": "measured",
+        "element_tag": "div",
+        "rect_css_px": {
+          "left": 0,
+          "top": 411.828125,
+          "right": 390,
+          "bottom": 453.421875,
+          "width": 390,
+          "height": 41.59375
+        },
+        "effective_opacity": 1,
+        "ancestor_transform_present": false,
+        "computed_style": {
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "background-image": "none",
+          "font-family": "\"PingFang SC\", \"HarmonyOS Sans\", Roboto, \"Helvetica Neue\", Arial, \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif",
+          "font-size": "13.52px",
+          "font-weight": "400",
+          "line-height": "15.548px",
+          "border-top-left-radius": "0px",
+          "border-top-right-radius": "0px",
+          "border-bottom-left-radius": "0px",
+          "border-bottom-right-radius": "0px",
+          "margin-top": "0px",
+          "margin-right": "0px",
+          "margin-bottom": "0px",
+          "margin-left": "0px",
+          "padding-top": "0px",
+          "padding-right": "0px",
+          "padding-bottom": "0px",
+          "padding-left": "0px",
+          "row-gap": "normal",
+          "column-gap": "normal",
+          "box-shadow": "none",
+          "filter": "none",
+          "mix-blend-mode": "normal"
+        },
+        "occlusion_checked": false,
+        "rendered_pixel_color_verified": false
+      }
+    ],
+    "distances": [
+      {
+        "id": "tab-gap",
+        "first": "upper-module",
+        "second": "category-tabs",
+        "axis": "vertical",
+        "status": "measured",
+        "distance_css_px": 8,
+        "relationship": "gap",
+        "method": "rendered_dom_border_box_edges",
+        "semantic_boundary_verified": false
+      }
+    ]
+  }
+}
