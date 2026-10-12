@@ -1,8 +1,9 @@
 {
   "report_version": "5-h5-user-policy-2026-10-11",
+  "presentation_version": "per-check-evidence-2026-10-12",
   "venue_count": 408,
   "original_screen_count": 816,
-  "report_sha256": "25fd8b614de42799cae66383536a26078cef5d432c1da9be5e5b4e651924f503",
+  "report_sha256": "dbf43d9ad15731d24bef89fb674c09663951c6a53abe1e8ae08f1f53acd3e930",
   "source_commit": "7e38cc36bb4690777894eb08e968736300088dfe",
   "publishing_branch": "gh-pages"
 }
