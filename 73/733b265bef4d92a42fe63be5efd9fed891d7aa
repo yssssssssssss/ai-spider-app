@@ -1,0 +1,85 @@
+backend/tests/test_tab_spacing_review.py
+  s_711f46963a46cd::t_f89918da68dca5 1-77
+docs/specifications/official-venue-review/screenshot-inspection.json
+  s_711f46963a46cd::t_f89918da68dca5 1-48
+docs/specifications/official-venue-review/h5-v3.json
+  s_711f46963a46cd::t_f89918da68dca5 1-1520
+scripts/apply_tab_spacing_reviews.py
+  s_711f46963a46cd::t_f89918da68dca5 1-105
+scripts/venue_check_evidence.js
+  s_711f46963a46cd::t_f89918da68dca5 1-142
+docs/specifications/official-venue-review/walkthrough.json
+  s_711f46963a46cd::t_f89918da68dca5 1-926
+scripts/capture_venues.mjs
+  s_711f46963a46cd::t_f89918da68dca5 1-173
+scripts/venue_check_evidence.py
+  s_711f46963a46cd::t_f89918da68dca5 1-157
+scripts/venue_identity.py
+  s_711f46963a46cd::t_f89918da68dca5 1-139
+docs/examples/official-venue-pilot20.json
+  s_711f46963a46cd::t_f89918da68dca5 1-25
+docs/specifications/official-venue-review/h5-v5.md
+  s_711f46963a46cd::t_f89918da68dca5 1-26
+scripts/rerun_venue_audit.py
+  s_711f46963a46cd::t_f89918da68dca5 1-755
+backend/tests/test_venue_h5_policy.py
+  s_711f46963a46cd::t_f89918da68dca5 1-190
+backend/tests/test_venue_check_evidence.py
+  s_711f46963a46cd::t_f89918da68dca5 1-154
+docs/specifications/official-venue-review/h5-v3.md
+  s_711f46963a46cd::t_f89918da68dca5 1-58
+docs/specifications/official-venue-review/assets.json
+  s_711f46963a46cd::t_f89918da68dca5 1-181
+docs/specifications/official-venue-review/h5-v4.json
+  s_711f46963a46cd::t_f89918da68dca5 1-1527
+scripts/build_venue_recheck_report.py
+  s_711f46963a46cd::t_f89918da68dca5 1-244
+scripts/validate_venue_reaudit.py
+  s_711f46963a46cd::t_f89918da68dca5 1-147
+docs/specifications/official-venue-review/h5-v4.md
+  s_711f46963a46cd::t_f89918da68dca5 1-15
+backend/requirements.txt
+  s_711f46963a46cd::t_dba14b03424fb1 17-18
+docs/specifications/official-venue-review/h5-v2.md
+  s_711f46963a46cd::t_f89918da68dca5 1-62
+backend/tests/test_venue_reaudit.py
+  s_711f46963a46cd::t_f89918da68dca5 1-100
+docs/specifications/official-venue-review/source.json
+  s_711f46963a46cd::t_f89918da68dca5 1-8
+docs/examples/official-venue-pilot10-v3.json
+  s_711f46963a46cd::t_f89918da68dca5 1-16
+scripts/capture_tab_spacing.mjs
+  s_711f46963a46cd::t_f89918da68dca5 1-105
+docs/specifications/official-venue-review/README.md
+  s_711f46963a46cd::t_2ad7cc5040651a 3-18
+scripts/venue_check_evidence.css
+  s_711f46963a46cd::t_f89918da68dca5 1-21
+docs/check-evidence.md
+  s_711f46963a46cd::t_f89918da68dca5 1-25
+scripts/recheck_tab_spacing.py
+  s_711f46963a46cd::t_f89918da68dca5 1-160
+scripts/tests/test_venue_identity.py
+  s_711f46963a46cd::t_f89918da68dca5 1-102
+docs/venue-audit-tools.md
+  s_711f46963a46cd::t_2ad7cc5040651a 1-80
+docs/specifications/official-venue-review/h5-v2.json
+  s_711f46963a46cd::t_f89918da68dca5 1-1520
+docs/specifications/official-venue-review/h5-v5.json
+  s_711f46963a46cd::t_f89918da68dca5 1-1543
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "73733b265bef4d92a42fe63be5efd9fed891d7aa",
+  "prompts": {},
+  "sessions": {
+    "s_711f46963a46cd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e643f1c-c877-4f48-b34a-38137e79ddd2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "heyunshen <heyunshen@SZMAC-F7F7KPQ2.local>"
+    }
+  }
+}
