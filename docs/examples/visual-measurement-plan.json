@@ -1,0 +1,32 @@
+{
+  "description": "历史样例：电气自动化双十一会场第二屏。区域由人工查看截图选取，测量不会自动确认组件语义。",
+  "measurements": [
+    {
+      "id": "page-background",
+      "label": "卡片左侧背景取色",
+      "rule_id": "OV010",
+      "kind": "color",
+      "params": {"bbox": [0, 50, 4, 140], "expected_hex": "#FFFFFF"}
+    },
+    {
+      "id": "card-background",
+      "label": "商品卡片空白区域取色",
+      "kind": "color",
+      "params": {"bbox": [240, 80, 340, 110], "expected_hex": "#FFFFFF"}
+    },
+    {
+      "id": "first-card-gap",
+      "label": "首个可见卡片间的纯背景色条带",
+      "rule_id": "OV012",
+      "kind": "bands",
+      "params": {"bbox": [10, 135, 380, 158], "background_hex": "#E999D0"}
+    },
+    {
+      "id": "several-card-gaps",
+      "label": "连续商品卡片之间的背景色条带候选",
+      "rule_id": "OV012",
+      "kind": "bands",
+      "params": {"bbox": [130, 40, 350, 810], "background_hex": "#E999D0"}
+    }
+  ]
+}

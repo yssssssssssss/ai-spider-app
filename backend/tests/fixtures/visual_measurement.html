@@ -1,0 +1,25 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>视觉测量固定样例</title>
+<style>
+body { margin:0; width:390px; background:#E999D0; color:#11141A; font:16px sans-serif; }
+main { padding:10px; }
+.card { box-sizing:border-box; width:370px; height:100px; background:#FFFFFF; border-radius:12px; }
+#second { margin-top:24px; }
+#hidden { display:none; }
+#transparent-parent { opacity:0; }
+#visibility-parent { visibility:hidden; }
+#visibility-override { visibility:visible; }
+#transformed-parent { transform:translateX(2px); }
+#offscreen { position:absolute; top:1000px; }
+#partial { position:absolute; top:820px; height:100px; }
+#side { position:absolute; top:10px; left:385px; width:5px; height:100px; }
+</style><main>
+<section id="first" class="card">第一楼层</section>
+<section id="second" class="card">第二楼层</section>
+<section id="hidden" class="card">隐藏楼层</section>
+<div id="transparent-parent"><section id="transparent" class="card">透明楼层</section></div>
+<div id="visibility-parent"><section id="visibility-override" class="card">显式可见楼层</section></div>
+<div id="transformed-parent"><section id="transformed" class="card">位移楼层</section></div>
+<section id="offscreen" class="card">屏幕外楼层</section>
+<section id="partial" class="card">部分可见楼层</section>
+<section id="side">右侧</section>
+</main></html>
