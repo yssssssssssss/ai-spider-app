@@ -6,6 +6,14 @@ const BACKEND_PORT = 8000
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        lifecycleDemo: 'lifecycle-demo.html',
+      },
+    },
+  },
   server: {
     host: true,
     port: FRONTEND_PORT,
