@@ -107,13 +107,13 @@ def create_page(
 def import_h5(
     project_id: UUID,
     file: UploadFile = File(...),
-    record_ids: str | None = Form(None),
+    venue_ids: str | None = Form(None),
     db: Session = Depends(get_db),
     user: models.User = Depends(require_at_least("operator")),
 ):
     project = _get_or_404(db, models.AuditProject, project_id)
     with _service_errors(db):
-        result = service.import_h5_upload(db, project, file.file.read(), file.filename or "results.json", record_ids, user.id)
+        result = service.import_h5_upload(db, project, file.file.read(), file.filename or "results.json", venue_ids, user.id)
         db.commit()
     return result
 

@@ -40,7 +40,7 @@ AuditRecord   id, page_id→AuditPage, phase(pre|post), carrier(h5|app),
 
 ## 3. 收录
 
-**H5 导入**：上传 `results.json`（实测 30MB/408 会场，需支持）。对每个 `results[]`：按 `venue.venue_id` 在项目内匹配或创建页面（名称取 `venue_name`），创建 `phase=pre, carrier=h5` 记录；findings 取 `audit.checks[]`。同一文件（sha256）重复导入同一项目时跳过已存在的记录并报告数量。可选参数 `record_ids` 只导入部分会场。
+**H5 导入**：上传 `results.json`（实测 30MB/408 会场，需支持）。对每个 `results[]`：按 `venue.venue_id` 在项目内匹配或创建页面（名称取 `venue_name`），创建 `phase=pre, carrier=h5` 记录；findings 取 `audit.checks[]`。同一文件（sha256）重复导入同一项目时跳过已存在的记录并报告数量。可选参数 `venue_ids` 只导入部分会场。
 
 **App 收录**：用户在某页面选择 `task_run_id` 和 `skill_id`，`phase` 默认 `post`，可选择基线。汇总该运行所有图片对应 Skill 的 `Analysis.inspection_json` 检查项，同一 `rule_id` 跨图合并：任一 `fail`→fail；否则任一 `pass`→pass；否则任一 `uncertain`→uncertain；否则 not_applicable。`evidence.image_ids` 记录贡献该结论的图片。运行没有该 Skill 的巡查结果时拒绝收录。
 
@@ -97,7 +97,7 @@ AuditRecord   id, page_id→AuditPage, phase(pre|post), carrier(h5|app),
 ## 8. 验收情境
 
 1. compare 覆盖第 4 节每一类，含 disabled、not_applicable、仅一侧存在、规范不同。
-2. H5 解析：用 `docs/examples/official-venue-pilot10-v3.json` 所选会场构造的小夹具，页面按 venue_id 去重，findings 字段完整，`disabled` 原样保留；重复导入跳过；`record_ids` 子集导入。
+2. H5 解析：用 `docs/examples/official-venue-pilot10-v3.json` 所选会场构造的小夹具，页面按 venue_id 去重，findings 字段完整，`disabled` 原样保留；重复导入跳过；`venue_ids` 子集导入。
 3. App 汇总：多图合并规则（fail 优先等），无该 Skill 结果时报错。
 4. 基线约束：不能指向其他页面、不能指向 post、pre 记录不能设基线；删除 pre 后引用置空。
 5. API：未登录 401，viewer 不能写；跨项目的 page/record ID 返回 404。

@@ -118,4 +118,101 @@ export const deleteComparisonSkill = (id: string) => api.delete(`/compare/skills
 export const listComparisonReports = () => api.get('/compare/reports');
 export const createComparisonReport = (data: any) => api.post('/compare/reports', data);
 
+export type AuditPhase = 'pre' | 'post';
+export type AuditStatus = 'pass' | 'fail' | 'uncertain' | 'not_applicable' | 'disabled';
+export type AuditCategory = 'regressed' | 'still_open' | 'new_issue' | 'needs_confirmation' | 'fixed' | 'kept' | 'not_comparable';
+export type AuditCounts = Record<string, number>;
+
+export interface AuditProjectInput { name: string; description?: string | null }
+export interface AuditProject extends AuditProjectInput {
+  id: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+export interface AuditProjectListItem extends AuditProject {
+  page_count: number;
+  record_counts: AuditCounts;
+}
+export interface AuditPageInput { name: string; business_key?: string | null }
+export interface AuditPage extends AuditPageInput {
+  id: string;
+  project_id: string;
+  created_at: string;
+}
+export interface AuditRecordSummary { id: string; summary_json: AuditCounts; created_at: string }
+export interface AuditPageMatrix extends AuditPage {
+  latest_pre: AuditRecordSummary | null;
+  latest_post: AuditRecordSummary | null;
+  has_baseline: boolean;
+  compare_counts: AuditCounts | null;
+}
+export interface AuditProjectDetail extends AuditProject { pages: AuditPageMatrix[] }
+export interface AuditFinding {
+  rule_id: string;
+  title: string;
+  status: AuditStatus;
+  observed: string;
+  reason: string;
+  evidence: { kind: 'h5_report' | 'app_images'; image_ids: string[] };
+}
+export interface AuditRecord extends AuditRecordSummary {
+  page_id: string;
+  phase: AuditPhase;
+  carrier: 'h5' | 'app';
+  source_kind: 'h5_import' | 'app_task_run';
+  source_ref_json: Record<string, unknown>;
+  spec_key: string;
+  spec_version: string;
+  findings_json: AuditFinding[];
+  baseline_record_id: string | null;
+  note: string | null;
+  created_by: string | null;
+}
+export interface AuditComparisonRule {
+  rule_id: string;
+  title: string;
+  category: AuditCategory;
+  pre_status: string | null;
+  pre_observed: string | null;
+  post_status: string | null;
+  post_observed: string | null;
+}
+export interface AuditComparison { rules: AuditComparisonRule[]; counts: AuditCounts; spec_mismatch: boolean }
+export interface AuditPageDetail extends AuditPage { records: AuditRecord[]; comparison: AuditComparison | null }
+export interface AuditAppRecordInput {
+  task_run_id: string;
+  skill_id: string;
+  phase?: AuditPhase;
+  baseline_record_id?: string | null;
+}
+export interface AuditRecordUpdate { baseline_record_id?: string | null; note?: string | null }
+export interface AuditH5ImportResult { created: number; skipped: number; pages_created: number }
+export interface AuditAppCandidate {
+  task_run_id: string;
+  task_name: string | null;
+  completed_at: string | null;
+  skills: { id: string; name: string; version: number }[];
+}
+export interface AuditDeleteResult { ok: boolean }
+
+export const listAuditProjects = () => api.get<AuditProjectListItem[]>('/audit-projects');
+export const createAuditProject = (data: AuditProjectInput) => api.post<AuditProject>('/audit-projects', data);
+export const getAuditProject = (id: string) => api.get<AuditProjectDetail>(`/audit-projects/${id}`);
+export const updateAuditProject = (id: string, data: Partial<AuditProjectInput>) => api.patch<AuditProject>(`/audit-projects/${id}`, data);
+export const deleteAuditProject = (id: string) => api.delete<AuditDeleteResult>(`/audit-projects/${id}`);
+export const createAuditPage = (id: string, data: AuditPageInput) => api.post<AuditPage>(`/audit-projects/${id}/pages`, data);
+export const getAuditPage = (id: string) => api.get<AuditPageDetail>(`/audit-pages/${id}`);
+export const importAuditH5 = (id: string, file: File, venueIds?: string) => {
+  const data = new FormData();
+  data.append('file', file);
+  if (venueIds?.trim()) data.append('venue_ids', venueIds.trim().split(/[\s,，]+/).join(','));
+  return api.post<AuditH5ImportResult>(`/audit-projects/${id}/imports/h5`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+};
+export const listAuditAppCandidates = () => api.get<AuditAppCandidate[]>('/audit-projects/app-candidates');
+export const addAuditAppRecord = (id: string, data: AuditAppRecordInput) => api.post<AuditRecord>(`/audit-pages/${id}/records/app`, data);
+export const updateAuditRecord = (id: string, data: AuditRecordUpdate) => api.patch<AuditRecord>(`/audit-records/${id}`, data);
+export const deleteAuditRecord = (id: string) => api.delete<AuditDeleteResult>(`/audit-records/${id}`);
+export const compareAuditRecords = (postId: string, preId?: string) => api.get<AuditComparison>(`/audit-records/${postId}/compare`, { params: preId ? { pre_id: preId } : undefined });
+
 export default api;

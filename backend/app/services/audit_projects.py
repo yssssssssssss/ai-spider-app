@@ -47,12 +47,12 @@ def _summary(findings: list[Finding]) -> dict[str, int]:
     return {status: counts[status] for status in FINDING_STATUSES}
 
 
-def parse_h5_results(data: dict, record_ids: set[str] | None = None) -> list[ParsedVenue]:
+def parse_h5_results(data: dict, venue_ids: set[str] | None = None) -> list[ParsedVenue]:
     parsed = []
     for result in data["results"]:
         venue = result["venue"]
         venue_id = str(venue["venue_id"])
-        if record_ids is not None and venue_id not in record_ids:
+        if venue_ids is not None and venue_id not in venue_ids:
             continue
         findings = []
         for check in (result.get("audit") or {}).get("checks", []):
@@ -127,8 +127,8 @@ def compare(pre_findings: list[Finding], post_findings: list[Finding], *,
 
 
 def import_h5(db: Session, project: models.AuditProject, data: dict, file_name: str, sha256: str,
-              record_ids: set[str] | None, user_id: UUID | None) -> dict:
-    venues = parse_h5_results(data, record_ids)
+              venue_ids: set[str] | None, user_id: UUID | None) -> dict:
+    venues = parse_h5_results(data, venue_ids)
     db.flush()
     pages = {page.business_key: page for page in db.query(models.AuditPage).filter(
         models.AuditPage.project_id == project.id,
@@ -209,18 +209,18 @@ def add_app_record(db: Session, page: models.AuditPage, task_run_id: UUID, skill
 
 
 def import_h5_upload(db: Session, project: models.AuditProject, raw: bytes, file_name: str,
-                     record_ids: str | None, user_id: UUID) -> dict:
+                     venue_ids: str | None, user_id: UUID) -> dict:
     try:
         data = json.loads(raw)
     except (ValueError, UnicodeError) as exc:
         raise ValueError("File must contain valid JSON") from exc
     if not isinstance(data, dict) or not isinstance(data.get("results"), list):
         raise ValueError("H5 JSON must contain a results list")
-    selected = None
-    if record_ids is not None:
-        selected = {value.strip() for value in record_ids.split(",") if value.strip()} or None
+    selected_venue_ids = None
+    if venue_ids is not None:
+        selected_venue_ids = {value.strip() for value in venue_ids.split(",") if value.strip()} or None
     try:
-        return import_h5(db, project, data, file_name, hashlib.sha256(raw).hexdigest(), selected, user_id)
+        return import_h5(db, project, data, file_name, hashlib.sha256(raw).hexdigest(), selected_venue_ids, user_id)
     except (KeyError, TypeError, AttributeError) as exc:
         raise ValueError("Invalid H5 results structure") from exc
 

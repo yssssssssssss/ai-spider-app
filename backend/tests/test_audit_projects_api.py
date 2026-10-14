@@ -63,8 +63,8 @@ class AuditProjectAPITests(unittest.TestCase):
         self.assertEqual(response.status_code, expected, response.text)
         return response.json()
 
-    def upload(self, raw=None, record_ids=None, project_id=None, expected=200, **kwargs):
-        data = {} if record_ids is None else {"record_ids": record_ids}
+    def upload(self, raw=None, venue_ids=None, project_id=None, expected=200, **kwargs):
+        data = {} if venue_ids is None else {"venue_ids": venue_ids}
         return self.request("POST", f"/api/audit-projects/{project_id or self.project_id}/imports/h5",
                             expected, files={"file": ("results.json", FIXTURE.read_bytes() if raw is None else raw,
                                                        "application/json")}, data=data, **kwargs)
@@ -283,10 +283,10 @@ class AuditProjectAPITests(unittest.TestCase):
     def test_h5_subset_uses_venue_ids_and_raw_byte_hash(self):
         data = json.loads(FIXTURE.read_bytes())
         venue_id = data["results"][0]["venue"]["venue_id"]
-        self.assertEqual(self.upload(record_ids=f"  {venue_id}, ,unknown "), {"created": 1, "skipped": 0, "pages_created": 1})
+        self.assertEqual(self.upload(venue_ids=f"  {venue_id}, ,unknown "), {"created": 1, "skipped": 0, "pages_created": 1})
         self.assertEqual(self.upload(), {"created": 2, "skipped": 1, "pages_created": 2})
-        self.assertEqual(self.upload(record_ids=""), {"created": 0, "skipped": 3, "pages_created": 0})
-        self.assertEqual(self.upload(record_ids=data["results"][0]["venue"]["record_id"]),
+        self.assertEqual(self.upload(venue_ids=""), {"created": 0, "skipped": 3, "pages_created": 0})
+        self.assertEqual(self.upload(venue_ids=data["results"][0]["venue"]["record_id"]),
                          {"created": 0, "skipped": 0, "pages_created": 0})
 
     def test_h5_30mb_upload_imports_408_venues(self):

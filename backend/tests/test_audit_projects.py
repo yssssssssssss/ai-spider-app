@@ -114,13 +114,13 @@ class H5ParsingTests(unittest.TestCase):
         self.assertEqual(venues[0].findings[1]["status"], "disabled")
         self.assertEqual(data, original)
 
-    def test_parse_h5_record_ids_filters_venue_id_including_unknown_and_empty(self):
+    def test_parse_h5_venue_ids_including_unknown_and_empty(self):
         data = h5_fixture()
         venue_id = data["results"][1]["venue"]["venue_id"]
         for ids, expected in (({venue_id}, [venue_id]), ({venue_id, "unknown"}, [venue_id]),
                               ({"unknown"}, []), (set(), []), ({data["results"][1]["venue"]["record_id"]}, [])):
-            with self.subTest(record_ids=ids):
-                self.assertEqual([venue.venue_id for venue in parse_h5_results(data, ids)], expected)
+            with self.subTest(venue_ids=ids):
+                self.assertEqual([venue.venue_id for venue in parse_h5_results(data, venue_ids=ids)], expected)
 
     def test_parse_h5_empty_findings_and_missing_audit(self):
         data = h5_fixture()
@@ -223,8 +223,8 @@ class AuditProjectDatabaseTests(unittest.TestCase):
         self.db.flush()
         return image
 
-    def import_data(self, data, sha256, record_ids=None, project=None, file_name="results.json"):
-        return import_h5(self.db, project or self.project, data, file_name, sha256, record_ids, self.user_id)
+    def import_data(self, data, sha256, venue_ids=None, project=None, file_name="results.json"):
+        return import_h5(self.db, project or self.project, data, file_name, sha256, venue_ids=venue_ids, user_id=self.user_id)
 
     def test_import_h5_reuses_pages_across_two_files_and_skips_repeat(self):
         data = h5_fixture()

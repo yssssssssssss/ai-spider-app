@@ -16,6 +16,9 @@ import SkillEditor from './pages/SkillEditor';
 import AdminTaskManagement from './pages/AdminTaskManagement';
 import ScrollPromoReport from './pages/ScrollPromoReport';
 import JdNewFloorReport from './pages/JdNewFloorReport';
+import AuditProjects from './pages/AuditProjects';
+import AuditProjectDetail from './pages/AuditProjectDetail';
+import AuditPageDetail from './pages/AuditPageDetail';
 
 function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
   const { pathname } = useLocation();
@@ -98,6 +101,7 @@ function Navigation() {
             <>
               <NavLink to="/search">图片检索</NavLink>
               <NavLink to="/admin/tasks">任务管理</NavLink>
+              <NavLink to="/audit-projects">项目走查</NavLink>
               <NavLink to="/compare">对比分析</NavLink>
               <NavLink to="/skills">Skill 编辑</NavLink>
               <NavLink to="/admin/devices">设备管理</NavLink>
@@ -133,6 +137,9 @@ function App() {
                   <Route path="/admin" element={<RequireAuth><Navigate to="/admin/tasks" replace /></RequireAuth>} />
                   <Route path="/admin/requests" element={<RequireAuth><Navigate to="/admin/tasks?tab=requests" replace /></RequireAuth>} />
                   <Route path="/admin/tasks" element={<RequireAuth><AdminTaskManagement /></RequireAuth>} />
+                  <Route path="/audit-projects" element={<RequireAuth><AuditProjects /></RequireAuth>} />
+                  <Route path="/audit-projects/:projectId" element={<RequireAuth><AuditProjectDetail /></RequireAuth>} />
+                  <Route path="/audit-pages/:pageId" element={<RequireAuth><AuditPageDetail /></RequireAuth>} />
                   <Route path="/admin/tasks/:taskId/results" element={<RequireAuth><AdminTaskResults /></RequireAuth>} />
                   <Route path="/admin/tasks/:taskId/scroll-promo-report" element={<RequireAuth><ScrollPromoReport /></RequireAuth>} />
                   <Route path="/admin/tasks/:taskId/jd-new-floor-report" element={<RequireAuth><JdNewFloorReport /></RequireAuth>} />

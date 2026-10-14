@@ -2211,6 +2211,82 @@ tr:hover td {
 /* ============================================================
    布局工具类
    ============================================================ */
+.audit-page {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.audit-page .watch-header > div { min-width: 0; }
+.audit-page .watch-header { flex-wrap: wrap; }
+.audit-page .watch-header-actions { justify-content: flex-start; }
+.audit-page .watch-meta-panel { min-width: 0; }
+.audit-page p { white-space: pre-wrap; }
+.audit-muted { color: var(--text-secondary); }
+button.audit-delete { background: transparent; color: #ff6961; border-color: transparent; }
+button.audit-delete:hover { background: var(--bg-card); border-color: var(--border); box-shadow: none; }
+
+.audit-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  margin-top: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.audit-table-scroll table { min-width: 720px; }
+.audit-table-scroll td { max-width: 320px; }
+.audit-table-scroll tbody tr:has(a) { cursor: pointer; }
+
+.audit-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.audit-actions > label { flex: 1 1 180px; min-width: 0; }
+.audit-actions > label:has(input[type="checkbox"]) { flex: 0 1 auto; }
+.audit-actions input[type="checkbox"] { width: auto; }
+.audit-actions select { max-width: 100%; }
+.audit-form { display: grid; gap: 20px; }
+.audit-form label, .audit-page label { color: var(--text-secondary); }
+.audit-form :is(input, select, textarea), .audit-page label :is(input:not([type="checkbox"]), select) { display: block; margin-top: 6px; }
+
+.audit-dialog {
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 24px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow-wrap: anywhere;
+}
+
+.audit-dialog::backdrop { background: rgba(0, 0, 0, 0.75); }
+.audit-dialog .section-title-row { align-items: center; }
+.audit-dialog .section-title-row h2 { margin: 0; }
+.audit-dialog :is(input, select, textarea) { min-width: 0; }
+.audit-timeline { list-style: none; padding: 0; display: grid; gap: 16px; }
+.audit-timeline p { margin: 12px 0; }
+.audit-group { margin-top: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; }
+.audit-group summary { cursor: pointer; min-height: 40px; padding: 8px 0; }
+.audit-rule { padding: 12px 0; border-top: 1px solid var(--border); }
+.audit-rule .audit-actions { display: inline-flex; }
+.audit-observed { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; padding-top: 12px; }
+.audit-observed p { color: var(--text-secondary); white-space: pre-wrap; }
+.audit-page :is(button, input, select, textarea), .audit-dialog :is(button, input, select, textarea) { transition-property: background-color, border-color, box-shadow; }
+.audit-page :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible,
+.audit-dialog :is(button, input, select, textarea):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.audit-page button, .audit-dialog button { min-height: 40px; touch-action: manipulation; }
+.audit-page button:active:not(:focus-visible), .audit-dialog button:active:not(:focus-visible) { transform: scale(0.98); }
+
+@media (max-width: 600px) {
+  .audit-observed { grid-template-columns: minmax(0, 1fr); }
+  .audit-page .watch-header { align-items: flex-start; }
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
