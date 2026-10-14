@@ -21,4 +21,5 @@ frontend/dist/
 data/**/_temp_*
 data/**/exports/
 data/tasks/
+data/deployments/
 worker_runs/
