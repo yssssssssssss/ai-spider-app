@@ -1,0 +1,1520 @@
+{
+  "schema_version": 2,
+  "spec_id": "official-venue-review",
+  "version": "3-h5-user-policy-2026-10-11",
+  "title": "官方会场H5两屏审核：用户口径第3版",
+  "status": "pilot_validation",
+  "source": {
+    "filename": "官方会场审核规则与重点体验走查.pdf",
+    "sha256": "e771c460aaa413996d76cba8e1b418d29875be3ec443baaaae583532dafb54f0",
+    "page_count": 9,
+    "imported_at": "2026-10-09",
+    "document_version": "源文件未注明版本",
+    "local_archive": "data/tasks/spec-ingestion/official-venue-review/references/official-venue-review/官方会场审核规则与重点体验走查.pdf"
+  },
+  "scope": "大促官方会场提报前的审核与体验走查；普通页面及新品楼层不自动适用。",
+  "frameworks": {
+    "A": [
+      "top_navigation",
+      "hero",
+      "rights",
+      "guide_cube",
+      "category_tabs",
+      "product_feeds"
+    ],
+    "B": [
+      "top_navigation",
+      "hero",
+      "rights",
+      "category_tabs",
+      "product_feeds"
+    ],
+    "C": [
+      "top_navigation",
+      "hero",
+      "category_tabs",
+      "product_feeds"
+    ]
+  },
+  "framework_note": "本轮只核对顶部导航至feeds的A/B/C结构，忽略底部导航。",
+  "input_requirements": [
+    "原始H5首屏及第二屏截图和滚动位置",
+    "会场名称/ID/通天塔项目ID",
+    "楼层间距换算基准及验收容限（未明确时只测量）"
+  ],
+  "result_policy": {
+    "statuses": [
+      "pass",
+      "fail",
+      "uncertain",
+      "not_applicable",
+      "disabled"
+    ],
+    "missing_evidence": "uncertain",
+    "recommendations": "单列建议偏离，不并入硬性失败",
+    "not_applicable": "仅在条件明确不满足时使用，视口未覆盖不能代替不适用",
+    "mandatory_success": "全部适用硬性项有充分证据且通过；尚有uncertain时仅可部分验收",
+    "approved_exception": "保留业务与设计加白证据及适用范围，单列审批后的判定",
+    "disabled": "规则未激活，不执行，不计入通过、失败、待确认或适用性覆盖率。",
+    "duplicate_rules": "OV-023保留独立记录，与OV-005首屏商品要求共用证据，强制问题计数不重复累计。"
+  },
+  "conflicts": [],
+  "missing_references": [
+    "新大促官方会场白皮书（加白流程）",
+    "营销会场搭建指引（间距等细则）",
+    "官方会场应用规范-主题视觉（头图字体与样式）"
+  ],
+  "rules": [
+    {
+      "id": "OV-001",
+      "title": "固定框架和顺序（忽略底部导航）",
+      "strength": "mandatory",
+      "verification_method": "h5_screenshot",
+      "expected": "只核对A/B/C三种结构的顶部导航→主视觉→可选权益→可选导购魔方→分类Tab→feeds及对应顺序，本轮忽略底部导航。新增互动/招商/拉新楼层按OV-002核对。",
+      "steps": [
+        "在本次两屏H5截图中定位对应区域。",
+        "按当前expected核对并保留事实及原图坐标。"
+      ],
+      "required_evidence": [
+        "H5原始截图及对应可见区域"
+      ],
+      "sources": [
+        {
+          "page": 2,
+          "clause": "三.1 布局规范与三种框架",
+          "type": "pdf_visual_example",
+          "asset_id": "frameworks"
+        },
+        {
+          "page": 8,
+          "clause": "五.5 固定结构",
+          "type": "pdf_text"
+        },
+        {
+          "page": 9,
+          "clause": "五.5 不合规范示例",
+          "type": "pdf_visual_example",
+          "asset_id": "invalid-frameworks"
+        }
+      ],
+      "limits": "不因底部导航缺失判失败；预览异常或示意楼层影响顺序时待确认。",
+      "remediation": "按本轮A/B/C前置结构调整顺序，不涉及底部导航。",
+      "original": {
+        "id": "OV-001",
+        "title": "固定框架和顺序",
+        "strength": "mandatory",
+        "verification_method": "screen_sequence_and_configuration",
+        "expected": "仅允许三种框架。A：顶部导航→主视觉→优惠券/权益→导购魔方→分类Tab→商品feeds→底部导航；B：顶部导航→主视觉→优惠券/权益→分类Tab→商品feeds→底部导航；C：顶部导航→主视觉→分类Tab→商品feeds→底部导航。对应布局顺序不可变更。底部导航是固定区域，不是滚动内容尾部的普通楼层。",
+        "steps": [
+          "由搭建方提供预期框架A/B/C。",
+          "从首屏向下连续采集有重叠的截图，记录实际楼层序列，直至feeds已确认。",
+          "以图示框架核对整体序列；看不出组件类型时结合后台配置。"
+        ],
+        "required_evidence": [
+          "预期框架",
+          "完整的前置楼层序列截图",
+          "楼层类型/顺序表",
+          "必要时后台组件列表"
+        ],
+        "sources": [
+          {
+            "page": 2,
+            "clause": "三.1 布局规范与三种框架",
+            "type": "pdf_visual_example",
+            "asset_id": "frameworks"
+          },
+          {
+            "page": 8,
+            "clause": "五.5 固定结构",
+            "type": "pdf_text"
+          },
+          {
+            "page": 9,
+            "clause": "五.5 不合规范示例",
+            "type": "pdf_visual_example",
+            "asset_id": "invalid-frameworks"
+          }
+        ],
+        "limits": "单张截图不能证明整体结构。feeds内部穿插不能按普通前置楼层误判。已有业务及设计批准的加白，须单列审批范围后复核；审批不能仅凭口头描述认定。",
+        "remediation": "删除不允许的组件，恢复对应固定结构；无法满足业务需求时走业务及设计评估后的加白流程。"
+      },
+      "enabled": true,
+      "activation_reason": "当前H5审核启用。",
+      "rule_origin": "user_override"
+    },
+    {
+      "id": "OV-002",
+      "title": "新增楼层的位置",
+      "strength": "conditional_mandatory",
+      "verification_method": "h5_screenshot",
+      "expected": "未发现互动组件、招商或拉新楼层是允许的；如存在，只能放在feeds上方，或以模块形式融入feeds内部。",
+      "steps": [
+        "在本次两屏H5截图中定位对应区域。",
+        "按当前expected核对并保留事实及原图坐标。"
+      ],
+      "required_evidence": [
+        "H5原始截图及对应可见区域"
+      ],
+      "sources": [
+        {
+          "page": 2,
+          "clause": "三.1 新增楼层位置",
+          "type": "pdf_text"
+        }
+      ],
+      "limits": "只对可见范围判断；有组件但不能确定所属容器时待确认。",
+      "remediation": "移动到允许位置；不允许的组件按OV-001处理。",
+      "original": {
+        "id": "OV-002",
+        "title": "新增楼层的位置",
+        "strength": "conditional_mandatory",
+        "verification_method": "screen_sequence_and_configuration",
+        "expected": "如新增互动、招商、拉新等楼层，只能置于feeds上方或以模块形式融入feeds内部。",
+        "steps": [
+          "识别新增楼层。",
+          "核对其相对feeds的位置与后台归属，区分独立楼层和feeds内模块。"
+        ],
+        "required_evidence": [
+          "新增楼层截图",
+          "feeds起点截图",
+          "无法确定归属时的后台配置"
+        ],
+        "sources": [
+          {
+            "page": 2,
+            "clause": "三.1 新增楼层位置",
+            "type": "pdf_text"
+          }
+        ],
+        "limits": "未添加新增楼层时不适用；只见一张商品模块截图不能确认其所属容器。该位置规则不等于允许任意非标准组件。",
+        "remediation": "移动到允许位置；不允许的组件按OV-001处理。"
+      },
+      "enabled": true,
+      "activation_reason": "当前H5审核启用。",
+      "rule_origin": "user_override"
+    },
+    {
+      "id": "OV-003",
+      "title": "权益组件样式唯一",
+      "strength": "conditional_mandatory",
+      "verification_method": "screen_sequence_and_reference",
+      "expected": "权益楼层可按需添加；添加时，只选一种允许展示样式：平铺权益券包有标题、平铺权益券包无标题、权益平铺（优惠券+商品券）。图示同类内容的数量差异不自动视为混用样式。",
+      "steps": [
+        "记录所有权益组件。",
+        "对照允许样式，检查是否混用多种展示形式。"
+      ],
+      "required_evidence": [
+        "完整权益区域截图",
+        "组件配置或参考图"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 权益楼层",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        },
+        {
+          "page": 2,
+          "clause": "三.2 权益组件样式",
+          "type": "pdf_visual_example",
+          "asset_id": "rights-styles"
+        }
+      ],
+      "limits": "组件不一定存在；完整前置区域内未发现该组件时不适用。有组件时必须符合允许样式；区域不完整或类型不明时待确认。",
+      "remediation": "仅保留一种允许样式。",
+      "original": {
+        "id": "OV-003",
+        "title": "权益组件样式唯一",
+        "strength": "conditional_mandatory",
+        "verification_method": "screen_sequence_and_reference",
+        "expected": "权益楼层可按需添加；添加时，只选一种允许展示样式：平铺权益券包有标题、平铺权益券包无标题、权益平铺（优惠券+商品券）。图示同类内容的数量差异不自动视为混用样式。",
+        "steps": [
+          "记录所有权益组件。",
+          "对照允许样式，检查是否混用多种展示形式。"
+        ],
+        "required_evidence": [
+          "完整权益区域截图",
+          "组件配置或参考图"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 权益楼层",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          },
+          {
+            "page": 2,
+            "clause": "三.2 权益组件样式",
+            "type": "pdf_visual_example",
+            "asset_id": "rights-styles"
+          }
+        ],
+        "limits": "组件可选，不能因缺失直接判违规。视口未覆盖完整权益区域时，不可判整页只选一种。",
+        "remediation": "仅保留一种允许样式。"
+      },
+      "enabled": true,
+      "activation_reason": "当前H5审核启用。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-004",
+      "title": "导购魔方样式唯一",
+      "strength": "conditional_mandatory",
+      "verification_method": "screen_sequence_and_reference",
+      "expected": "导购魔方可按需添加；添加时，只选一种允许展示样式：一行四坑、焦点轮播、手动换组、入口+招商。",
+      "steps": [
+        "记录所有导购魔方组件。",
+        "对照四种样式，核对是否混用。"
+      ],
+      "required_evidence": [
+        "完整导购魔方区域截图",
+        "组件配置或参考图"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 导购魔方",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        },
+        {
+          "page": 2,
+          "clause": "三.3 导购魔方样式",
+          "type": "pdf_text"
+        },
+        {
+          "page": 3,
+          "clause": "三.3 样式图",
+          "type": "pdf_visual_example",
+          "asset_id": "guide-styles"
+        }
+      ],
+      "limits": "组件不一定存在；完整前置区域内未发现该组件时不适用。有组件时必须符合允许样式；区域不完整或类型不明时待确认。",
+      "remediation": "仅保留一种允许样式。",
+      "original": {
+        "id": "OV-004",
+        "title": "导购魔方样式唯一",
+        "strength": "conditional_mandatory",
+        "verification_method": "screen_sequence_and_reference",
+        "expected": "导购魔方可按需添加；添加时，只选一种允许展示样式：一行四坑、焦点轮播、手动换组、入口+招商。",
+        "steps": [
+          "记录所有导购魔方组件。",
+          "对照四种样式，核对是否混用。"
+        ],
+        "required_evidence": [
+          "完整导购魔方区域截图",
+          "组件配置或参考图"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 导购魔方",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          },
+          {
+            "page": 2,
+            "clause": "三.3 导购魔方样式",
+            "type": "pdf_text"
+          },
+          {
+            "page": 3,
+            "clause": "三.3 样式图",
+            "type": "pdf_visual_example",
+            "asset_id": "guide-styles"
+          }
+        ],
+        "limits": "组件可选，框架B/C不能因没有导购魔方判违规。视口缺失不代表整页未配置。",
+        "remediation": "仅保留一种允许样式。"
+      },
+      "enabled": true,
+      "activation_reason": "当前H5审核启用。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-005",
+      "title": "feeds及首屏完整商品",
+      "strength": "mandatory",
+      "verification_method": "initial_frame_and_screen_sequence",
+      "expected": "必须添加底feeds；进入会场后的首屏必须完整露出至少一个商品。",
+      "steps": [
+        "页面稳定后，在任何滚动前保存完整首屏。",
+        "数出首屏中完整露出的feeds商品，不以仅露出一部分或上方导购商品代替。",
+        "下滑确认feeds存在。"
+      ],
+      "required_evidence": [
+        "未经滚动的完整首屏",
+        "feeds商品区域",
+        "页面目标与首次进入状态"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 底feeds",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        }
+      ],
+      "limits": "截图已滚动或受弹窗遮挡时待确认。不能用下滑后完整商品截图证明首屏满足条件；原文未定义不同设备的换算标准。",
+      "remediation": "调整前置楼层高度或配置，确保目标设备的首屏完整露出至少一个feeds商品。",
+      "original": {
+        "id": "OV-005",
+        "title": "feeds及首屏完整商品",
+        "strength": "mandatory",
+        "verification_method": "initial_frame_and_screen_sequence",
+        "expected": "必须添加底feeds；进入会场后的首屏必须完整露出至少一个商品。",
+        "steps": [
+          "页面稳定后，在任何滚动前保存完整首屏。",
+          "数出首屏中完整露出的feeds商品，不以仅露出一部分或上方导购商品代替。",
+          "下滑确认feeds存在。"
+        ],
+        "required_evidence": [
+          "未经滚动的完整首屏",
+          "feeds商品区域",
+          "页面目标与首次进入状态"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 底feeds",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          }
+        ],
+        "limits": "截图已滚动或受弹窗遮挡时待确认。不能用下滑后完整商品截图证明首屏满足条件；原文未定义不同设备的换算标准。",
+        "remediation": "调整前置楼层高度或配置，确保目标设备的首屏完整露出至少一个feeds商品。"
+      },
+      "enabled": true,
+      "activation_reason": "当前H5审核启用。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-006",
+      "title": "底部导航存在及样式",
+      "strength": "mandatory",
+      "verification_method": "screen_sequence_and_reference",
+      "expected": "底部导航必须添加，不可删除或隐藏，样式必须与主会场一致。",
+      "steps": [
+        "检查首屏及下滑后的底部导航是否可见。",
+        "取得本次活动主会场导航截图并比较样式。"
+      ],
+      "required_evidence": [
+        "各状态完整截图",
+        "同活动主会场导航参考截图"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 底部导航",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        }
+      ],
+      "limits": "未提供主会场参考时只能验证本页可见性，样式一致性待确认。遮挡或当前截图不完整时不能断言删除。",
+      "remediation": "恢复导航，使用主会场一致的样式。",
+      "original": {
+        "id": "OV-006",
+        "title": "底部导航存在及样式",
+        "strength": "mandatory",
+        "verification_method": "screen_sequence_and_reference",
+        "expected": "底部导航必须添加，不可删除或隐藏，样式必须与主会场一致。",
+        "steps": [
+          "检查首屏及下滑后的底部导航是否可见。",
+          "取得本次活动主会场导航截图并比较样式。"
+        ],
+        "required_evidence": [
+          "各状态完整截图",
+          "同活动主会场导航参考截图"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 底部导航",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          }
+        ],
+        "limits": "未提供主会场参考时只能验证本页可见性，样式一致性待确认。遮挡或当前截图不完整时不能断言删除。",
+        "remediation": "恢复导航，使用主会场一致的样式。"
+      },
+      "enabled": false,
+      "activation_reason": "用户要求当前版本忽略，保留原规则。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-007",
+      "title": "H5首屏与吸顶标题状态",
+      "strength": "mandatory",
+      "verification_method": "h5_screenshot",
+      "expected": "仅在H5验证：首屏导航不展示标题；滚动形成吸顶导航后展示标题。两种状态下图标/标题清晰。无需App原生复核。",
+      "steps": [
+        "在本次两屏H5截图中定位对应区域。",
+        "按当前expected核对并保留事实及原图坐标。"
+      ],
+      "required_evidence": [
+        "H5原始截图及对应可见区域"
+      ],
+      "sources": [
+        {
+          "page": 3,
+          "clause": "四.1 标题展示",
+          "type": "pdf_visual_example",
+          "asset_id": "title-states"
+        },
+        {
+          "page": 4,
+          "clause": "四.1 导航配置",
+          "type": "pdf_visual_example",
+          "asset_id": "title-configurations"
+        },
+        {
+          "page": 7,
+          "clause": "五.2 标题颜色异常与展示开关",
+          "type": "pdf_text"
+        }
+      ],
+      "limits": "主视觉标题与导航标题分开；初始导航标题已清楚展示可判首屏要求失败，不因缺App配置强制待确认。未验证吸顶状态时不能判该状态通过。",
+      "remediation": "调整H5导航，使首屏隐藏标题、吸顶后显示并保持清晰。",
+      "original": {
+        "id": "OV-007",
+        "title": "首屏与吸顶标题状态",
+        "strength": "mandatory",
+        "verification_method": "paired_frames_and_configuration",
+        "expected": "进入时导航标题不展示，导航图标清晰；下滑并形成吸顶导航后标题展示，标题及图标均清晰。后台标题样式为不展示，上滑标题样式为展示。主视觉内的标题文案不等于导航标题。",
+        "steps": [
+          "保存首屏导航。",
+          "仅滚动到主视觉离开顶部、导航吸顶状态出现，保存第二张截图。",
+          "比较导航标题和图标；必要时复核后台开关。"
+        ],
+        "required_evidence": [
+          "首屏与吸顶成对截图",
+          "两次采集的状态说明",
+          "后台标题开关（如需）"
+        ],
+        "sources": [
+          {
+            "page": 3,
+            "clause": "四.1 标题展示",
+            "type": "pdf_visual_example",
+            "asset_id": "title-states"
+          },
+          {
+            "page": 4,
+            "clause": "四.1 导航配置",
+            "type": "pdf_visual_example",
+            "asset_id": "title-configurations"
+          },
+          {
+            "page": 7,
+            "clause": "五.2 标题颜色异常与展示开关",
+            "type": "pdf_text"
+          }
+        ],
+        "limits": "未真正触发吸顶状态时不能判下滑标题缺失。看到主视觉文案不能判首屏导航标题违规。",
+        "remediation": "标题样式选不展示，上滑标题样式选展示，并修复图标可读性。"
+      },
+      "enabled": false,
+      "activation_reason": "2026-10-11用户补充：当前版本忽略OV-007，保留原规则与H5修订要求供后续恢复。",
+      "rule_origin": "user_override"
+    },
+    {
+      "id": "OV-008",
+      "title": "深浅背景下的导航颜色",
+      "strength": "conditional_mandatory",
+      "verification_method": "paired_frames_and_configuration",
+      "expected": "整体页面背景为深色时，状态栏选择浅色，上滑标题颜色为#FFFFFF；整体背景为浅色时，状态栏选择深色，上滑标题颜色为#11141A。两种状态的图标和标题应清晰可见。",
+      "steps": [
+        "确认背景属于深色还是浅色。",
+        "检查首屏和吸顶状态下的可读性。",
+        "复核后台状态栏选项及标题颜色值。"
+      ],
+      "required_evidence": [
+        "首屏/吸顶截图",
+        "背景分类依据",
+        "后台颜色配置"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 标题栏",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        },
+        {
+          "page": 4,
+          "clause": "四.1 导航配置",
+          "type": "pdf_visual_example",
+          "asset_id": "title-configurations"
+        },
+        {
+          "page": 7,
+          "clause": "五.2 深浅色配置要求",
+          "type": "pdf_text"
+        }
+      ],
+      "limits": "浅色/深色是图标颜色选项，不能误当成页面背景名称。截图抗锯齿不能准确证明文字十六进制配置值；复杂背景分类不明时待确认。黑色标题本身不必然违规，应结合浅色背景分支。",
+      "remediation": "按页面背景设置对应状态栏及上滑标题颜色。",
+      "original": {
+        "id": "OV-008",
+        "title": "深浅背景下的导航颜色",
+        "strength": "conditional_mandatory",
+        "verification_method": "paired_frames_and_configuration",
+        "expected": "整体页面背景为深色时，状态栏选择浅色，上滑标题颜色为#FFFFFF；整体背景为浅色时，状态栏选择深色，上滑标题颜色为#11141A。两种状态的图标和标题应清晰可见。",
+        "steps": [
+          "确认背景属于深色还是浅色。",
+          "检查首屏和吸顶状态下的可读性。",
+          "复核后台状态栏选项及标题颜色值。"
+        ],
+        "required_evidence": [
+          "首屏/吸顶截图",
+          "背景分类依据",
+          "后台颜色配置"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 标题栏",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          },
+          {
+            "page": 4,
+            "clause": "四.1 导航配置",
+            "type": "pdf_visual_example",
+            "asset_id": "title-configurations"
+          },
+          {
+            "page": 7,
+            "clause": "五.2 深浅色配置要求",
+            "type": "pdf_text"
+          }
+        ],
+        "limits": "浅色/深色是图标颜色选项，不能误当成页面背景名称。截图抗锯齿不能准确证明文字十六进制配置值；复杂背景分类不明时待确认。黑色标题本身不必然违规，应结合浅色背景分支。",
+        "remediation": "按页面背景设置对应状态栏及上滑标题颜色。"
+      },
+      "enabled": false,
+      "activation_reason": "用户要求当前版本忽略，保留原规则。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-009",
+      "title": "楼层间距24PX",
+      "strength": "mandatory",
+      "verification_method": "calibrated_measurement_and_configuration",
+      "expected": "楼层间距为24PX，包括楼层与feeds交界处。",
+      "steps": [
+        "保存完整楼层交界区域。",
+        "复核通天塔间隔高度配置值24。",
+        "如使用截图测量，先确定设计PX与当前渲染像素的比例，再测量。"
+      ],
+      "required_evidence": [
+        "楼层交界截图",
+        "间隔高度配置",
+        "使用测量时的坐标及换算依据"
+      ],
+      "sources": [
+        {
+          "page": 4,
+          "clause": "四.2 楼层间距",
+          "type": "pdf_visual_example",
+          "asset_id": "floor-spacing"
+        },
+        {
+          "page": 5,
+          "clause": "四.2 通天塔配置",
+          "type": "pdf_text"
+        }
+      ],
+      "limits": "可识别候选条带并测量模型定位边缘距离；24px按812整屏高度换算的假设目标为截图高度×24/812。未确认基准、验收容限或组件边界时只报告测量与差值。",
+      "remediation": "将楼层间隔高度设为24，并核对实际呈现。",
+      "original": {
+        "id": "OV-009",
+        "title": "楼层间距24PX",
+        "strength": "mandatory",
+        "verification_method": "calibrated_measurement_and_configuration",
+        "expected": "楼层间距为24PX，包括楼层与feeds交界处。",
+        "steps": [
+          "保存完整楼层交界区域。",
+          "复核通天塔间隔高度配置值24。",
+          "如使用截图测量，先确定设计PX与当前渲染像素的比例，再测量。"
+        ],
+        "required_evidence": [
+          "楼层交界截图",
+          "间隔高度配置",
+          "使用测量时的坐标及换算依据"
+        ],
+        "sources": [
+          {
+            "page": 4,
+            "clause": "四.2 楼层间距",
+            "type": "pdf_visual_example",
+            "asset_id": "floor-spacing"
+          },
+          {
+            "page": 5,
+            "clause": "四.2 通天塔配置",
+            "type": "pdf_text"
+          }
+        ],
+        "limits": "原文没有设备缩放比及误差容限。不能把24PX直接当ADB截图的24个像素，也不能自行给容差。截图可发现明显缺失/过大的间隔，精确合规值需配置或经确认的换算。",
+        "remediation": "将楼层间隔高度设为24，并核对实际呈现。"
+      },
+      "enabled": true,
+      "activation_reason": "当前H5审核启用。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-010",
+      "title": "feeds背景为白色",
+      "strength": "mandatory",
+      "verification_method": "h5_screenshot",
+      "expected": "本轮feeds容器背景必须为#FFFFFF。依据用户明确口径，不再沿用原PDF的白色政策冲突。",
+      "steps": [
+        "在本次两屏H5截图中定位对应区域。",
+        "按当前expected核对并保留事实及原图坐标。"
+      ],
+      "required_evidence": [
+        "H5原始截图及对应可见区域"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 底feeds：背景必须白色",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        },
+        {
+          "page": 5,
+          "clause": "四.3 背景建议白色",
+          "type": "pdf_text"
+        },
+        {
+          "page": 6,
+          "clause": "四.3 非白色分支",
+          "type": "pdf_text"
+        }
+      ],
+      "limits": "区分卡片内白底与feeds容器背景；文字、水印、图片、渐变不能当纯背景取样。只判断本次可见范围。",
+      "remediation": "将feeds容器背景调整为#FFFFFF。",
+      "original": {
+        "id": "OV-010",
+        "title": "feeds背景白色要求冲突",
+        "strength": "requires_clarification",
+        "verification_method": "business_confirmation_and_configuration",
+        "expected": "第1页图示要求Feeds背景必须#FFFFFF；第5页写建议为#FFFFFF，第6页为非白色提供布局规则。先确认适用政策，未确认前本项返回uncertain。",
+        "steps": [
+          "记录实际feeds背景及后台颜色值。",
+          "由规范负责人确认白色为强制，还是允许按非白色规则配置。",
+          "记录政策版本或加白审批，再进行合规判定。"
+        ],
+        "required_evidence": [
+          "feeds截图",
+          "后台背景配置",
+          "规范负责人确认记录"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 底feeds：背景必须白色",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          },
+          {
+            "page": 5,
+            "clause": "四.3 背景建议白色",
+            "type": "pdf_text"
+          },
+          {
+            "page": 6,
+            "clause": "四.3 非白色分支",
+            "type": "pdf_text"
+          }
+        ],
+        "limits": "背景非白色不能未经确认直接判硬性失败；白色也不能消除原文条款冲突。非白色的布局仍可按OV-011/012收集证据。",
+        "remediation": "先澄清白色政策，再选择修复背景或按获准的非白色布局整改。"
+      },
+      "enabled": true,
+      "activation_reason": "当前H5审核启用。",
+      "rule_origin": "user_override"
+    },
+    {
+      "id": "OV-011",
+      "title": "非白背景商卡边距和圆角",
+      "strength": "conditional_mandatory",
+      "verification_method": "calibrated_measurement_and_configuration",
+      "expected": "feeds背景非白色时，商卡左右边距24PX，商卡圆角24PX。",
+      "steps": [
+        "确认feeds背景非白色。",
+        "采集完整商卡和左右边缘。",
+        "复核后台边距/圆角配置；有设计坐标换算后才进行精确像素验证。"
+      ],
+      "required_evidence": [
+        "完整商卡截图",
+        "背景依据",
+        "左右边距和圆角配置或校准测量"
+      ],
+      "sources": [
+        {
+          "page": 6,
+          "clause": "四.3 非白色商卡要求",
+          "type": "pdf_visual_example",
+          "asset_id": "nonwhite-cards"
+        }
+      ],
+      "limits": "白色背景不适用此分支。边距参照的是feeds商卡容器边界；示意图的比例不等于真机缩放比。非白色布局合格不等于其背景已获准。",
+      "remediation": "按规范设置左右边距及圆角24PX。",
+      "original": {
+        "id": "OV-011",
+        "title": "非白背景商卡边距和圆角",
+        "strength": "conditional_mandatory",
+        "verification_method": "calibrated_measurement_and_configuration",
+        "expected": "feeds背景非白色时，商卡左右边距24PX，商卡圆角24PX。",
+        "steps": [
+          "确认feeds背景非白色。",
+          "采集完整商卡和左右边缘。",
+          "复核后台边距/圆角配置；有设计坐标换算后才进行精确像素验证。"
+        ],
+        "required_evidence": [
+          "完整商卡截图",
+          "背景依据",
+          "左右边距和圆角配置或校准测量"
+        ],
+        "sources": [
+          {
+            "page": 6,
+            "clause": "四.3 非白色商卡要求",
+            "type": "pdf_visual_example",
+            "asset_id": "nonwhite-cards"
+          }
+        ],
+        "limits": "白色背景不适用此分支。边距参照的是feeds商卡容器边界；示意图的比例不等于真机缩放比。非白色布局合格不等于其背景已获准。",
+        "remediation": "按规范设置左右边距及圆角24PX。"
+      },
+      "enabled": false,
+      "activation_reason": "用户要求当前版本忽略，保留原规则。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-012",
+      "title": "非白背景商卡及加购间隔",
+      "strength": "conditional_mandatory",
+      "verification_method": "current_frame",
+      "expected": "feeds背景非白色时，商卡之间有间隔，加购控件有边距，不出现商卡紧贴和加购贴边的反例。此项不自行给商卡间距或加购边距添加原文未明确的数值。",
+      "steps": [
+        "保存至少两个相邻完整商卡及加购控件。",
+        "对照正反例检查卡片间隔与加购周围空间。"
+      ],
+      "required_evidence": [
+        "相邻商卡完整截图",
+        "加购区域局部证据"
+      ],
+      "sources": [
+        {
+          "page": 6,
+          "clause": "四.3 非白背景正反例",
+          "type": "pdf_visual_example",
+          "asset_id": "nonwhite-cards"
+        }
+      ],
+      "limits": "白色背景不适用；加购控件只做视觉检查，无需实际加购。卡片或控件被遮挡时待确认。",
+      "remediation": "恢复卡片间隔和加购控件的边距。",
+      "original": {
+        "id": "OV-012",
+        "title": "非白背景商卡及加购间隔",
+        "strength": "conditional_mandatory",
+        "verification_method": "current_frame",
+        "expected": "feeds背景非白色时，商卡之间有间隔，加购控件有边距，不出现商卡紧贴和加购贴边的反例。此项不自行给商卡间距或加购边距添加原文未明确的数值。",
+        "steps": [
+          "保存至少两个相邻完整商卡及加购控件。",
+          "对照正反例检查卡片间隔与加购周围空间。"
+        ],
+        "required_evidence": [
+          "相邻商卡完整截图",
+          "加购区域局部证据"
+        ],
+        "sources": [
+          {
+            "page": 6,
+            "clause": "四.3 非白背景正反例",
+            "type": "pdf_visual_example",
+            "asset_id": "nonwhite-cards"
+          }
+        ],
+        "limits": "白色背景不适用；加购控件只做视觉检查，无需实际加购。卡片或控件被遮挡时待确认。",
+        "remediation": "恢复卡片间隔和加购控件的边距。"
+      },
+      "enabled": false,
+      "activation_reason": "用户要求当前版本忽略，保留原规则。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-013",
+      "title": "页面背景与头图衔接",
+      "strength": "mandatory",
+      "verification_method": "current_frame",
+      "expected": "页面背景必须与头图过渡自然或与头图背景一致。可用通天塔AI配色，AI配色是手段而非必选项。",
+      "steps": [
+        "采集包含头图及其相邻页面背景的截图。",
+        "检查突兀断色、露底及边界衔接。"
+      ],
+      "required_evidence": [
+        "头图与页面背景交界区域"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 页面背景色",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        }
+      ],
+      "limits": "未同时覆盖头图及背景交界时待确认。自然过渡是视觉判断，没有原文给定的数值色差阈值。",
+      "remediation": "调整背景色或素材，使过渡自然或背景一致。",
+      "original": {
+        "id": "OV-013",
+        "title": "页面背景与头图衔接",
+        "strength": "mandatory",
+        "verification_method": "current_frame",
+        "expected": "页面背景必须与头图过渡自然或与头图背景一致。可用通天塔AI配色，AI配色是手段而非必选项。",
+        "steps": [
+          "采集包含头图及其相邻页面背景的截图。",
+          "检查突兀断色、露底及边界衔接。"
+        ],
+        "required_evidence": [
+          "头图与页面背景交界区域"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 页面背景色",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          }
+        ],
+        "limits": "未同时覆盖头图及背景交界时待确认。自然过渡是视觉判断，没有原文给定的数值色差阈值。",
+        "remediation": "调整背景色或素材，使过渡自然或背景一致。"
+      },
+      "enabled": false,
+      "activation_reason": "用户要求当前版本忽略，保留原规则。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-014",
+      "title": "活动LOGO不重复重叠",
+      "strength": "mandatory",
+      "verification_method": "current_frame_and_configuration",
+      "expected": "模板默认添加活动标识，头图素材不要重复添加；需联合标识时删除原标识后自行添加。腰封不应因双重大促LOGO导致icon/文字重叠。",
+      "steps": [
+        "检查主视觉与腰封是否出现双重LOGO或重叠。",
+        "发现重叠后核对素材内与组件内是否重复配置。"
+      ],
+      "required_evidence": [
+        "完整主视觉/腰封截图",
+        "发现问题时的两处LOGO来源"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 活动标识",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        },
+        {
+          "page": 8,
+          "clause": "五.3 腰封icon字体重叠",
+          "type": "pdf_visual_example",
+          "asset_id": "duplicate-logo"
+        }
+      ],
+      "limits": "手机截图可证明重叠现象，无法单独证明素材/后台配置来源。联合标识不因存在多个品牌名称而自动违规。",
+      "remediation": "从素材内或组件内删除重复的大促LOGO。",
+      "original": {
+        "id": "OV-014",
+        "title": "活动LOGO不重复重叠",
+        "strength": "mandatory",
+        "verification_method": "current_frame_and_configuration",
+        "expected": "模板默认添加活动标识，头图素材不要重复添加；需联合标识时删除原标识后自行添加。腰封不应因双重大促LOGO导致icon/文字重叠。",
+        "steps": [
+          "检查主视觉与腰封是否出现双重LOGO或重叠。",
+          "发现重叠后核对素材内与组件内是否重复配置。"
+        ],
+        "required_evidence": [
+          "完整主视觉/腰封截图",
+          "发现问题时的两处LOGO来源"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 活动标识",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          },
+          {
+            "page": 8,
+            "clause": "五.3 腰封icon字体重叠",
+            "type": "pdf_visual_example",
+            "asset_id": "duplicate-logo"
+          }
+        ],
+        "limits": "手机截图可证明重叠现象，无法单独证明素材/后台配置来源。联合标识不因存在多个品牌名称而自动违规。",
+        "remediation": "从素材内或组件内删除重复的大促LOGO。"
+      },
+      "enabled": true,
+      "activation_reason": "当前H5审核启用。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-015",
+      "title": "头图商品数量建议",
+      "strength": "recommendation",
+      "verification_method": "current_frame",
+      "expected": "纯商品头图建议1至3个商品。",
+      "steps": [
+        "确认素材为纯商品头图。",
+        "统计可辨识商品数量，超出时记录优化建议。"
+      ],
+      "required_evidence": [
+        "完整主视觉截图"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 画面内容",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        }
+      ],
+      "limits": "属于建议，不能作为硬性下线依据。非纯商品头图不适用此建议；原文没有定义成套商品的计数方式，争议需人工确认。",
+      "remediation": "按业务需求评估是否将纯商品头图控制在1至3个商品。",
+      "original": {
+        "id": "OV-015",
+        "title": "头图商品数量建议",
+        "strength": "recommendation",
+        "verification_method": "current_frame",
+        "expected": "纯商品头图建议1至3个商品。",
+        "steps": [
+          "确认素材为纯商品头图。",
+          "统计可辨识商品数量，超出时记录优化建议。"
+        ],
+        "required_evidence": [
+          "完整主视觉截图"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 画面内容",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          }
+        ],
+        "limits": "属于建议，不能作为硬性下线依据。非纯商品头图不适用此建议；原文没有定义成套商品的计数方式，争议需人工确认。",
+        "remediation": "按业务需求评估是否将纯商品头图控制在1至3个商品。"
+      },
+      "enabled": true,
+      "activation_reason": "当前H5审核启用。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-016",
+      "title": "头图人物数量",
+      "strength": "conditional_mandatory",
+      "verification_method": "h5_screenshot",
+      "expected": "完整主视觉出现人物时只能有1位；未出现人物时不适用。",
+      "steps": [
+        "在本次两屏H5截图中定位对应区域。",
+        "按当前expected核对并保留事实及原图坐标。"
+      ],
+      "required_evidence": [
+        "H5原始截图及对应可见区域"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 画面内容：人物限1位",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        }
+      ],
+      "limits": "不把商品包装上的人脸当主视觉人物；裁切、遮挡或无法可靠识别时待确认。",
+      "remediation": "将主视觉人物控制为1位。",
+      "original": {
+        "id": "OV-016",
+        "title": "头图人物数量",
+        "strength": "conditional_mandatory",
+        "verification_method": "current_frame",
+        "expected": "使用人物的主视觉限1位人物。",
+        "steps": [
+          "采集完整主视觉。",
+          "识别可辨识人物数量。"
+        ],
+        "required_evidence": [
+          "完整主视觉截图"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 画面内容：人物限1位",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          }
+        ],
+        "limits": "无人物时不适用；人像被裁切或图形难以判读时待确认。",
+        "remediation": "保留至多1位人物。"
+      },
+      "enabled": true,
+      "activation_reason": "当前H5审核启用。",
+      "rule_origin": "user_override"
+    },
+    {
+      "id": "OV-017",
+      "title": "头图主标题字数上限",
+      "strength": "mandatory",
+      "verification_method": "h5_screenshot",
+      "expected": "统计头图主标题文案字符数量，上限8个；忽略空白，汉字、字母、数字、标点逐个计数。本轮不检查字体和样式。",
+      "steps": [
+        "在本次两屏H5截图中定位对应区域。",
+        "按当前expected核对并保留事实及原图坐标。"
+      ],
+      "required_evidence": [
+        "H5原始截图及对应可见区域"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 画面内容",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        }
+      ],
+      "limits": "默认仅主标题，不含品牌/LOGO/利益点；逐字保留识别文本及区域。文字不完整或不清楚时待确认。该上限来自用户补充，并非PDF原文。",
+      "remediation": "将头图主标题精简至8个字符以内。",
+      "original": {
+        "id": "OV-017",
+        "title": "头图文案字体和样式",
+        "strength": "mandatory",
+        "verification_method": "reference_comparison",
+        "expected": "头图文案不可修改字体和样式；细则引用《官方会场应用规范-主题视觉》。",
+        "steps": [
+          "取得已批准的主题视觉/原始模板。",
+          "与手机呈现及搭建素材比较字体和样式。"
+        ],
+        "required_evidence": [
+          "完整主视觉截图",
+          "获准模板或主题视觉规范"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 画面内容",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          }
+        ],
+        "limits": "所引用规范未包含在本PDF且没有可用链接。未提供模板不能仅凭主观观感断定改了字体，返回uncertain。",
+        "remediation": "恢复获准模板的文案字体和样式。"
+      },
+      "enabled": true,
+      "activation_reason": "当前H5审核启用。",
+      "rule_origin": "user_override"
+    },
+    {
+      "id": "OV-018",
+      "title": "倒计时位置",
+      "strength": "conditional_mandatory",
+      "verification_method": "h5_screenshot",
+      "expected": "出现倒计时时，只能位于头图标题下方；没有倒计时则不适用。本轮不检查后台倒计时模板。",
+      "steps": [
+        "在本次两屏H5截图中定位对应区域。",
+        "按当前expected核对并保留事实及原图坐标。"
+      ],
+      "required_evidence": [
+        "H5原始截图及对应可见区域"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 倒计时",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        }
+      ],
+      "limits": "需同时完整识别主标题和倒计时区域；未覆盖头图或位置不清时待确认。",
+      "remediation": "将倒计时放到头图主标题下方。",
+      "original": {
+        "id": "OV-018",
+        "title": "倒计时对应头图模板",
+        "strength": "conditional_mandatory",
+        "verification_method": "configuration",
+        "expected": "如需添加倒计时，需选择对应头图模板。",
+        "steps": [
+          "确认是否使用倒计时。",
+          "由搭建方核对倒计时与选用头图模板。"
+        ],
+        "required_evidence": [
+          "倒计时是否启用",
+          "后台模板类型"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 倒计时",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          }
+        ],
+        "limits": "倒计时可选；手机能观察倒计时，但不能仅凭外观确认后台模板类型。",
+        "remediation": "使用对应倒计时头图模板。"
+      },
+      "enabled": true,
+      "activation_reason": "当前H5审核启用。",
+      "rule_origin": "user_override"
+    },
+    {
+      "id": "OV-019",
+      "title": "规则入口链接",
+      "strength": "conditional_mandatory",
+      "verification_method": "read_only_navigation_and_configuration",
+      "expected": "规则入口可选；如有则必须配置跳转链接。建议位于标题栏内，该位置为建议而非硬性。",
+      "steps": [
+        "确认规则入口是否配置。",
+        "经预检确认是只读说明入口后点击，保存落地页并返回。",
+        "后台复核存在跳转链接。"
+      ],
+      "required_evidence": [
+        "入口截图",
+        "落地页及返回后的截图",
+        "跳转链接配置"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 规则入口",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        }
+      ],
+      "limits": "未配置入口不适用；目标页地址/内容需由搭建方提供才能验证跳转目标正确性。原文只规定配置链接，没有额外业务正确性标准。",
+      "remediation": "为已有规则入口补齐链接；必要时调整至建议位置。",
+      "original": {
+        "id": "OV-019",
+        "title": "规则入口链接",
+        "strength": "conditional_mandatory",
+        "verification_method": "read_only_navigation_and_configuration",
+        "expected": "规则入口可选；如有则必须配置跳转链接。建议位于标题栏内，该位置为建议而非硬性。",
+        "steps": [
+          "确认规则入口是否配置。",
+          "经预检确认是只读说明入口后点击，保存落地页并返回。",
+          "后台复核存在跳转链接。"
+        ],
+        "required_evidence": [
+          "入口截图",
+          "落地页及返回后的截图",
+          "跳转链接配置"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 规则入口",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          }
+        ],
+        "limits": "未配置入口不适用；目标页地址/内容需由搭建方提供才能验证跳转目标正确性。原文只规定配置链接，没有额外业务正确性标准。",
+        "remediation": "为已有规则入口补齐链接；必要时调整至建议位置。"
+      },
+      "enabled": false,
+      "activation_reason": "用户要求当前版本忽略，保留原规则。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-020",
+      "title": "利益点跳转链接",
+      "strength": "conditional_mandatory",
+      "verification_method": "read_only_navigation_and_configuration",
+      "expected": "利益点可按需选择是否跳转；如需跳转，必须配置跳转链接。",
+      "steps": [
+        "搭建方说明该利益点是否需要跳转。",
+        "如需要且属于只读入口，点击并保存落地页，再返回。",
+        "核对后台跳转链接配置。"
+      ],
+      "required_evidence": [
+        "是否要求跳转的说明",
+        "利益点入口与落地页截图",
+        "链接配置"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 利益点",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        }
+      ],
+      "limits": "无需跳转时不适用。不可凭“可点击外观”推断业务要求；涉及领券、加购等状态变更时转人工或专门授权验证。",
+      "remediation": "对需要跳转的利益点补齐链接。",
+      "original": {
+        "id": "OV-020",
+        "title": "利益点跳转链接",
+        "strength": "conditional_mandatory",
+        "verification_method": "read_only_navigation_and_configuration",
+        "expected": "利益点可按需选择是否跳转；如需跳转，必须配置跳转链接。",
+        "steps": [
+          "搭建方说明该利益点是否需要跳转。",
+          "如需要且属于只读入口，点击并保存落地页，再返回。",
+          "核对后台跳转链接配置。"
+        ],
+        "required_evidence": [
+          "是否要求跳转的说明",
+          "利益点入口与落地页截图",
+          "链接配置"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 利益点",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          }
+        ],
+        "limits": "无需跳转时不适用。不可凭“可点击外观”推断业务要求；涉及领券、加购等状态变更时转人工或专门授权验证。",
+        "remediation": "对需要跳转的利益点补齐链接。"
+      },
+      "enabled": false,
+      "activation_reason": "用户要求当前版本忽略，保留原规则。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-021",
+      "title": "活动开始时间卡控页大促模板",
+      "strength": "mandatory",
+      "verification_method": "configuration",
+      "expected": "提报官方会场的通天塔分期页面，在页面名称为活动开始时间卡控页的分期页面中，补充对应大促模板；例如心动周期配心动模板，618周期配618模板。",
+      "steps": [
+        "列出本次活动对应分期页面。",
+        "找到活动开始时间卡控页，核对是否已添加对应活动模板。",
+        "保留提报校验结果。"
+      ],
+      "required_evidence": [
+        "分期页面及活动周期",
+        "后台对应模板配置",
+        "提报校验结果"
+      ],
+      "sources": [
+        {
+          "page": 7,
+          "clause": "五.1 大促模板配置缺失",
+          "type": "pdf_text"
+        }
+      ],
+      "limits": "仅凭手机会场截图不能确认；示例中的日期、页面和组件ID不是所有活动的固定值。未提供后台配置时待确认。",
+      "remediation": "在指定分期页面补齐对应大促模板，再复核提报校验。",
+      "original": {
+        "id": "OV-021",
+        "title": "活动开始时间卡控页大促模板",
+        "strength": "mandatory",
+        "verification_method": "configuration",
+        "expected": "提报官方会场的通天塔分期页面，在页面名称为活动开始时间卡控页的分期页面中，补充对应大促模板；例如心动周期配心动模板，618周期配618模板。",
+        "steps": [
+          "列出本次活动对应分期页面。",
+          "找到活动开始时间卡控页，核对是否已添加对应活动模板。",
+          "保留提报校验结果。"
+        ],
+        "required_evidence": [
+          "分期页面及活动周期",
+          "后台对应模板配置",
+          "提报校验结果"
+        ],
+        "sources": [
+          {
+            "page": 7,
+            "clause": "五.1 大促模板配置缺失",
+            "type": "pdf_text"
+          }
+        ],
+        "limits": "仅凭手机会场截图不能确认；示例中的日期、页面和组件ID不是所有活动的固定值。未提供后台配置时待确认。",
+        "remediation": "在指定分期页面补齐对应大促模板，再复核提报校验。"
+      },
+      "enabled": false,
+      "activation_reason": "用户要求当前版本忽略，保留原规则。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-022",
+      "title": "标题组件使用活动标题",
+      "strength": "mandatory",
+      "verification_method": "configuration",
+      "expected": "通天塔标题选用活动标题，不使用通用标题。",
+      "steps": [
+        "由搭建方检查标题组件类型。",
+        "保存组件类型配置。"
+      ],
+      "required_evidence": [
+        "后台标题组件类型"
+      ],
+      "sources": [
+        {
+          "page": 8,
+          "clause": "五.4 页面标题未使用活动标题",
+          "type": "pdf_text"
+        }
+      ],
+      "limits": "不能仅凭手机标题文字推断其后台组件类型。",
+      "remediation": "将通用标题改为活动标题。",
+      "original": {
+        "id": "OV-022",
+        "title": "标题组件使用活动标题",
+        "strength": "mandatory",
+        "verification_method": "configuration",
+        "expected": "通天塔标题选用活动标题，不使用通用标题。",
+        "steps": [
+          "由搭建方检查标题组件类型。",
+          "保存组件类型配置。"
+        ],
+        "required_evidence": [
+          "后台标题组件类型"
+        ],
+        "sources": [
+          {
+            "page": 8,
+            "clause": "五.4 页面标题未使用活动标题",
+            "type": "pdf_text"
+          }
+        ],
+        "limits": "不能仅凭手机标题文字推断其后台组件类型。",
+        "remediation": "将通用标题改为活动标题。"
+      },
+      "enabled": false,
+      "activation_reason": "用户要求当前版本忽略，保留原规则。",
+      "rule_origin": "pdf"
+    },
+    {
+      "id": "OV-023",
+      "title": "首屏完整feeds商品数量",
+      "strength": "mandatory",
+      "verification_method": "h5_screenshot",
+      "expected": "底部feeds必须在首屏完整露出至少1个商品；上方导购、权益商品不计入。",
+      "steps": [
+        "在本次两屏H5截图中定位对应区域。",
+        "按当前expected核对并保留事实及原图坐标。"
+      ],
+      "required_evidence": [
+        "H5原始截图及对应可见区域"
+      ],
+      "sources": [
+        {
+          "page": 1,
+          "clause": "二 底feeds",
+          "type": "pdf_visual_example",
+          "asset_id": "building-overview"
+        }
+      ],
+      "limits": "与OV-005的首屏商品要求共用事实，不重复累计强制问题；异常/示意楼层影响首屏高度时待确认。",
+      "remediation": "调整前置楼层高度，确保首屏完整露出至少1个feeds商品。",
+      "original": {
+        "id": "OV-023",
+        "title": "商品底池数量建议",
+        "strength": "recommendation",
+        "verification_method": "configuration",
+        "expected": "建议商品底池数量>2000。",
+        "steps": [
+          "取得后台商品底池数量。",
+          "记录是否符合建议，不将数量不足当作硬性失败。"
+        ],
+        "required_evidence": [
+          "后台底池数量和记录时间"
+        ],
+        "sources": [
+          {
+            "page": 1,
+            "clause": "二 底feeds",
+            "type": "pdf_visual_example",
+            "asset_id": "building-overview"
+          }
+        ],
+        "limits": "属于建议；手机已看到的商品数量不能代表底池总量。原文没有缺货、过滤等计数定义。",
+        "remediation": "评估扩大商品底池，并确认数量统计口径。"
+      },
+      "enabled": true,
+      "activation_reason": "当前H5审核启用。",
+      "rule_origin": "user_override",
+      "duplicate_of": "OV-005"
+    }
+  ],
+  "walkthrough": {
+    "origin": "用户H5审核口径；复用冻结两屏，不执行手机操作。",
+    "steps": [
+      {
+        "id": "H1",
+        "title": "核验会场身份、两屏哈希及滚动位置"
+      },
+      {
+        "id": "H2",
+        "title": "只分析激活规则，记录头图文字/商品/人物/倒计时和首屏feeds商品事实"
+      },
+      {
+        "id": "H3",
+        "title": "测量feeds背景及楼层候选间隔，按用户规则处理事实"
+      },
+      {
+        "id": "H4",
+        "title": "输出23项记录，未激活单列，重复规则不累计问题"
+      }
+    ]
+  },
+  "audit_mode": "h5_v2",
+  "policy_source": {
+    "type": "user_instruction",
+    "date": "2026-10-11",
+    "note": "本轮用户口径优先；未激活规则保留，可恢复。"
+  },
+  "text_count": {
+    "scope": "main_title",
+    "max_characters": 8,
+    "counting": "Unicode字符逐个计数，忽略空白；汉字、字母、数字和标点均计数",
+    "scope_source": "user_confirmed"
+  },
+  "spacing": {
+    "expected_px": 24,
+    "reference_viewport_height_px": 812,
+    "calibration_confirmed": true,
+    "tolerance_px": null,
+    "note": "用户已确认以812整屏高度作为本轮换算基准；尚无验收容限，只输出测量与差值。"
+  },
+  "original_frameworks": {
+    "A": [
+      "top_navigation",
+      "hero",
+      "rights",
+      "guide_cube",
+      "category_tabs",
+      "product_feeds",
+      "bottom_navigation"
+    ],
+    "B": [
+      "top_navigation",
+      "hero",
+      "rights",
+      "category_tabs",
+      "product_feeds",
+      "bottom_navigation"
+    ],
+    "C": [
+      "top_navigation",
+      "hero",
+      "category_tabs",
+      "product_feeds",
+      "bottom_navigation"
+    ]
+  },
+  "original_conflicts": [
+    {
+      "id": "C1",
+      "rule_id": "OV-010",
+      "description": "第1页背景必须白色，与第5-6页建议白色/非白色分支冲突",
+      "resolution": "待规范负责人确认",
+      "blocks": "feeds背景硬性合规判定"
+    }
+  ]
+}

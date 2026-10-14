@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "spec_id": "official-venue-review",
+  "source_sha256": "e771c460aaa413996d76cba8e1b418d29875be3ec443baaaae583532dafb54f0",
+  "assets": [
+    {
+      "id": "building-overview",
+      "label": "官方会场搭建总览（含图片内文字）",
+      "file": "assets/building-overview.png",
+      "source_page": 1,
+      "source_type": "pdf_visual_example",
+      "source_image_size": [
+        2210,
+        1490
+      ],
+      "width": 2210,
+      "height": 1490,
+      "sha256": "7d29d1fcc25a9d2c9c24ce096fe03d4b9580876d9666e08b1a66d0777facc9da"
+    },
+    {
+      "id": "frameworks",
+      "label": "三种固定框架及楼层顺序",
+      "file": "assets/frameworks.png",
+      "source_page": 2,
+      "source_type": "pdf_visual_example",
+      "source_bbox_points": [
+        38.67,
+        12.63,
+        559.26,
+        311.51
+      ],
+      "width": 1042,
+      "height": 599,
+      "sha256": "8f28cf5f37b710eae9e2cb9ffd7642364a02d1c5d37ae5468aa7f048e926b4ef"
+    },
+    {
+      "id": "rights-styles",
+      "label": "权益组件允许样式",
+      "file": "assets/rights-styles.png",
+      "source_page": 2,
+      "source_type": "pdf_visual_example",
+      "source_bbox_points": [
+        38.67,
+        408.33,
+        559.26,
+        681.96
+      ],
+      "width": 1042,
+      "height": 548,
+      "sha256": "1e2c4f46a8be0d89b334c37aeb509b110069af64e4417d757aa01bc1a9804b1a"
+    },
+    {
+      "id": "guide-styles",
+      "label": "导购魔方允许样式",
+      "file": "assets/guide-styles.png",
+      "source_page": 3,
+      "source_type": "pdf_visual_example",
+      "source_bbox_points": [
+        38.67,
+        10.1,
+        559.26,
+        189.43
+      ],
+      "width": 1042,
+      "height": 359,
+      "sha256": "6de78df9c7aa6800852ae5b472166389d5ab01f684b68979897e650871421b77"
+    },
+    {
+      "id": "title-states",
+      "label": "首屏与吸顶标题正反例",
+      "file": "assets/title-states.png",
+      "source_page": 3,
+      "source_type": "pdf_visual_example",
+      "source_bbox_points": [
+        38.67,
+        370.44,
+        559.26,
+        724.05
+      ],
+      "width": 1042,
+      "height": 709,
+      "sha256": "aa5304cfeaf0b2eaf3526e23ed4d84ed6de26e080a46973841de104485114069"
+    },
+    {
+      "id": "title-configurations",
+      "label": "浅色与深色导航配置",
+      "file": "assets/title-configurations.png",
+      "source_page": 4,
+      "source_type": "pdf_visual_example",
+      "source_bbox_points": [
+        38.67,
+        0.0,
+        559.26,
+        324.14
+      ],
+      "width": 1042,
+      "height": 649,
+      "sha256": "95d2683c5a24ceaf976652ad901c1f86a8f1826d817e1ae22226d885d55ba5ee"
+    },
+    {
+      "id": "floor-spacing",
+      "label": "24PX楼层间距正反例",
+      "file": "assets/floor-spacing.png",
+      "source_page": 4,
+      "source_type": "pdf_visual_example",
+      "source_bbox_points": [
+        38.67,
+        362.03,
+        559.26,
+        787.2
+      ],
+      "width": 1042,
+      "height": 851,
+      "sha256": "605a9583d761db0b62757217957cc7b164323fee8627439b6cf2cb26f54722c2"
+    },
+    {
+      "id": "feeds-background",
+      "label": "feeds背景正反例",
+      "file": "assets/feeds-background.png",
+      "source_page": 5,
+      "source_type": "pdf_visual_example",
+      "source_bbox_points": [
+        38.67,
+        357.82,
+        559.26,
+        782.99
+      ],
+      "width": 1042,
+      "height": 851,
+      "sha256": "7b67bb0361975c9864ed9ba6a04b32d6169da353c4155e9f17a6f23217abed43"
+    },
+    {
+      "id": "nonwhite-cards",
+      "label": "非白背景商卡布局正反例",
+      "file": "assets/nonwhite-cards.png",
+      "source_page": 6,
+      "source_type": "pdf_visual_example",
+      "source_bbox_points": [
+        38.67,
+        394.02,
+        559.26,
+        829.29
+      ],
+      "width": 1042,
+      "height": 871,
+      "sha256": "945b24a24fb25675db6275fc441f678d179361f18715cbb8648d29291c7c6723"
+    },
+    {
+      "id": "duplicate-logo",
+      "label": "腰封LOGO重叠示例",
+      "file": "assets/duplicate-logo.png",
+      "source_page": 8,
+      "source_type": "pdf_visual_example",
+      "source_bbox_points": [
+        38.67,
+        58.93,
+        559.26,
+        140.6
+      ],
+      "width": 1042,
+      "height": 165,
+      "sha256": "e4e56cc37d152f1fcc4029164dba46f8f5291fbb9352d212baa2868979c21ad6"
+    },
+    {
+      "id": "invalid-frameworks",
+      "label": "不合规范的楼层结构示例",
+      "file": "assets/invalid-frameworks.png",
+      "source_page": 9,
+      "source_type": "pdf_visual_example",
+      "source_bbox_points": [
+        38.67,
+        0.0,
+        559.26,
+        378.86
+      ],
+      "width": 1042,
+      "height": 758,
+      "sha256": "d007c503f8dd42656abac1e7049be9ea89f958d636b4e7f898d5229b2933a6d1"
+    }
+  ]
+}

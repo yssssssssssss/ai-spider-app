@@ -1,0 +1,21 @@
+.check-evidence{margin:10px 0;padding:10px 12px;border:1px solid #dce3ec;border-radius:8px;background:#f8fafc}
+.check-evidence>summary{font-size:13px}.evidence-note{color:#64748b;font-size:13px}
+.evidence-grid{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px}.evidence-grid figure{margin:0;max-width:100%;width:360px}
+.evidence-image{position:relative;overflow:hidden;background:#e2e8f0;max-width:100%;margin:auto}
+.evidence-image img{position:absolute;height:auto;max-width:none;user-select:none}
+.evidence-image svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;visibility:hidden}
+.evidence-open{background:transparent;color:#245bc5;border:1px solid #cbd5e1;padding:5px 10px;font:inherit}
+.evidence-grid figure>button.evidence-open{display:block;padding:0;width:100%;border:0;border-radius:0}
+.evidence-grid figcaption{font-size:12px;color:#475569;margin:6px 0;overflow-wrap:anywhere}
+.evidence-actions{display:flex;align-items:center;gap:12px;font-size:12px}
+button:focus-visible,a:focus-visible{outline:3px solid #7c3aed;outline-offset:3px}
+#evidence-viewer{width:min(900px,calc(100% - 24px));max-height:calc(100dvh - 24px);padding:20px;border:1px solid #cbd5e1;border-radius:12px;color:#1e293b;font:14px/1.6 system-ui}
+#evidence-viewer::backdrop{background:#0f172acc}.viewer-heading{display:flex;gap:16px;align-items:start;justify-content:space-between}
+.viewer-heading h2{font-size:17px;margin:0;overflow-wrap:anywhere}.viewer-heading button{flex-shrink:0;padding:6px 12px}
+.viewer-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}.viewer-tools button{padding:7px 12px}
+#viewer-draw[aria-pressed=true]{background:#7c3aed}#viewer-undo:disabled{opacity:.45;cursor:default}
+#viewer-stage{background:#f1f5f9;padding:12px;margin:12px 0;max-height:65vh;overflow:auto}#viewer-stage .evidence-image{width:390px}
+.evidence-image.drawing{touch-action:none;cursor:crosshair}#viewer-boxes{font-family:ui-monospace,monospace;overflow-wrap:anywhere}
+@media(max-width:600px){#evidence-viewer{padding:12px}#viewer-stage{padding:0}.evidence-grid{gap:12px}.evidence-grid figure{width:100%}}
+
+.evidence-image.image-ready svg{visibility:visible}.evidence-load-state{position:absolute;inset:0;display:grid;place-items:center;color:#64748b;font-size:12px}.image-ready .evidence-load-state{display:none}
