@@ -422,3 +422,64 @@ class WatchPeriodReport(Base):
     created_at = Column(DateTime, default=datetime.now)
 
     plan = relationship("WatchPlan", back_populates="period_reports")
+
+
+class AuditProject(Base):
+    __tablename__ = "audit_projects"
+    __table_args__ = (
+        Index("ix_audit_projects_created_by", "created_by"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(Text, nullable=False)
+    description = Column(Text)
+    created_by = Column(UUID(as_uuid=True), nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+    pages = relationship("AuditPage", back_populates="project", cascade="all, delete-orphan", passive_deletes=True)
+
+
+class AuditPage(Base):
+    __tablename__ = "audit_pages"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("audit_projects.id", ondelete="CASCADE"), nullable=False)
+    name = Column(Text, nullable=False)
+    business_key = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+
+    __table_args__ = (
+        Index("ix_audit_pages_project_id", "project_id"),
+        Index("uq_audit_pages_project_business_key", "project_id", "business_key", unique=True,
+              postgresql_where=business_key.isnot(None)),
+    )
+
+    project = relationship("AuditProject", back_populates="pages")
+    records = relationship("AuditRecord", back_populates="page", cascade="all, delete-orphan", passive_deletes=True)
+
+
+class AuditRecord(Base):
+    __tablename__ = "audit_records"
+    __table_args__ = (
+        Index("ix_audit_records_page_created_at", "page_id", "created_at"),
+        Index("ix_audit_records_baseline_record_id", "baseline_record_id"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    page_id = Column(UUID(as_uuid=True), ForeignKey("audit_pages.id", ondelete="CASCADE"), nullable=False)
+    phase = Column(String, nullable=False)
+    carrier = Column(String, nullable=False)
+    source_kind = Column(String, nullable=False)
+    source_ref_json = Column(JSONB, nullable=False, default=dict)
+    spec_key = Column(Text, nullable=False)
+    spec_version = Column(Text, nullable=False)
+    findings_json = Column(JSONB, nullable=False, default=list)
+    summary_json = Column(JSONB, nullable=False, default=dict)
+    baseline_record_id = Column(UUID(as_uuid=True), ForeignKey("audit_records.id", ondelete="SET NULL"), nullable=True)
+    note = Column(Text)
+    created_by = Column(UUID(as_uuid=True), nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+
+    page = relationship("AuditPage", back_populates="records")
+    baseline_record = relationship("AuditRecord", remote_side=[id], foreign_keys=[baseline_record_id])
