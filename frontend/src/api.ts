@@ -194,11 +194,52 @@ export interface AuditAppCandidate {
   task_run_id: string; task_name: string; completed_at: string | null;
   skills: { id: string; name: string; version: number; skill_type: string }[];
 }
-// Read-only project names for run tags. Project screens and mutations belong to T7.
-export interface AuditProjectListItem {
+export type AuditStage = 'review' | 'recheck' | 'baseline' | 'post' | 'closed';
+export type AuditCategory = 'fixed' | 'still_open' | 'regressed' | 'new_issue' | 'kept' | 'needs_confirmation' | 'not_comparable';
+export interface AuditProjectInput { name: string; description?: string | null }
+export interface AuditProject {
   id: string; name: string; description: string | null; created_at: string; updated_at: string;
+}
+export interface AuditPageRef { id: string; name: string; outcome: AuditOutcome }
+export interface AuditProjectListItem extends AuditProject {
   page_count: number; run_count: number;
-  stages: Record<string, { count: number; pages: { id: string; name: string; outcome: AuditOutcome }[] }>;
+  stages: Record<AuditStage, { count: number; pages: AuditPageRef[] }>;
+}
+export interface AuditPageOccurrence extends AuditPageRef {
+  target_id: string; baseline_target_id: string; pre_status: AuditStatus | null; post_status: AuditStatus | null;
+}
+export interface AuditFlowEdge { from: 'fail' | 'pass' | 'uncertain' | 'uncovered'; to: Exclude<AuditCategory, 'not_comparable'>; count: number }
+export interface AuditProjectDetail extends AuditProjectListItem {
+  stage_specs: Record<AuditPhase, { id: string; spec_id: string; label: string }[]>;
+  clusters: {
+    regressed: { total: number; items: { rule_id: string; page: AuditPageOccurrence }[] };
+    systemic: { rule_id: string; count: number; pages: AuditPageRef[] }[];
+    carried: { total: number; rules: { rule_id: string; count: number; pages: AuditPageOccurrence[]; fixed_pages: AuditPageOccurrence[] }[] };
+    evidence_gaps: { total: number; comparison_total: number; independent_total: number; pages: (AuditPageRef & { count: number; comparison_count: number; independent_count: number })[] };
+  };
+  flow: { edges: AuditFlowEdge[]; counts: Record<AuditCategory, number>; not_comparable: number; linked_posts: number };
+}
+export interface AuditMatrixPage extends AuditPageRef {
+  pre: string; post: string; delta: string;
+  pre_target_id: string | null; post_target_id: string | null; baseline_target_id: string | null;
+}
+export type AuditRuleDistribution = Record<'fail' | 'pass' | 'uncertain' | 'uncovered', number>;
+export interface AuditProjectMatrix {
+  spec_version_id: string | null; rules: AuditRule[];
+  clauses: { clause: string; rule_ids: string[] }[]; pages: AuditMatrixPage[];
+  pre_distribution: Record<string, AuditRuleDistribution>;
+  delta_codes: Record<AuditCategory, string>; status_codes: Record<AuditStatus, string>;
+}
+export interface AuditComparisonRule {
+  rule_id: string; title: string; category: AuditCategory;
+  pre_status: AuditStatus | null; post_status: AuditStatus | null;
+  pre_observed: string | null; post_observed: string | null;
+}
+export interface AuditPageLifeline {
+  id: string; name: string; stage: AuditStage; independent_check: boolean;
+  timeline: (AuditTargetBrief & { run_id: string; run_name: string; phase: AuditPhase; carrier: AuditCarrier; spec_version_id: string; spec_label: string; date: string; summary: AuditTarget['summary_json']; demo: boolean })[];
+  comparison: { rules: AuditComparisonRule[]; counts: Record<AuditCategory, number>; spec_mismatch: boolean } | null;
+  groups: Record<'need_action' | 'needs_confirmation' | 'closed', AuditComparisonRule[]>;
 }
 export const listAuditSpecs = () => api.get<AuditSpec[]>('/audit-specs');
 export const createAuditSpec = (data: AuditSpecInput) => api.post<AuditSpec>('/audit-specs', data);
@@ -223,5 +264,13 @@ export const listAuditTargets = (id: string, params?: AuditTargetQuery) => api.g
 export const getAuditTarget = (id: string) => api.get<AuditTarget>(`/audit-targets/${id}`);
 export const listAuditAppCandidates = () => api.get<AuditAppCandidate[]>('/audit-app-candidates');
 export const listAuditProjects = () => api.get<AuditProjectListItem[]>('/audit-projects');
+export const createAuditProject = (data: AuditProjectInput) => api.post<AuditProject>('/audit-projects', data);
+export const getAuditProject = (id: string) => api.get<AuditProjectDetail>(`/audit-projects/${id}`);
+export const updateAuditProject = (id: string, data: Partial<AuditProjectInput>) => api.patch<AuditProject>(`/audit-projects/${id}`, data);
+export const deleteAuditProject = (id: string) => api.delete<{ ok: boolean }>(`/audit-projects/${id}`);
+export const getAuditProjectMatrix = (id: string) => api.get<AuditProjectMatrix>(`/audit-projects/${id}/matrix`);
+export const getAuditPageLifeline = (id: string, pageKey: string) => api.get<AuditPageLifeline>(`/audit-projects/${id}/pages/${encodeURIComponent(pageKey)}`);
+export const assignAuditRun = (id: string, projectId: string | null) => updateAuditRun(id, { project_id: projectId });
+export const updateAuditTargetBaseline = (id: string, baselineTargetId: string | null) => api.patch<AuditTarget>(`/audit-targets/${id}`, { baseline_target_id: baselineTargetId });
 
 export default api;

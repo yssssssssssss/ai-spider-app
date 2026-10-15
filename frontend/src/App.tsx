@@ -21,6 +21,9 @@ import AuditSpecDetail from './pages/AuditSpecDetail';
 import AuditRuns from './pages/AuditRuns';
 import AuditRunDetail from './pages/AuditRunDetail';
 import AuditTargetDetail from './pages/AuditTargetDetail';
+import AuditProjects from './pages/AuditProjects';
+import AuditProjectDetail from './pages/AuditProjectDetail';
+import AuditPageLifeline from './pages/AuditPageLifeline';
 
 function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
   const { pathname } = useLocation();
@@ -106,6 +109,7 @@ function Navigation() {
               <NavLink to="/search">图片检索</NavLink>
               <NavLink to="/admin/tasks">任务管理</NavLink>
               <NavLink to="/audits">审核</NavLink>
+              <NavLink to="/audit-projects">项目走查</NavLink>
               <NavLink to="/specs">规范库</NavLink>
               <NavLink to="/compare">对比分析</NavLink>
               <NavLink to="/skills">Skill 编辑</NavLink>
@@ -127,7 +131,7 @@ function Navigation() {
 
 function WorkspaceShell({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const workspace = /^\/(specs|audits|audit-targets)(\/|$)/.test(pathname);
+  const workspace = /^\/(specs|audits|audit-targets|audit-projects)(\/|$)/.test(pathname);
   return <div className={workspace ? 'app-shell audit-workspace-shell' : 'app-shell'} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>{children}</div>;
 }
 
@@ -154,6 +158,9 @@ function App() {
                   <Route path="/audits" element={<RequireAuth><AuditRuns /></RequireAuth>} />
                   <Route path="/audits/:runId" element={<RequireAuth><AuditRunDetail /></RequireAuth>} />
                   <Route path="/audit-targets/:id" element={<RequireAuth><AuditTargetDetail /></RequireAuth>} />
+                  <Route path="/audit-projects" element={<RequireAuth><AuditProjects /></RequireAuth>} />
+                  <Route path="/audit-projects/:id" element={<RequireAuth><AuditProjectDetail /></RequireAuth>} />
+                  <Route path="/audit-projects/:id/pages/:pageKey" element={<RequireAuth><AuditPageLifeline /></RequireAuth>} />
                   <Route path="/admin/tasks/:taskId/results" element={<RequireAuth><AdminTaskResults /></RequireAuth>} />
                   <Route path="/admin/tasks/:taskId/scroll-promo-report" element={<RequireAuth><ScrollPromoReport /></RequireAuth>} />
                   <Route path="/admin/tasks/:taskId/jd-new-floor-report" element={<RequireAuth><JdNewFloorReport /></RequireAuth>} />

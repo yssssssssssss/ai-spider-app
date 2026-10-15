@@ -1,9 +1,32 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { AuditOutcome, AuditRunDetail as RunDetail, AuditSort, AuditTargetBrief, AuditTargetList, AuditVersionDetail, deleteAuditRun, getAuditRun, getAuditSpecVersion, listAuditProjects, listAuditTargets, updateAuditRun } from '../api';
+import { AuditOutcome, AuditProjectListItem, AuditRunDetail as RunDetail, AuditSort, AuditTargetBrief, AuditTargetList, AuditVersionDetail, assignAuditRun, deleteAuditRun, getAuditRun, getAuditSpecVersion, listAuditProjects, listAuditTargets, updateAuditRun } from '../api';
 import { useAuth } from '../auth';
 import { AuditDialog, auditTime, captureLabels, CompositionBar, DemoBadge, LoadState, OutcomeBadge, outcomeLabels, outcomeOrder } from '../components/AuditWorkspaceUI';
 import { AuditBarcode, AuditParetoChart, AuditTriage, AuditWaffle } from '../components/AuditRunVisuals';
+
+function RunProjectDialog({ run, onClose, onSaved }: { run: RunDetail; onClose: () => void; onSaved: () => void }) {
+  const [projects, setProjects] = useState<AuditProjectListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [reload, setReload] = useState(0);
+  const [projectId, setProjectId] = useState(run.project_id || '');
+  const [busy, setBusy] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  useEffect(() => {
+    let active = true;
+    setLoading(true); setError(false);
+    listAuditProjects().then(({ data }) => { if (active) setProjects(data); }).catch(() => { if (active) setError(true); }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [reload]);
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setBusy(true); setSaveError(false);
+    try { await assignAuditRun(run.id, projectId || null); onSaved(); }
+    catch { setSaveError(true); }
+    finally { setBusy(false); }
+  }
+  return <AuditDialog title="调整项目归属" onClose={onClose}>{loading || error ? <LoadState loading={loading} error={error} retry={() => setReload(value => value + 1)} /> : <form className="aw-form" onSubmit={save}><label>所属项目<select value={projectId} onChange={event => setProjectId(event.target.value)} disabled={busy}><option value="">独立审核（移出项目）</option>{projects.map(project => <option value={project.id} key={project.id}>{project.name}</option>)}</select></label><p>归入项目后按业务键关联基线；移出项目会清除相关基线。</p>{!projects.length && <p>暂无项目，可先到<Link to="/audit-projects">项目走查</Link>创建。</p>}{saveError && <p role="alert">项目归属保存失败，请重试。</p>}<div className="aw-actions"><button className="aw-secondary" type="button" onClick={onClose}>取消</button><button disabled={busy || projectId === (run.project_id || '')}>{busy ? '保存中…' : '保存归属'}</button></div></form>}</AuditDialog>;
+}
 
 function TargetTable({ runId, outcome, page, search, sort, change }: {
   runId: string; outcome?: AuditOutcome; page: number; search: string; sort: AuditSort;
@@ -53,6 +76,7 @@ export default function AuditRunDetail() {
   const [error, setError] = useState(false);
   const [reload, setReload] = useState(0);
   const [dialog, setDialog] = useState<'rename' | 'delete' | null>(null);
+  const [projectDialog, setProjectDialog] = useState(false);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState(false);
   useEffect(() => {
@@ -100,7 +124,7 @@ export default function AuditRunDetail() {
   return <div className="aw">
     <nav className="aw-breadcrumb" aria-label="面包屑"><Link to="/audits">审核</Link><span>/</span>{run && <><Link to={`/audits?carrier=${run.carrier}`}>{run.carrier === 'h5' ? 'H5 审核' : 'App 审核'}</Link><span>/</span></>}<span>{run?.name || '审核驾驶舱'}</span></nav>
     {loading || !data ? <LoadState loading={loading} error={error} retry={() => setReload(x => x + 1)} /> : <>
-      <header className="aw-run-header"><div className="aw-heading"><div className="aw-chips"><span className={`aw-chip aw-${data.run.phase}`}>{data.run.carrier === 'h5' ? 'H5' : 'App'} · {data.run.phase === 'pre' ? '上线前' : '上线后'}</span><Link className="aw-chip" to={`/specs/${data.version.spec_id}?version=${data.version.id}`}>规范 {data.version.label} · {data.version.enabled_rules} 项启用</Link><span className="aw-chip">{data.run.project_id ? data.projectName : '独立审核'}</span><DemoBadge source={data.run.source_ref_json} /></div>{hasRole('operator') && <div className="aw-actions"><button className="aw-quiet" type="button" onClick={() => { setFormError(false); setDialog('rename'); }}>重命名</button><button className="aw-quiet aw-danger" type="button" onClick={() => { setFormError(false); setDialog('delete'); }}>删除</button></div>}</div>
+      <header className="aw-run-header"><div className="aw-heading"><div className="aw-chips"><span className={`aw-chip aw-${data.run.phase}`}>{data.run.carrier === 'h5' ? 'H5' : 'App'} · {data.run.phase === 'pre' ? '上线前' : '上线后'}</span><Link className="aw-chip" to={`/specs/${data.version.spec_id}?version=${data.version.id}`}>规范 {data.version.label} · {data.version.enabled_rules} 项启用</Link>{data.run.project_id ? <Link className="aw-chip" to={`/audit-projects/${data.run.project_id}`}>{data.projectName} →</Link> : <span className="aw-chip">独立审核</span>}<DemoBadge source={data.run.source_ref_json} /></div>{hasRole('operator') && <div className="aw-actions"><button className="aw-quiet" type="button" onClick={() => setProjectDialog(true)}>{data.run.project_id ? '移出项目 / 更改归属' : '归入项目'}</button><button className="aw-quiet" type="button" onClick={() => { setFormError(false); setDialog('rename'); }}>重命名</button><button className="aw-quiet aw-danger" type="button" onClick={() => { setFormError(false); setDialog('delete'); }}>删除</button></div>}</div>
         <h1>{data.run.name}</h1><p className="aw-summary">本次共 {data.run.composition.total} 个对象，{data.run.composition.outcomes.capture_failed} 个采集失败；可审核的 {data.run.composition.total - data.run.composition.outcomes.capture_failed} 个对象中，{data.run.composition.outcomes.issues} 个有不符合，{data.run.composition.outcomes.needs_confirmation} 个待确认，{data.run.composition.outcomes.partial} 个部分审核且可检项均符合，{data.run.composition.outcomes.clean} 个全部符合。其中 {data.run.triage.focus.length} 个对象至少有 3 项不符合，{data.run.triage.batches.reduce((sum, batch) => sum + batch.count, 0)} 个只差一项，可按规则批量处理。</p><time className="aw-muted" dateTime={data.run.created_at}>{auditTime(data.run.created_at)}</time>
       </header>
       <section className="aw-panel" aria-labelledby="composition-title"><div className="aw-heading"><h2 id="composition-title">结果构成 · {data.run.composition.total} 个对象</h2><span className="aw-muted">点击分段筛选全页 · 当前：{outcome ? outcomeLabels[outcome] : '全部'}{outcome && <button type="button" className="aw-quiet" onClick={() => change({ outcome: '', page: '1' })}>清除筛选</button>}</span></div>
@@ -111,6 +135,7 @@ export default function AuditRunDetail() {
       {view && !filterLoading && !filterError && <><AuditBarcode run={view} version={data.version} /><AuditTriage run={view} version={data.version} selected={outcome} /></>}
       <TargetTable runId={runId} outcome={outcome} page={page} search={search} sort={sort} change={change} />
     </>}
+    {projectDialog && data && <RunProjectDialog run={data.run} onClose={() => setProjectDialog(false)} onSaved={() => { setProjectDialog(false); setReload(value => value + 1); }} />}
     {dialog && data && <AuditDialog title={dialog === 'delete' ? '删除审核' : '重命名审核'} onClose={() => setDialog(null)}><form className="aw-form" onSubmit={mutate}>
       {dialog === 'delete' ? <p>确认删除「{data.run.name}」？本次审核的 {data.run.composition.total} 个对象及其结果将一并删除，此操作无法撤销。</p> : <label>审核名称<input name="name" defaultValue={data.run.name} required pattern=".*\S.*" maxLength={200} /></label>}
       {formError && <p role="alert">操作失败，请重试。</p>}<div className="aw-actions"><button type="button" className="aw-secondary" onClick={() => setDialog(null)}>取消</button><button className={dialog === 'delete' ? 'aw-danger-confirm' : ''} disabled={busy}>{busy ? '处理中…' : dialog === 'delete' ? '确认删除' : '确认重命名'}</button></div>
