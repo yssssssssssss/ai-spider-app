@@ -8,6 +8,15 @@ from urllib.parse import urlsplit
 TRACE_FILENAME = "model_calls.jsonl"
 
 
+def append_model_calls(output_dir, calls):
+    try:
+        with (Path(output_dir) / TRACE_FILENAME).open("a", encoding="utf-8") as handle:
+            for record in calls:
+                handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except OSError as exc:
+        print(f"⚠️ model trace write failed ({type(exc).__name__})", flush=True)
+
+
 def trace_phone_client(model_client, output_dir):
     original = model_client.client.chat.completions.create
     path = Path(output_dir) / TRACE_FILENAME

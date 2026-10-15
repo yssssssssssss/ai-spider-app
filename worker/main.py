@@ -46,7 +46,8 @@ def main() -> int:
                             client.finish(run_id, args.node_key, result.exit_code, result.uploaded_count)
                             print(f"✅ finished run {run_id}, uploaded={result.uploaded_count}")
                         else:
-                            client.fail(run_id, args.node_key, result.exit_code, f"process exited with {result.exit_code}")
+                            reason = (result.result_json or {}).get("failure_reason") or f"process exited with {result.exit_code}"
+                            client.fail(run_id, args.node_key, result.exit_code, reason)
                             print(f"❌ failed run {run_id}, exit={result.exit_code}")
                     except Exception as exc:
                         try:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -27,6 +28,7 @@ TARGET_APP_PACKAGES = {
     "抖音": "com.ss.android.ugc.aweme",
 }
 REPORT_FILENAMES = {
+    "autoglm": "autoglm_result.json",
     "scroll_promo": "promotion_detections.json",
     "jd_new_floor_audit": "jd_new_floor_report.json",
 }
@@ -98,8 +100,6 @@ def execute_claim(repo_root: Path, client: WorkerClient, node_key: str, claim: d
     result_json = None
     if report_path and report_path.exists():
         try:
-            import json
-
             result_json = json.loads(report_path.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
             with log_path.open("a", encoding="utf-8") as log_file:
@@ -288,6 +288,7 @@ def _build_env(
             "WORKFLOW_TASK_KEYWORD": _env_value(task.get("keyword")),
             "WORKFLOW_TARGET_APP": _env_value(task.get("target_app")),
             "WORKFLOW_TARGET_SCENARIO": _env_value(task.get("target_scenario")),
+            "WORKFLOW_TARGET_GOALS_JSON": json.dumps(task.get("target_goals_json") or [], ensure_ascii=False),
             "WORKFLOW_GENERATED_INSTRUCTION": _env_value(task.get("generated_instruction")),
             "DATABASE_URL": "",
             "JD_OSS_ACCESS_KEY_ID": "",

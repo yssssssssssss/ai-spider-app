@@ -8,13 +8,17 @@ AutoGLM 驱动脚本
 import os
 import sys
 import argparse
+import asyncio
 import base64
+import json
 import re
 import subprocess
 import time
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from io import BytesIO
+from pathlib import Path
+from types import SimpleNamespace
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 # 加载项目根目录 .env 文件（如果存在）
@@ -28,7 +32,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
 from phone_agent import PhoneAgent
 from phone_agent.agent import AgentConfig
 from phone_agent.model import ModelConfig
-from phone_agent.device_factory import DeviceType, set_device_type
+from phone_agent.device_factory import DeviceType, get_device_factory, set_device_type
 from phone_agent.config.apps import get_package_name
 
 import config as app_config
@@ -87,6 +91,8 @@ LOGIN_PAGE_NEGATION_MARKERS = (
 )
 PRODUCT_DETAIL_LONG_CAPTURE_MODE = "product_detail_long_image"
 MAX_AUTOGLM_STEPS = 30
+MAX_ACTIVE_TARGET_CHECKS = 12
+MAX_REJECTED_FINISHES = 3
 UI_BOUNDS_PATTERN = re.compile(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]")
 SEARCH_SUBMIT_TEXTS = ("搜索", "搜一下", "Search", "search")
 SEARCH_SUBMIT_EXCLUDES = ("搜索框", "输入", "关键词", "历史搜索", "搜索历史", "搜索发现")
@@ -406,6 +412,68 @@ def _screen_delta(left: tuple[int, ...], right: tuple[int, ...]) -> float:
     return sum(abs(a - b) for a, b in zip(left, right)) / max(1, len(left))
 
 
+class TargetVerification:
+    def __init__(self, goals, target_app, scenario, output_dir):
+        self.goals = goals or []
+        self.target_app = target_app
+        self.scenario = scenario
+        self.output_dir = output_dir
+        self.verdict = "uncertain" if self.goals else "disabled"
+        self.records = []
+        self.active_checks = 0
+        self.rejected_finishes = 0
+        self.last_signature = None
+
+    def check(self, screenshot, step_idx, *, finished):
+        from app.services.model_trace import capture_model_calls
+        from app.services.target_verifier import verify_target
+        from worker.model_trace import append_model_calls
+
+        image = getattr(screenshot, "base64_data", None)
+        signature = _screen_signature(image)
+        if not finished:
+            if self.active_checks >= MAX_ACTIVE_TARGET_CHECKS or signature is None:
+                return None
+            if self.last_signature is not None and _screen_delta(self.last_signature, signature) <= SCREEN_CHANGE_DELTA_THRESHOLD:
+                return None
+            self.active_checks += 1
+        self.last_signature = signature
+        with capture_model_calls("target_verification") as calls:
+            result = asyncio.run(verify_target(image, self.goals, self.target_app, self.scenario))
+        append_model_calls(self.output_dir, calls)
+        if calls:
+            result["model"] = calls[-1].get("response_model") or result["model"]
+        self.records.append({"step": step_idx + 1, "trigger": "finish" if finished else "screen_change", **result})
+        print(f"🎯 目标页校验: {result['verdict']} — {result['reason']}")
+        return result
+
+    def save_result(self, failure_reason=None):
+        report = {
+            "report_type": "autoglm",
+            "target_verification": self.verdict,
+            "target_verification_records": self.records,
+        }
+        if failure_reason:
+            report["failure_reason"] = failure_reason
+        (Path(self.output_dir) / "autoglm_result.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8",
+        )
+
+
+def _current_target_screen(device_id):
+    # The SDK's last_screenshot precedes its action. Never verify that stale frame.
+    try:
+        return get_device_factory().get_screenshot(device_id)
+    except Exception as exc:
+        print(f"⚠️ 目标页截图失败（{type(exc).__name__}）")
+        return None
+
+
+def _inject_target_continuation(agent, reason):
+    # step(task=...) ignores task after the first step; context returns a copy.
+    agent._context.append({"role": "user", "content": f"目标尚未到达：{reason}，继续操作"})
+
+
 class ScreenCapturePolicy:
     """Persist only meaningful screen changes and the final target screen."""
 
@@ -677,6 +745,9 @@ def run_with_autoglm(
     long_screenshot_count: int = 10,
     final_capture: bool = False,
     exit_app: bool = True,
+    target_goals_json: list[dict] | None = None,
+    target_app: str | None = None,
+    scenario: str | None = None,
 ):
     """
     使用 AutoGLM 执行自然语言任务，仅在界面变化和目标页完成时保存截图。
@@ -748,82 +819,93 @@ def run_with_autoglm(
     popup_flow = PopupFlowStateMachine(task)
     if not capture_policy.capture_changes:
         popup_flow.enabled = False
+    verification = TargetVerification(target_goals_json, target_app or source_app, scenario, output_dir)
     search_submitted = False
-    step_result = agent.step(task=task)
-    step_idx = 0
-    _stop_if_login_page(step_result, source_app, agent_config.device_id, exit_app)
-    _ensure_typed_text(step_result, agent_config.device_id)
-    if not search_submitted and _submit_search_after_type(task, step_result, agent_config.device_id):
-        search_submitted = True
+    failure_reason = None
+    target_finished = False
+    try:
+        step_result = None
+        for step_idx in range(max_steps):
+            if step_result is None:
+                step_result = agent.step(task=task)
+            else:
+                if step_result.finished and popup_flow.should_accept_finish():
+                    break
+                instruction = popup_flow.next_instruction(finished=step_result.finished)
+                if instruction:
+                    print("⚠️ AutoGLM 弹窗流程未闭环，按状态机继续执行")
+                    popup_flow.expect_close_result()
+                    step_result = agent.step(task=instruction)
+                elif step_result.finished:
+                    break
+                else:
+                    step_result = agent.step()
+            # Login and input rules always precede target verification.
+            _stop_if_login_page(step_result, source_app, agent_config.device_id, exit_app)
+            _ensure_typed_text(step_result, agent_config.device_id)
+            if not search_submitted and _submit_search_after_type(task, step_result, agent_config.device_id):
+                search_submitted = True
 
-    if step_result.success:
-        screenshot_path = capture_policy.capture(
-            agent,
-            step_idx,
-            output_dir,
-            source_app,
-            force=step_result.finished and popup_flow.should_accept_finish(),
-            task_id=task_id,
-            task_run_id=task_run_id,
-            db_device_id=db_device_id,
-        )
-        popup_flow.record_screenshot(screenshot_path)
-    step_idx += 1
-
-    # 继续执行直到完成
-    while step_idx < max_steps:
-        if step_result.finished and popup_flow.should_accept_finish():
-            break
-
-        instruction = popup_flow.next_instruction(finished=step_result.finished)
-        if instruction:
-            print("⚠️ AutoGLM 弹窗流程未闭环，按状态机继续执行")
-            popup_flow.expect_close_result()
-            step_result = agent.step(task=instruction)
-        elif step_result.finished:
-            break
-        else:
-            step_result = agent.step()
-        _stop_if_login_page(step_result, source_app, agent_config.device_id, exit_app)
-        _ensure_typed_text(step_result, agent_config.device_id)
-        if not search_submitted and _submit_search_after_type(task, step_result, agent_config.device_id):
-            search_submitted = True
-
-        if step_result.success:
+            if not step_result.success:
+                continue
+            screenshot = _current_target_screen(agent_config.device_id) if verification.goals else None
+            capture_agent = SimpleNamespace(last_screenshot=screenshot) if verification.goals else agent
+            capture_args = (capture_agent, step_idx, output_dir, source_app)
+            capture_kwargs = dict(task_id=task_id, task_run_id=task_run_id, db_device_id=db_device_id)
             screenshot_path = capture_policy.capture(
-                agent,
-                step_idx,
-                output_dir,
-                source_app,
-                force=step_result.finished and popup_flow.should_accept_finish(),
-                task_id=task_id,
-                task_run_id=task_run_id,
-                db_device_id=db_device_id,
+                *capture_args,
+                force=not verification.goals and step_result.finished and popup_flow.should_accept_finish(),
+                **capture_kwargs,
             )
             popup_flow.record_screenshot(screenshot_path)
-        step_idx += 1
+            if not verification.goals or not popup_flow.should_accept_finish():
+                continue
 
-    print("-" * 50)
-    print(f"✅ AutoGLM 导航完成: {step_result.message or 'done'}")
-    print(f"🔢 AutoGLM 执行步数: {step_idx}")
-    if not step_result.finished:
-        raise RuntimeError(f"AutoGLM did not reach the target page within {max_steps} steps")
-    if not getattr(step_result, "success", False):
-        raise RuntimeError(f"AutoGLM navigation failed before final capture: {step_result.message or 'unknown error'}")
-    if post_capture_mode == PRODUCT_DETAIL_LONG_CAPTURE_MODE:
-        if not _should_run_post_capture(step_result, post_capture_mode):
-            raise RuntimeError(f"AutoGLM navigation did not finish successfully: {step_result.message or 'unknown error'}")
-        print(f"📜 开始商品详情长图采集: {long_screenshot_count} 屏")
-        capture_result = capture_product_detail_long_image(
-            device_id=agent_config.device_id,
-            output_dir=output_dir,
-            screen_count=long_screenshot_count,
-        )
-        print(f"🧩 长图已生成: {capture_result.stitched_path}")
-    if exit_app:
-        _force_stop_app(source_app, agent_config.device_id)
-    print(f"✅ 任务完成，结果目录: {output_dir}")
-    return step_result.message or "done"
+            result = verification.check(screenshot, step_idx, finished=step_result.finished)
+            if result is None:
+                continue
+            if result["verdict"] == "reached" or (step_result.finished and result["verdict"] == "uncertain"):
+                verification.verdict = result["verdict"]
+                capture_policy.capture(*capture_args, force=True, **capture_kwargs)
+                step_result.finished = True
+                target_finished = True
+                break
+            if step_result.finished:
+                verification.rejected_finishes += 1
+                if verification.rejected_finishes >= MAX_REJECTED_FINISHES:
+                    verification.verdict = "not_reached"
+                    raise RuntimeError(f"目标页未到达：连续 {MAX_REJECTED_FINISHES} 次完成信号被拒绝；{result['reason']}")
+                _inject_target_continuation(agent, result["reason"])
+                step_result.finished = False
+
+        print("-" * 50)
+        print(f"🔢 AutoGLM 执行步数: {agent.step_count}")
+        if verification.goals and step_result.success and not target_finished:
+            verification.verdict = "not_reached"
+            raise RuntimeError(f"目标页未到达：已达 {max_steps} 步上限")
+        if not step_result.finished:
+            raise RuntimeError(f"AutoGLM did not reach the target page within {max_steps} steps")
+        if not getattr(step_result, "success", False):
+            raise RuntimeError(f"AutoGLM navigation failed before final capture: {step_result.message or 'unknown error'}")
+        if post_capture_mode == PRODUCT_DETAIL_LONG_CAPTURE_MODE:
+            if not _should_run_post_capture(step_result, post_capture_mode):
+                raise RuntimeError(f"AutoGLM navigation did not finish successfully: {step_result.message or 'unknown error'}")
+            print(f"📜 开始商品详情长图采集: {long_screenshot_count} 屏")
+            capture_result = capture_product_detail_long_image(
+                device_id=agent_config.device_id,
+                output_dir=output_dir,
+                screen_count=long_screenshot_count,
+            )
+            print(f"🧩 长图已生成: {capture_result.stitched_path}")
+        if exit_app:
+            _force_stop_app(source_app, agent_config.device_id)
+        print(f"✅ 任务完成，结果目录: {output_dir}")
+        return step_result.message or "done"
+    except Exception as exc:
+        failure_reason = str(exc)
+        raise
+    finally:
+        verification.save_result(failure_reason)
 
 
 def main():
@@ -889,6 +971,9 @@ def main():
         long_screenshot_count=args.long_screenshot_count,
         final_capture=args.final_capture,
         exit_app=not args.keep_app_open,
+        target_goals_json=json.loads(os.getenv("WORKFLOW_TARGET_GOALS_JSON") or "[]"),
+        target_app=os.getenv("WORKFLOW_TARGET_APP") or None,
+        scenario=os.getenv("WORKFLOW_TARGET_SCENARIO") or None,
     )
 
 
