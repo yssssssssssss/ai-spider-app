@@ -158,6 +158,8 @@ GET  /audit-specs/versions/{id}/executor   → {available: bool, reason}  前端
 | T8a-2 | App 执行器：规范转 Skill、抽出共用启动函数、`finish` 和 `fail` 后的对账 hook | T8a-1 |
 | T8b-1 | `rerun_venue_audit.py --fresh`，以及规范版本转 profile | — |
 | T8b-2 | H5 执行器：后台线程、`needs_action` 交接、取消、重启后标记中断 | T8a-1, T8b-1 |
+| T8-0 | AutoGLM 停止条件与完成校验（另出任务书） | — |
+| 验收 | App 真机验收（需 T8-0、T8a-2）；H5 真实会场小样本验收（需 Ego 登录） | 全部 |
 
 ## 7. 风险与前置
 
