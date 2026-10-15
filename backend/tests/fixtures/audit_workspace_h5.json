@@ -1,0 +1,26 @@
+{
+  "title": "官方会场H5审核", "rule_version": "h5-v5", "generated_at": "2026-10-15T08:00:00+08:00",
+  "results": [
+    {"venue": {"venue_id": "issues", "venue_name": "问题会场", "project_id": "1", "record_id": "r1"}, "status": "visible_issues",
+     "audit": {"page_state": "ready", "page_warnings": [], "summary": {"fail": 99}, "checks": [
+       {"rule_id": "OV-005", "title": "首屏商品", "status": "fail", "observed": "未露出", "reason": "缺少商品"},
+       {"rule_id": "OV-023", "title": "共享证据", "status": "fail", "duplicate_of": "OV-005"},
+       {"rule_id": "OV-007", "title": "未启用", "status": "disabled"}]}},
+    {"venue": {"venue_id": "uncertain", "venue_name": "待确认会场"}, "status": "needs_confirmation",
+     "audit": {"checks": [{"rule_id": "OV-005", "status": "uncertain"}, {"rule_id": "OV-023", "status": "uncertain", "duplicate_of": "OV-005"}]}},
+    {"venue": {"venue_id": "partial", "venue_name": "部分审核会场"}, "status": "partial_inspection",
+     "audit": {"checks": [{"rule_id": "OV-005", "status": "pass"}]}},
+    {"venue": {"venue_id": "offline", "venue_name": "下线会场"}, "status": "page_error",
+     "audit": {"page_state": "error", "page_warnings": ["活动迷路了，看看为你甄选吧~"], "checks": []}},
+    {"venue": {"venue_id": "expired", "venue_name": "过期会场"}, "status": "page_error",
+     "audit": {"page_state": "活动已结束", "page_warnings": ["页面过期"], "checks": []}},
+    {"venue": {"venue_id": "login", "venue_name": "登录会场"}, "status": "page_error",
+     "audit": {"page_state": "LOGIN required", "checks": []}},
+    {"venue": {"venue_id": "other", "venue_name": "其他错误"}, "status": "page_error",
+     "audit": {"page_state": "network_error", "page_warnings": ["网络错误原文"], "checks": []}},
+    {"venue": {"venue_id": "clean", "venue_name": "通过会场"}, "status": "anything_else",
+     "audit": {"checks": [{"rule_id": "OV-005", "status": "pass"}, {"rule_id": "OV-023", "status": "fail", "duplicate_of": "OV-005"}]}},
+    {"venue": {"venue_id": "derived_fail", "venue_name": "推导不符合"}, "audit": {"checks": [{"rule_id": "OV-005", "status": "fail"}]}},
+    {"venue": {"venue_id": "derived_uncertain", "venue_name": "推导待确认"}, "audit": {"checks": [{"rule_id": "OV-005", "status": "uncertain"}]}}
+  ]
+}

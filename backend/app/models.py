@@ -424,11 +424,45 @@ class WatchPeriodReport(Base):
     plan = relationship("WatchPlan", back_populates="period_reports")
 
 
+
+class AuditSpec(Base):
+    __tablename__ = "audit_specs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    key = Column(String, nullable=False, unique=True)
+    name = Column(Text, nullable=False)
+    description = Column(Text)
+    created_by = Column(UUID(as_uuid=True), nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+    versions = relationship("AuditSpecVersion", back_populates="spec", passive_deletes="all")
+
+
+class AuditSpecVersion(Base):
+    __tablename__ = "audit_spec_versions"
+    __table_args__ = (
+        UniqueConstraint("spec_id", "version", name="uq_audit_spec_versions_version"),
+        UniqueConstraint("spec_id", "sha256", name="uq_audit_spec_versions_sha256"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    spec_id = Column(UUID(as_uuid=True), ForeignKey("audit_specs.id"), nullable=False)
+    version = Column(Integer, nullable=False)
+    label = Column(Text, nullable=False)
+    carrier_scope = Column(String, nullable=False)
+    rules_json = Column(JSONB, nullable=False)
+    source_json = Column(JSONB, nullable=False)
+    sha256 = Column(String(64), nullable=False)
+    created_by = Column(UUID(as_uuid=True), nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+
+    spec = relationship("AuditSpec", back_populates="versions")
+
+
 class AuditProject(Base):
     __tablename__ = "audit_projects"
-    __table_args__ = (
-        Index("ix_audit_projects_created_by", "created_by"),
-    )
+    __table_args__ = (Index("ix_audit_projects_created_by", "created_by"),)
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(Text, nullable=False)
@@ -437,49 +471,50 @@ class AuditProject(Base):
     created_at = Column(DateTime, default=utc_now)
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
-    pages = relationship("AuditPage", back_populates="project", cascade="all, delete-orphan", passive_deletes=True)
+    runs = relationship("AuditRun", back_populates="project", passive_deletes="all")
 
 
-class AuditPage(Base):
-    __tablename__ = "audit_pages"
+class AuditRun(Base):
+    __tablename__ = "audit_runs"
+    __table_args__ = (
+        Index("ix_audit_runs_project_id", "project_id"),
+        Index("ix_audit_runs_spec_version_id", "spec_version_id"),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    project_id = Column(UUID(as_uuid=True), ForeignKey("audit_projects.id", ondelete="CASCADE"), nullable=False)
     name = Column(Text, nullable=False)
-    business_key = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=utc_now)
-
-    __table_args__ = (
-        Index("ix_audit_pages_project_id", "project_id"),
-        Index("uq_audit_pages_project_business_key", "project_id", "business_key", unique=True,
-              postgresql_where=business_key.isnot(None)),
-    )
-
-    project = relationship("AuditProject", back_populates="pages")
-    records = relationship("AuditRecord", back_populates="page", cascade="all, delete-orphan", passive_deletes=True)
-
-
-class AuditRecord(Base):
-    __tablename__ = "audit_records"
-    __table_args__ = (
-        Index("ix_audit_records_page_created_at", "page_id", "created_at"),
-        Index("ix_audit_records_baseline_record_id", "baseline_record_id"),
-    )
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    page_id = Column(UUID(as_uuid=True), ForeignKey("audit_pages.id", ondelete="CASCADE"), nullable=False)
-    phase = Column(String, nullable=False)
     carrier = Column(String, nullable=False)
+    phase = Column(String, nullable=False)
+    spec_version_id = Column(UUID(as_uuid=True), ForeignKey("audit_spec_versions.id"), nullable=False)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("audit_projects.id", ondelete="SET NULL"), nullable=True)
     source_kind = Column(String, nullable=False)
     source_ref_json = Column(JSONB, nullable=False, default=dict)
-    spec_key = Column(Text, nullable=False)
-    spec_version = Column(Text, nullable=False)
-    findings_json = Column(JSONB, nullable=False, default=list)
     summary_json = Column(JSONB, nullable=False, default=dict)
-    baseline_record_id = Column(UUID(as_uuid=True), ForeignKey("audit_records.id", ondelete="SET NULL"), nullable=True)
-    note = Column(Text)
     created_by = Column(UUID(as_uuid=True), nullable=True)
     created_at = Column(DateTime, default=utc_now)
 
-    page = relationship("AuditPage", back_populates="records")
-    baseline_record = relationship("AuditRecord", remote_side=[id], foreign_keys=[baseline_record_id])
+    spec_version = relationship("AuditSpecVersion")
+    project = relationship("AuditProject", back_populates="runs")
+    targets = relationship("AuditTarget", back_populates="run", cascade="all, delete-orphan", passive_deletes=True)
+
+
+class AuditTarget(Base):
+    __tablename__ = "audit_targets"
+    __table_args__ = (
+        Index("ix_audit_targets_run_outcome", "run_id", "outcome"),
+        Index("ix_audit_targets_business_key", "business_key"),
+        Index("ix_audit_targets_baseline_target_id", "baseline_target_id"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    run_id = Column(UUID(as_uuid=True), ForeignKey("audit_runs.id", ondelete="CASCADE"), nullable=False)
+    business_key = Column(Text, nullable=True)
+    name = Column(Text, nullable=False)
+    outcome = Column(String, nullable=False)
+    capture_reason = Column(String, nullable=True)
+    findings_json = Column(JSONB, nullable=False, default=list)
+    summary_json = Column(JSONB, nullable=False, default=dict)
+    baseline_target_id = Column(UUID(as_uuid=True), ForeignKey("audit_targets.id", ondelete="SET NULL"), nullable=True)
+
+    run = relationship("AuditRun", back_populates="targets")
+    baseline_target = relationship("AuditTarget", remote_side=[id], foreign_keys=[baseline_target_id])
