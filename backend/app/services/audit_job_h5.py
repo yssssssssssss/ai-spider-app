@@ -1,5 +1,6 @@
 """Local, serial H5 audit execution. Request hooks leave commits to their caller."""
 import json
+from collections import Counter
 import logging
 import os
 from pathlib import Path
@@ -24,6 +25,25 @@ SCRIPTS = ("capture_venues.mjs", "venue_identity.py", "audit_spec_profile.py",
 STEP_LABELS = {"preflight": "检查登录", "catalog": "读取目录", "capture": "采集",
                "profile": "准备规范", "audit": "审核", "report": "生成报告", "ingest": "收录"}
 log = logging.getLogger(__name__)
+
+
+def gate_summary(output, venues):
+    blocked, reasons, degraded = [], Counter(), 0
+    for venue in venues:
+        path = output / "venues" / venue["record_id"] / "audit.json"
+        if not path.is_file():
+            continue
+        gate = json.loads(path.read_text(encoding="utf-8")).get("capture_gate") or {}
+        if gate.get("verdict") == "blocked":
+            blocked.append(venue["venue_id"])
+            reasons[gate["reason"]] += 1
+        elif gate.get("verdict") == "degraded":
+            degraded += 1
+    summary = {"gate": {"blocked": len(blocked), "by_reason": dict(reasons), "degraded": degraded},
+               "blocked_venue_ids": blocked}
+    if venues and reasons["venue_lost"] * 10 >= len(venues) * 3:
+        summary["hint"] = "可能是预览时间或预览链接失效"
+    return summary
 
 
 def safe_error(value: str) -> str:
@@ -336,7 +356,7 @@ console.log(JSON.stringify({{stage: "preflight", space_id: task.spaceId, ready}}
             raise ValueError("目录中没有会场")
         return selected
 
-    def _copy_capture(self, source, capture, selected):
+    def _copy_capture(self, source, capture, selected, *, reuse=True):
         def copy(relative):
             relative = Path(relative)
             file = (source / relative).resolve()
@@ -355,6 +375,9 @@ console.log(JSON.stringify({{stage: "preflight", space_id: task.spaceId, ready}}
         for venue in selected:
             if venue.get("qr_file"):
                 copy(venue["qr_file"])
+            if not reuse:
+                complete = False
+                continue
             relative = f"venues/{venue['record_id']}/capture.json"
             if not (source / relative).is_file():
                 complete = False
@@ -383,7 +406,7 @@ console.log(JSON.stringify({{stage: "preflight", space_id: task.spaceId, ready}}
             if data.get("catalog_dir"):
                 source = self._source(data["catalog_dir"])
                 selected = self._selection(source, data.get("venue_ids"))
-                complete = self._copy_capture(source, capture, selected)
+                complete = self._copy_capture(source, capture, selected, reuse=not data.get("force_recapture"))
                 url = None if complete else self._url(self._read(capture / "catalog.json").get("source_url"))
             else:
                 complete = False
@@ -404,6 +427,7 @@ console.log(JSON.stringify({{stage: "preflight", space_id: task.spaceId, ready}}
             self._command(job_id, "audit", [self.python, "scripts/rerun_venue_audit.py", "--fresh",
                 "--spec", str(profile), "--source", str(capture), "--output", str(output),
                 "--records-file", str(records), "--concurrency", "6"], total=len(selected))
+            self._update(job_id, summary=gate_summary(output, selected))
             self._command(job_id, "report", [self.python, "scripts/build_venue_recheck_report.py", "--output", str(output)])
             packet = self._read(output / "results.json")
             results = packet.get("results", [])

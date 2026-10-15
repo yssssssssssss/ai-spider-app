@@ -1,0 +1,186 @@
+[
+  {
+    "venue_id": "RA092417533821532361",
+    "status": "needs_confirmation",
+    "capture": {
+      "page_title": "个护会场",
+      "capture_status": "success"
+    },
+    "page_warnings": [
+      "首屏可见楼层异常提示：楼层8-浮层模板-117922215，1组件未生效，请检查有效时间；该异常提示位于权益模块与分类Tab之间，会影响框架顺序、分类Tab上方间距和首屏高度类判断。",
+      "首屏出现楼层异常提示：该楼层未修改异常问题前将不对用户实际展示，提示组件未生效需检查有效时间。",
+      "楼层异常：该楼层未修改异常问题前，将不对用户实际展示。",
+      "楼层8-浮层模板-117922215：1组件未生效，请检查有效时间"
+    ],
+    "reason": null
+  },
+  {
+    "venue_id": "RA092915121635003431",
+    "status": "page_error",
+    "capture": {
+      "page_title": "挑好物逛京东",
+      "capture_status": "success"
+    },
+    "page_warnings": [
+      "页面顶部显示“活动迷路了，看看为你甄选吧~”"
+    ],
+    "reason": "venue_lost"
+  },
+  {
+    "venue_id": "RA092814525679723380",
+    "status": "page_error",
+    "capture": {
+      "page_title": "京东登录注册",
+      "navigation_status": "login_required",
+      "navigation_url": "https://plogin.m.jd.com/login/login?appid=300&returnurl=https%3A%2F%2Fbabelserv.m.jd.com%2Fservice%2Fpreview%2Fmall%2Factive%2F3VTKWFnyWcfSToDTnCW827eVa2xM%2F1791734400000%3Fsource%3Dpreview%26endpoint%3D%26pageId%3D6473609%26forward%3D1%26cms%3D1%26has_native%3D0%26insertDebugFloor%3D1%26migrateToMall%3D1",
+      "capture_status": "success"
+    },
+    "page_warnings": [
+      "login_required"
+    ],
+    "reason": "login_required"
+  },
+  {
+    "venue_id": "RA100917144998155723",
+    "status": "page_error",
+    "capture": {
+      "page_title": "超市秒送会场",
+      "capture_status": "success"
+    },
+    "page_warnings": [
+      "当前截图可见“楼层异常”提示，提示该楼层异常问题修改前不对用户实际展示。",
+      "当前截图可见“前方拥堵中，请稍后重试～”，真实feeds或后续楼层未正常展示。",
+      "首屏出现两个“楼层异常”提示，称异常未修改前不对用户实际展示。",
+      "分类Tab下出现“前方拥堵中，请稍后重试~”空态，商品feeds未正常加载。",
+      "首屏出现“楼层异常：该楼层未修改异常问题前，将不对用户实际展示”。",
+      "异常详情可见“楼层3-楼层间隔-118077329…被过滤”。",
+      "异常详情可见“楼层8-浮层模板-118077335…组件未生效”。",
+      "两屏均出现“前方拥堵中，请稍后重试~”占位提示。"
+    ],
+    "reason": null
+  },
+  {
+    "venue_id": "RA092915121792497893",
+    "status": "page_error",
+    "capture": {
+      "page_title": "京东登录注册",
+      "first_screen_text": "京东登录注册\n\n+86\n\n获取验证码\n\n同意协议并登录\n\n账号密码登录\n手机快速注册\n\n同意协议并选择其他登录方式\n\n 我已阅读并同意 《京东用户服务协议》 《用户隐私政策》 ，未注册的手机号将自动创建京东账号",
+      "navigation_status": "login_required",
+      "navigation_url": "https://plogin.m.jd.com/login/login?returnurl=https%3A%2F%2Fbabelserv.m.jd.com%2Fservice%2Fpreview%2Fmall%2Factive%2F2Ws21TBqC8DKEpgVTqAkhiSMT4Km%2F1791734400000%3Fsource%3Dpreview%26endpoint%3D%26pageId%3D6476321%26forward%3D1%26cms%3D1%26has_native%3D0%26insertDebugFloor%3D1%26migrateToMall%3D1",
+      "capture_status": "success"
+    },
+    "page_warnings": [
+      "login_required"
+    ],
+    "reason": "login_required"
+  },
+  {
+    "venue_id": "RA092413440857595594",
+    "status": "page_error",
+    "capture": {
+      "page_title": "提示",
+      "capture_status": "success"
+    },
+    "page_warnings": [
+      "页面提示：活动状态为已过期、已结束的活动，暂不支持预览"
+    ],
+    "reason": "expired"
+  },
+  {
+    "venue_id": "RA093009424331285923",
+    "status": "page_error",
+    "capture": {
+      "page_title": "提示",
+      "capture_status": "success"
+    },
+    "page_warnings": [
+      "页面提示：活动状态为已过期、已结束的活动，暂不支持预览"
+    ],
+    "reason": "expired"
+  },
+  {
+    "venue_id": "RA100818290232970048",
+    "status": "page_error",
+    "capture": {
+      "page_title": "提示",
+      "capture_status": "success"
+    },
+    "page_warnings": [
+      "活动状态为已过期、已结束的活动，暂不支持预览"
+    ],
+    "reason": "expired"
+  },
+  {
+    "venue_id": "RA092813474854057483",
+    "status": "page_error",
+    "capture": {
+      "page_title": "领券双11会场",
+      "capture_status": "success"
+    },
+    "page_warnings": [
+      "预览页提示：您打开的是预览页，请勿直接投放！",
+      "feeds区域显示“加载中”，第二屏大面积空白"
+    ],
+    "reason": null
+  },
+  {
+    "venue_id": "RA100917354732553734",
+    "status": "page_error",
+    "capture": {
+      "page_title": "京东登录注册",
+      "navigation_status": "unverified_redirect",
+      "navigation_url": "https://plogin.m.jd.com/login/login?appid=300&returnurl=https%3A%2F%2Fpro.m.jd.com%2Fmall%2Factive%2F3JzL1AyGgyBXrsqkL8icdh13fVia%2Findex.html",
+      "capture_status": "success"
+    },
+    "page_warnings": [
+      "unverified_redirect"
+    ],
+    "reason": "login_required"
+  },
+  {
+    "venue_id": "RA092418492496984325",
+    "status": "page_error",
+    "capture": {
+      "page_title": "指数双11会场",
+      "capture_status": "success"
+    },
+    "page_warnings": [
+      "当前页面可见多个“楼层异常”提示，涉及楼层6、楼层7、楼层11等。",
+      "分类Tab下方feeds区域显示“加载中”，未露出完整feeds商品。",
+      "楼层异常和加载状态可能影响框架顺序、首屏商品露出、分类Tab上方间距及组件样式判断。",
+      "可见多处“楼层异常”错误提示，可能影响真实楼层展示。",
+      "主视觉内存在“测试需替换”占位文案。",
+      "可见Lottie模板使用说明类占位内容。",
+      "分类Tab下方显示“加载中”，feeds商品未出图。",
+      "可见“Lottie动画模板用这个”预览提示及JSON压缩包/兜底图说明。",
+      "可见多处“楼层异常：该楼层未修改异常问题前，将不对用户实际展示”。",
+      "可见“楼层6-楼层间隔-117826516”因区块集点楼层被过滤提示。",
+      "可见“楼层7-官方会场权益-117826517”素材组预览时间无素材/素材为空提示。",
+      "可见“楼层11-浮层模板-117826521：组件未生效，请检查有效时间”。",
+      "分类Tab下方feeds区域显示“加载中”。"
+    ],
+    "reason": null
+  },
+  {
+    "venue_id": "RA100909125833233162",
+    "status": "page_error",
+    "capture": {
+      "page_title": "曹清华会场",
+      "first_screen_text": "曹清华会场\n该楼层未修改异常问题前，将不对用户实际展示。\n楼层3-楼层间隔-118125367\n1.因为区块焦点楼层【4-官方会场权益】被过滤，所以楼层3被同步过滤\n该楼层未修改异常问题前，将不对用户实际展示。\n楼层4-官方会场权益-118125368\n1.素材组id 08473277，预览时间对应的分期无素材，请进入素材管理查看预览时间对应分期下的素材\n2.素材组08473277素材为空\n\n肝胆用药榜\n\n153.5万人买过\n\n造口护理榜\n\n121万人买过\n\n眼疾用药榜\n\n440万人买过\n\n防褥疮垫榜\n\n99万人买过\n\n咽喉病用药\n\n107.2万人买过\n\n血管用药榜\n\n16.9万人买过\n\n医药榜\n\n12.1万人买过\n\n风湿用药榜\n\n24.8万人买过\n\n轮椅榜\n\n170.2万人买过\n\n鼻部用药榜\n\n382万人买过\n\n心电仪榜\n\n348.5万人买过\n\n拐杖榜\n\n138万人买过\n\n医用美护榜\n\n44.5万人买过\n\n康复辅助榜\n\n19.8万人买过\n\n中药饮片榜\n\n80.5万人买过\n\n疝气带榜\n\n21.5万人买过\n\n家庭护理榜\n\n104.7万人买过\n\n神经系统药\n\n13.3万人买过\n\n鼻部用药榜\n\n39.7万人买过\n\n坐便椅榜\n\n61万人买过\n\n止痛用药榜\n\n625万人买过\n\n智能秤榜\n\n1080万人买过\n\n理疗仪榜\n\n254万人买过\n\n呼吸用药榜\n\n500万人买过\n\n肝胆用药榜\n\n153.5万人买过\n\n造口护理榜\n\n121万人买过\n\n眼疾用药榜\n\n440万人买过\n\n防褥疮垫榜\n\n99万人买过\n\n咽喉病用药\n\n107.2万人买过\n\n血管用药榜\n\n16.9万人买过\n\n医药榜\n\n12.1万人买过\n\n风湿用药榜\n\n24.8万人买过\n\n该楼层未修改异常问题前，将不对用户实际展示。\n楼层8-浮层模板-118125373\n1.组件未生效，请检查有效时间\n￥25.5\n100+好评\n3期免息\n曹清华 关节止痛膏 7cm*10cm*6贴\n国药准字\n2000+条评价\n￥39\n2000+好评\n换购\n曹清华 薏辛除湿止痛胶囊 类风湿关节炎膝关节疼痛专用药\n国药准字\n风湿关节用药热卖榜\n·第10名\n￥30\n100+好评\n3期免息\n曹清华 消炎镇痛膏 缓解关节疼痛腰酸背痛颈椎病肩周炎\n国药准字\n1000+条评价\n￥400\n2万+好评\n3期免息\n【厂家直营】曹清华薏辛止痛胶囊\n国药准字\n风湿关节用药热卖榜\n·第17名\n上滑更多加载",
+      "navigation_url": "https://babelserv.m.jd.com/service/preview/mall/active/VPpNGz6PQXsHzh3X1ZPKZzRqk63/1791734400000?source=preview&endpoint=&pageId=6485593&forward=1&cms=1&has_native=0&insertDebugFloor=1&migrateToMall=1",
+      "capture_status": "success"
+    },
+    "page_warnings": [
+      "screen1可见：楼层3-楼层间隔--118125367，因4-官方会场权益被过滤，所以楼层3被同步过滤。",
+      "screen1可见：楼层4-官方会场权益--118125368，素材组id 08473277、预览时间对应的分期无素材，请进入素材管理查看预览时间对应分期下的素材；素材组08473277素材为空。",
+      "screen1/screen2可见：楼层8-浮层模板--118125373，组件未生效，请检查有效时间。",
+      "首屏显示“楼层异常”提示：楼层间隔、官方会场权益、浮层模板等异常。",
+      "异常提示称部分权益楼层被过滤，素材组为空或组件未生效。",
+      "当前截图未见固定底部导航，需结合原生容器或后台确认。",
+      "楼层3-楼层间隔提示被过滤，所以楼层3被同步过滤",
+      "楼层4-官方会场权益素材有效时间未覆盖分期，且素材为空",
+      "楼层8-浮层模板组件未生效，请检查有效时间"
+    ],
+    "reason": null
+  }
+]

@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "backend"))
 from scripts.venue_identity import capture_fingerprint, verify_capture_identity
+from app.services.h5_capture_gate import classify
 from app.services.llm_analyzer import LLMAnalyzer
 from app.services.model_trace import capture_model_calls
 from app.services.visual_measurement import compare_length, compare_length_range, find_color_patch, measure_color, measure_distance, scan_color_bands
@@ -593,6 +594,32 @@ def fresh_capture_warnings(root, venue, capture, recorded_identity=None):
     return list(dict.fromkeys(warnings))
 
 
+def capture_newer(source, venue, audit_path):
+    return (audit_path.exists() and
+            (source / "venues" / venue["record_id"] / "capture.json").stat().st_mtime_ns > audit_path.stat().st_mtime_ns)
+
+
+def attach_capture_gate(result, gate):
+    if gate is None:
+        return
+    result["capture_gate"] = gate
+    if gate["verdict"] == "blocked":
+        result.update(page_state="error", page_warnings=[gate["message"]], overview=gate["message"], model_calls=[])
+        for check in result["checks"]:
+            check.update(status="uncertain", observed=gate["message"], reason=gate["message"],
+                         evidence=[], method="capture_gate", model_status=None)
+    elif gate["verdict"] == "degraded":
+        if gate["message"] not in result["page_warnings"]:
+            result["page_warnings"].append(gate["message"])
+        for check in result["checks"]:
+            if check.get("enabled", True) and check["rule_id"] in {"OV-001", "OV-002", "OV-005", "OV-009", "OV-023"}:
+                check.update(status="uncertain", reason=gate["message"], change_source="capture_gate_floor_error")
+    if gate["verdict"] != "ok":
+        result["summary"] = dict(Counter(c["status"] for c in result["checks"]))
+        result["mandatory_fail_count"] = sum(c["status"] == "fail" and not c.get("duplicate_of") and
+            c["strength"] in {"mandatory", "conditional_mandatory"} for c in result["checks"])
+
+
 def prepare(source, output, spec_path=None, limit=None, records_path=None, fresh=False):
     if source == output or output.is_relative_to(source):
         raise ValueError("replay output must be separate from the original audit")
@@ -631,7 +658,8 @@ def prepare(source, output, spec_path=None, limit=None, records_path=None, fresh
     if not fresh:
         for venue in catalog["venues"]:
             capture = read(source / "venues" / venue["record_id"] / "capture.json")
-            verify_capture_identity(source, venue, capture, originals[venue["record_id"]]["audit"]["page_state"])
+            state = None if capture_newer(source, venue, source / "results.json") else originals[venue["record_id"]]["audit"]["page_state"]
+            verify_capture_identity(source, venue, capture, state)
     for venue in catalog["venues"]:
         capture = read(source / "venues" / venue["record_id"] / "capture.json")
         if not fresh or (venue.get("qr_file") and (source / venue["qr_file"]).is_file()):
@@ -647,9 +675,10 @@ def prepare(source, output, spec_path=None, limit=None, records_path=None, fresh
                     raise ValueError(f"screenshot dimensions mismatch: {screen['file']}")
             destination = output / screen["file"]
             destination.parent.mkdir(parents=True, exist_ok=True)
-            if destination.exists() and hashlib.sha256(destination.read_bytes()).hexdigest() != screen["sha256"]:
+            changed = destination.exists() and hashlib.sha256(destination.read_bytes()).hexdigest() != screen["sha256"]
+            if changed and not capture_newer(source, venue, output / "venues" / venue["record_id"] / "audit.json"):
                 raise ValueError(f"replay screenshot hash mismatch: {screen['file']}")
-            if not destination.exists():
+            if changed or not destination.exists():
                 shutil.copyfile(path, destination)
         destination = output / "venues" / venue["record_id"]
         destination.mkdir(parents=True, exist_ok=True)
@@ -712,19 +741,32 @@ async def main(args):
         folder = output / "venues" / record_id
         capture = read(folder / "capture.json")
         previous = None if fresh else originals[record_id]["audit"]
+        if previous and previous.get("capture_gate"):
+            previous = {**previous, "page_warnings": [w for w in previous["page_warnings"]
+                        if w != previous["capture_gate"]["message"]]}
+        gate = None if getattr(args, "no_gate", False) else classify(capture)
+        blocked = gate is not None and gate["verdict"] == "blocked"
+        newer = capture_newer(source, venue, folder / "audit.json")
+        recaptured = not fresh and capture_newer(source, venue, source / "results.json")
         skip_warnings = fresh_capture_warnings(output, venue, capture, identities.get(record_id)) if fresh else []
         if (folder / "audit.json").exists() and not args.normalize_only:
             cached = read(folder / "audit.json")
-            if cached.get("capture_fingerprint") != capture_fingerprint(capture):
+            if cached.get("capture_fingerprint") != capture_fingerprint(capture) and not newer:
                 raise ValueError(f"cached audit uses different or unverified captures: {record_id}")
             existing = cached["specification"]
             if existing.get("profile_sha256") != profile_hash and (args.spec or existing["version"] != spec["version"]):
                 raise ValueError("cached audit uses a different rule profile; choose a new output or explicitly re-normalize")
-            if not fresh or (not skip_warnings and cached.get("inspection_method") != "unavailable_fresh_capture"):
+            same_gate = cached.get("capture_gate") == gate or (gate is not None and gate["verdict"] == "ok" and not cached.get("capture_gate"))
+            if (not newer and same_gate and
+                    (not fresh or (not skip_warnings and cached.get("inspection_method") != "unavailable_fresh_capture"))):
+                if gate is not None and "capture_gate" not in cached:
+                    attach_capture_gate(cached, gate)
+                    atomic(folder / "audit.json", cached)
                 progress["completed"] += 1
                 return
-        if skip_warnings or (not fresh and (previous["page_state"] != "ready" or verify_capture_identity(output, venue, capture)["status"] != "verified_entry")):
-            reply = Reply(page_state="error" if fresh else previous["page_state"] if previous["page_state"] != "ready" else "unknown",
+        unavailable = not fresh and not recaptured and previous["page_state"] != "ready"
+        if blocked or skip_warnings or unavailable or (not fresh and verify_capture_identity(output, venue, capture)["status"] != "verified_entry"):
+            reply = Reply(page_state="error" if fresh or blocked else previous["page_state"] if previous["page_state"] != "ready" else "unknown",
                           overview="首轮审核跳过：采集或身份核验未通过。" if fresh else previous["overview"],
                           page_warnings=skip_warnings if fresh else previous["page_warnings"],
                           checks=[Check(rule_id=r["id"], status="uncertain", observed="原始截图未展示可审核会场", reason="页面未就绪", evidence=[]) for r in active_rules], visual_regions=[])
@@ -732,8 +774,10 @@ async def main(args):
             result["specification"]["profile_sha256"] = profile_hash
             result["inspection_method"] = "unavailable_fresh_capture" if fresh else "hash_verified_unavailable_capture_replay"
             result["capture_fingerprint"] = capture_fingerprint(capture)
+            attach_capture_gate(result, gate)
             atomic(folder / "audit.json", result)
             progress["completed"] += 1
+            print(json.dumps({"record_id": record_id, "stage": "audited", "capture_gate": gate}, ensure_ascii=False), flush=True)
             return
         async with semaphore:
             progress["running"] += 1
@@ -762,6 +806,8 @@ async def main(args):
                     atomic(folder / "audit.raw.json", reply.model_dump())
                     atomic(folder / "model-calls.json", calls)
                 venue_reviews = [review for review in reviews if review["record_id"] == record_id]
+                if gate and gate["verdict"] == "degraded":
+                    reply.page_warnings.append(gate["message"])
                 if h5:
                     reply = apply_fact_reviews(reply, capture, venue_reviews)
                 measured = pixel_measurements(reply, capture, output, spec)
@@ -770,6 +816,7 @@ async def main(args):
                                    [review for review in reviews if review["record_id"] == record_id])
                 result["specification"]["profile_sha256"] = profile_hash
                 result["capture_fingerprint"] = capture_fingerprint(capture)
+                attach_capture_gate(result, gate)
                 if h5:
                     result["fact_reviews"] = venue_reviews
                 atomic(folder / "audit.json", result)
@@ -801,6 +848,7 @@ if __name__ == "__main__":
     parser.add_argument("--records-file", help="JSON with explicit record_ids for a fixed sample")
     parser.add_argument("--normalize-only", action="store_true")
     parser.add_argument("--fresh", action="store_true", help="first audit of captures without results.json; requires --spec (h5_v2)")
+    parser.add_argument("--no-gate", action="store_true", help="disable deterministic capture gate (identity checks still apply)")
     options = parser.parse_args()
     if options.concurrency < 1 or options.concurrency > 12 or (options.limit is not None and options.limit < 1):
         parser.error("concurrency must be 1..12 and limit must be positive")

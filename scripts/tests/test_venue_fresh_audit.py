@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import hashlib
+import os
 from pathlib import Path
 import shutil
 from urllib.parse import quote
@@ -60,7 +61,7 @@ def reply_for(profile, page_state="ready"):
         if page_state == "ready" else None)
 
 
-def run_audit(bundle, monkeypatch, reply=None, fresh=True):
+def run_audit(bundle, monkeypatch, reply=None, fresh=True, no_gate=False):
     calls = []
 
     async def complete_images(self, prompt, images, **kwargs):
@@ -71,7 +72,7 @@ def run_audit(bundle, monkeypatch, reply=None, fresh=True):
 
     monkeypatch.setattr(replay.LLMAnalyzer, "complete_images", complete_images)
     args = argparse.Namespace(source=str(bundle.source), output=str(bundle.output), spec=str(bundle.spec),
-                              concurrency=2, limit=None, records_file=None, normalize_only=False, fresh=fresh)
+                              concurrency=2, limit=None, records_file=None, normalize_only=False, fresh=fresh, no_gate=no_gate)
     asyncio.run(replay.main(args))
     assert replay.read(bundle.output / "progress.json")["failed"] == 0
     report.build(bundle.output)
@@ -128,7 +129,7 @@ def test_fresh_page_state_comes_from_reply(capture_bundle, monkeypatch, audit_wo
     ("capture_failed", 0, "other"), ("capture_failed", 1, "other"),
     ("login_required", 2, "login_required"), ("recorded_login", 2, "login_required"),
     ("official_entry_conflict", 2, "other"), ("wrong_qr", 2, "other"),
-    ("unverified_redirect", 2, "other"),
+    ("unverified_redirect", 2, "offline"),
 ])
 def test_unavailable_captures_skip_model_and_import_as_capture_failed(
         capture_bundle, monkeypatch, audit_workspace, failure, screen_count, reason):
@@ -155,7 +156,7 @@ def test_unavailable_captures_skip_model_and_import_as_capture_failed(
     audit = packet["results"][0]["audit"]
     assert audit["summary"] == {"uncertain": 13}
     assert audit["model_calls"] == []
-    assert "capture_failed" in " ".join(audit["page_warnings"])
+    assert audit.get("capture_gate", {}).get("verdict") == "blocked" or "capture_failed" in " ".join(audit["page_warnings"])
     assert packet["status_counts"] == {"page_error": 1}
     parsed, = audit_workspace.parse_h5_results(packet)
     assert parsed.outcome == "capture_failed"
@@ -222,3 +223,112 @@ def test_fresh_selection_uses_catalog_and_requires_profile(capture_bundle, tmp_p
     replay.atomic(records, {"record_ids": ["unknown"]})
     with pytest.raises(ValueError, match="duplicated or unknown"):
         replay.prepare(bundle.source, tmp_path / "unknown", bundle.spec, records_path=records, fresh=True)
+
+
+@pytest.mark.parametrize("no_gate", [False, True])
+@pytest.mark.parametrize("official_profile", [False, True])
+def test_title_gate_before_model_and_no_gate_escape(capture_bundle, monkeypatch, no_gate, official_profile):
+    bundle = capture_bundle
+    if official_profile:
+        bundle.profile = replay.read(OFFICIAL / "h5-v5.json")
+        replay.atomic(bundle.spec, bundle.profile)
+    bundle.capture["page_title"] = "挑好物逛京东"
+    replay.atomic(bundle.source / "venues" / bundle.venue["record_id"] / "capture.json", bundle.capture)
+    calls, packet = run_audit(bundle, monkeypatch, reply_for(bundle.profile), no_gate=no_gate)
+    audit = packet["results"][0]["audit"]
+    assert len(calls) == int(no_gate)
+    if no_gate:
+        assert "capture_gate" not in audit
+    else:
+        assert packet["results"][0]["status"] == "page_error"
+        assert audit["capture_gate"]["reason"] == "venue_lost"
+        assert audit["model_calls"] == []
+        assert all(c["status"] == "uncertain" and "capture_gate:venue_lost" in c["reason"] for c in audit["checks"])
+        assert audit["page_warnings"] == [audit["capture_gate"]["message"]]
+
+
+def test_floor_error_calls_model_and_marks_related_checks_uncertain(capture_bundle, monkeypatch):
+    bundle = capture_bundle
+    bundle.capture["first_screen_text"] = "楼层异常"
+    replay.atomic(bundle.source / "venues" / bundle.venue["record_id"] / "capture.json", bundle.capture)
+    calls, packet = run_audit(bundle, monkeypatch, reply_for(bundle.profile))
+    audit = packet["results"][0]["audit"]
+    assert len(calls) == 1 and audit["page_state"] == "ready"
+    assert audit["capture_gate"]["verdict"] == "degraded"
+    assert audit["capture_gate"]["message"] in audit["page_warnings"]
+    checks = {c["rule_id"]: c for c in audit["checks"]}
+    assert all(checks[rid]["status"] == "uncertain" for rid in ("OV-001", "OV-002", "OV-005", "OV-009", "OV-023"))
+    assert checks["OV-017"]["status"] == "pass"
+
+
+def test_changed_capture_invalidates_cached_gate_and_can_recover(capture_bundle, monkeypatch):
+    bundle = capture_bundle
+    run_audit(bundle, monkeypatch, reply_for(bundle.profile))
+    bundle.capture["page_title"] = "挑好物逛京东"
+    path = bundle.source / "venues" / bundle.venue["record_id"] / "capture.json"
+    replay.atomic(path, bundle.capture)
+    calls, packet = run_audit(bundle, monkeypatch)
+    assert not calls and packet["status_counts"] == {"page_error": 1}
+    calls, packet = run_audit(bundle, monkeypatch, reply_for(bundle.profile), no_gate=True)
+    assert len(calls) == 1 and packet["results"][0]["audit"]["page_state"] == "ready"
+
+
+@pytest.mark.parametrize("lost", [False, True])
+def test_newer_reaudit_capture_rechecks_gate_and_can_recover_previous_error(capture_bundle, monkeypatch, lost):
+    bundle = capture_bundle
+    shutil.copytree(OFFICIAL / "assets", bundle.source / "specification/assets")
+    replay.atomic(bundle.source / "specification/walkthrough.json", bundle.profile)
+    previous = replay.normalize(reply_for(bundle.profile, "error"), bundle.capture, bundle.profile, [], [], None)
+    baseline = bundle.source / "results.json"
+    replay.atomic(baseline, {"results": [{"venue": bundle.venue, "status": "page_error", "audit": previous}]})
+    bundle.capture["page_title"] = "挑好物逛京东" if lost else "正常会场"
+    path = bundle.source / "venues" / bundle.venue["record_id"] / "capture.json"
+    replay.atomic(path, bundle.capture)
+    stamp = baseline.stat().st_mtime_ns + 1_000_000
+    os.utime(path, ns=(stamp, stamp))
+    calls, packet = run_audit(bundle, monkeypatch, reply_for(bundle.profile), fresh=False)
+    assert len(calls) == int(not lost)
+    assert packet["results"][0]["audit"]["capture_gate"]["verdict"] == ("blocked" if lost else "ok")
+
+
+def test_legacy_valid_cache_attaches_gate_without_another_model_call(capture_bundle, monkeypatch):
+    bundle = capture_bundle
+    run_audit(bundle, monkeypatch, reply_for(bundle.profile))
+    path = bundle.output / "venues" / bundle.venue["record_id"] / "audit.json"
+    audit = replay.read(path)
+    del audit["capture_gate"]
+    replay.atomic(path, audit)
+    calls, packet = run_audit(bundle, monkeypatch)
+    assert not calls and packet["results"][0]["audit"]["capture_gate"]["verdict"] == "ok"
+
+
+def test_new_screens_replace_cached_capture_and_gate_before_model(capture_bundle, monkeypatch):
+    bundle = capture_bundle
+    run_audit(bundle, monkeypatch, reply_for(bundle.profile))
+    screen = bundle.capture["screens"][0]
+    image = bundle.source / screen["file"]
+    Image.new("RGB", (390, 844), "black").save(image)
+    screen["sha256"] = hashlib.sha256(image.read_bytes()).hexdigest()
+    bundle.capture["page_title"] = "挑好物逛京东"
+    replay.atomic(bundle.source / "venues" / bundle.venue["record_id"] / "capture.json", bundle.capture)
+    calls, packet = run_audit(bundle, monkeypatch)
+    assert not calls and packet["status_counts"] == {"page_error": 1}
+    assert (bundle.output / screen["file"]).read_bytes() == image.read_bytes()
+
+
+def test_recovered_capture_drops_previous_gate_warning(capture_bundle, monkeypatch):
+    bundle = capture_bundle
+    bundle.capture["first_screen_text"] = "楼层异常"
+    path = bundle.source / "venues" / bundle.venue["record_id"] / "capture.json"
+    replay.atomic(path, bundle.capture)
+    run_audit(bundle, monkeypatch, reply_for(bundle.profile))
+    bundle.source = bundle.output
+    bundle.output = bundle.output.parent / "reaudit"
+    bundle.capture["first_screen_text"] = "正常会场"
+    path = bundle.source / "venues" / bundle.venue["record_id"] / "capture.json"
+    replay.atomic(path, bundle.capture)
+    calls, packet = run_audit(bundle, monkeypatch, reply_for(bundle.profile), fresh=False)
+    audit = packet["results"][0]["audit"]
+    assert len(calls) == 1 and audit["capture_gate"]["verdict"] == "ok"
+    assert not any("capture_gate:floor_error" in w for w in audit["page_warnings"])
+    assert next(c for c in audit["checks"] if c["rule_id"] == "OV-001")["status"] == "pass"

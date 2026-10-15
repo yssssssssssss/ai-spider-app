@@ -324,13 +324,52 @@ def test_viewer_reads_but_all_writes_forbidden(client, db, version, project):
     for path, body in [('/api/audit-jobs', payload(version)),
                        (f'/api/audit-jobs/{job.id}/continue', None),
                        (f'/api/audit-jobs/{job.id}/cancel', None),
+                       (f'/api/audit-jobs/{job.id}/recapture-failed', None),
                        (f'/api/audit-projects/{project.id}/assign-runs', {'run_ids': [str(uuid4())]})]:
         assert client.post(path, json=body).status_code == 403
     client.headers.clear()
     assert client.get('/api/audit-jobs').status_code == 401
+    assert client.post(f'/api/audit-jobs/{job.id}/recapture-failed').status_code == 401
 
 
 def test_missing_jobs_are_404(client):
-    for action in ('', '/continue', '/cancel'):
+    for action in ('', '/continue', '/cancel', '/recapture-failed'):
         method = client.get if not action else client.post
         assert method('/api/audit-jobs/' + str(uuid4()) + action).status_code == 404
+
+
+@pytest.mark.parametrize('status', ['completed', 'failed'])
+@pytest.mark.parametrize('source', ['catalog_url', 'catalog_dir'])
+def test_recapture_creates_selected_job_with_same_context(client, db, version, project, status, source):
+    executor = FakeExecutor()
+    jobs.register_executor('h5', executor)
+    job = job_row(db, version, status, project.id)
+    job.carrier, job.phase = 'h5', 'post'
+    job.input_json = {source: 'original-source', 'venue_ids': ['RA1', 'RA2', 'RA3']}
+    job.executor_ref_json = {'summary': {'blocked_venue_ids': ['RA2', 'RA3']}}
+    db.commit()
+    response = client.post(f'/api/audit-jobs/{job.id}/recapture-failed')
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result['id'] != str(job.id) and result['status'] == 'queued'
+    assert result['carrier'] == 'h5' and result['phase'] == 'post'
+    assert result['spec_version_id'] == str(version.id) and result['project_id'] == str(project.id)
+    assert result['input_json'] == {source: 'original-source', 'venue_ids': ['RA2', 'RA3'], 'force_recapture': True}
+    assert result['created_by'] and executor.starts == 1
+    db.refresh(job)
+    assert job.status == status and job.input_json['venue_ids'] == ['RA1', 'RA2', 'RA3']
+
+
+@pytest.mark.parametrize('carrier,status,blocked', [
+    ('h5', 'completed', []), ('h5', 'failed', []), ('h5', 'running', ['RA1']),
+    ('h5', 'cancelled', ['RA1']), ('app', 'completed', ['RA1']),
+])
+def test_recapture_conflicts_do_not_create_jobs(client, db, version, carrier, status, blocked):
+    job = job_row(db, version, status)
+    job.carrier = carrier
+    job.executor_ref_json = {'summary': {'blocked_venue_ids': blocked}}
+    db.commit()
+    count = db.query(models.AuditJob).count()
+    response = client.post(f'/api/audit-jobs/{job.id}/recapture-failed')
+    assert response.status_code == 409, response.text
+    assert db.query(models.AuditJob).count() == count

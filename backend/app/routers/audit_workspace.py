@@ -177,6 +177,15 @@ def continue_job(job_id: UUID, db: Session = Depends(get_db),
         return job
 
 
+@router.post("/audit-jobs/{job_id}/recapture-failed", response_model=schemas.AuditJobOut)
+def recapture_failed(job_id: UUID, db: Session = Depends(get_db),
+                     user: models.User = Depends(require_at_least("operator"))):
+    with _errors(db):
+        job = jobs.recapture_failed(db, _get(db, models.AuditJob, job_id), user_id=user.id)
+        db.commit()
+        return job
+
+
 @router.post("/audit-jobs/{job_id}/cancel", response_model=schemas.AuditJobOut)
 def cancel_job(job_id: UUID, db: Session = Depends(get_db),
                _user: models.User = Depends(require_at_least("operator"))):
