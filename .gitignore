@@ -22,4 +22,6 @@ data/**/_temp_*
 data/**/exports/
 data/tasks/
 data/deployments/
+data/audit-jobs/
+data/audit-evidence/
 worker_runs/
