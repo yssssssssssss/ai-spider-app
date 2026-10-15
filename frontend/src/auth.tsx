@@ -34,6 +34,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthToken(token);
     if (!token) {
       setUser(null);
+      // Dev-only: VITE_DEV_AUTO_LOGIN="user:pass" skips the login form; stripped from production builds.
+      const auto = import.meta.env.DEV ? import.meta.env.VITE_DEV_AUTO_LOGIN : undefined;
+      const sep = auto ? auto.indexOf(':') : -1;
+      if (auto && sep > 0) {
+        loginApi({ username: auto.slice(0, sep), password: auto.slice(sep + 1) })
+          .then(({ data }) => {
+            if (ignore) return;
+            localStorage.setItem(TOKEN_KEY, data.access_token);
+            setToken(data.access_token);
+          })
+          .catch(() => {
+            if (!ignore) setLoading(false);
+          });
+        return () => {
+          ignore = true;
+        };
+      }
       setLoading(false);
       return;
     }
