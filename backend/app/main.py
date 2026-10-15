@@ -5,6 +5,7 @@ from app.routers import requests, search, admin, images, watch_plans, auth, work
 from app.config import settings
 from app.database import ensure_schema
 from app.services.watch_service import start_watch_scheduler
+from app.services import audit_job_app, audit_job_h5
 
 app = FastAPI(title="竞品分析平台", version="1.0.0")
 allowed_origins = [
@@ -36,6 +37,8 @@ app.include_router(audit_workspace.router, prefix="/api")
 def startup():
     ensure_schema()
     start_watch_scheduler()
+    audit_job_app.register()
+    audit_job_h5.on_startup()
 
 @app.get("/health")
 def health_check():

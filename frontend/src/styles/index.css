@@ -2444,6 +2444,14 @@ tr:hover td {
 .aw-jobs { display: grid; gap: 16px; }
 .aw-jobs:empty { display: none; }
 .aw-job-card { display: grid; gap: 12px; }
+.aw-job-source { border: 1px solid var(--aw-line); border-radius: 12px; padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.aw-job-source legend { padding: 0 6px; }
+.aw-job-source .aw-check { flex-direction: row; }
+.aw .aw-job-source input[type="radio"] { width: 18px; height: 18px; min-height: 18px; padding: 0; accent-color: var(--aw-pre); }
+.aw-job-step { color: #AFC4FF; }
+.aw-job-detail { white-space: pre-wrap; overflow-wrap: anywhere; }
+.aw-job-needs-action { border-color: #F2C14E; }
+.aw-job-needs-action .aw-job-detail { padding: 14px 16px; border-left: 3px solid #F2C14E; background: #292516; color: #FFE3A0; font-weight: 600; }
 .aw-job-card [role="alert"] { color: #FFB49A; white-space: pre-wrap; overflow-wrap: anywhere; }
 .aw-job-notice { padding: 16px; border: 1px solid var(--aw-line); border-radius: 12px; }
 .aw-job-notice a { display: inline-block; margin-top: 8px; }

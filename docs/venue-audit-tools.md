@@ -90,6 +90,23 @@ python3 scripts/validate_venue_reaudit.py --output data/deployments/venue-rechec
 python3 scripts/recheck_tab_spacing.py --source data/deployments/venue-recheck --output data/deployments/venue-spacing-recheck --spec docs/specifications/official-venue-review/h5-v5.json
 ```
 
+## 后端 H5 执行器接入
+
+`backend/app/services/audit_job_h5.py` 提供 `register()` 与 `on_startup()`。在后端启动生命周期中先调用 `register()` 注册 H5 执行器，再调用 `on_startup()`：后者把重启前的 `running` / `ingesting` 任务标为失败，保留等待登录的任务，并唤醒串行队列。两者重复注册会复用同一个执行器；启动恢复应只在后端启动时调用。
+
+```python
+from app.services import audit_job_h5
+
+audit_job_h5.register()
+audit_job_h5.on_startup()
+```
+
+模块不在 import 时启动线程，也不修改应用入口；入口维护者需把上述调用接入启动流程。API 的 start / continue / reconcile 在请求事务提交后唤醒后台线程，线程使用独立 `SessionLocal`。当前仅适用于单进程本机后端。
+
+H5 输入二选一：`{"catalog_url": "https://yx.jd.com/…", "venue_ids": ["RA…"]}`，或 `{"catalog_dir": "data/…", "venue_ids": ["RA…"]}`。目录必须在本仓库 `data/` 内且包含目录与身份校验文件，也接受相对于 `data/` 的路径。省略或清空 `venue_ids` 表示全部；目录模式会复制采集输入到 job 工作目录，复用源目录保持不变。工作目录为 `data/audit-jobs/<job_id>/`。
+
+测试可向 `H5AuditExecutor(runner=..., session_factory=..., repo=...)` 注入依赖。runner 实现 `run(args, *, cwd, stdin=None, on_start=None, on_json=None, cancelled=None)`（返回含 returncode / stderr 的结果）与 `terminate(pid)`（终止整个进程组），所有 Ego 与 Python 子进程都经过此接口。
+
 ## 离线验证
 
 测试生成小型图片/QR 或读取随代码提交的规则和 HTML fixture，不依赖真实审核包：

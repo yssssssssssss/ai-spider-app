@@ -122,10 +122,12 @@ export const createComparisonReport = (data: any) => api.post('/compare/reports'
 export type AuditPhase = 'pre' | 'post';
 export type AuditCarrier = 'h5' | 'app';
 export type AuditJobStatus = 'queued' | 'running' | 'needs_action' | 'ingesting' | 'completed' | 'failed' | 'cancelled';
+export type H5AuditStep = 'preflight' | 'catalog' | 'capture' | 'profile' | 'audit' | 'report' | 'ingest';
 export interface AuditJob {
   id: string; name: string; carrier: AuditCarrier; phase: AuditPhase;
   spec_version_id: string; project_id: string | null; status: AuditJobStatus;
-  status_detail: string | null; input_json: Record<string, unknown>; executor_ref_json: Record<string, unknown>;
+  status_detail: string | null; input_json: Record<string, unknown>;
+  executor_ref_json: { step?: string; work_dir?: string; space_id?: number | null; pid?: number | null; [key: string]: unknown };
   audit_run_id: string | null; error: string | null; created_by: string | null;
   created_at: string; updated_at: string; finished_at: string | null;
 }
@@ -133,6 +135,7 @@ export interface AuditJobInput {
   name: string; carrier: AuditCarrier; phase: AuditPhase; spec_version_id: string;
   project_id?: string; input: Record<string, unknown>;
 }
+export type H5AuditInput = ({ catalog_url: string; catalog_dir?: never } | { catalog_dir: string; catalog_url?: never }) & { venue_ids?: string[] };
 export type AuditCarrierScope = AuditCarrier | 'both';
 export type AuditOutcome = 'issues' | 'needs_confirmation' | 'partial' | 'clean' | 'capture_failed';
 export type AuditStatus = 'pass' | 'fail' | 'uncertain' | 'not_applicable' | 'disabled';

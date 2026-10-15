@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { isAxiosError } from 'axios';
 import { Link } from 'react-router-dom';
-import { AuditCarrier, AuditJob, AuditJobStatus, AuditPhase, AuditProjectDetail, AuditRun, AuditSpec, assignAuditRuns, cancelAuditJob, continueAuditJob, createAuditJob, getAuditExecutor, listAuditJobs, listAuditRuns, listAuditSpecs } from '../api';
+import { AuditCarrier, AuditJob, AuditJobStatus, AuditPhase, AuditProjectDetail, AuditRun, AuditSpec, H5AuditInput, H5AuditStep, assignAuditRuns, cancelAuditJob, continueAuditJob, createAuditJob, getAuditExecutor, listAuditJobs, listAuditRuns, listAuditSpecs } from '../api';
 import { useAuth } from '../auth';
 import { AuditDialog, auditTime, LoadState } from './AuditWorkspaceUI';
 
@@ -10,6 +10,23 @@ const statusLabels: Record<AuditJobStatus, string> = {
   completed: '已完成', failed: '失败', cancelled: '已取消',
 };
 const isActive = (job: AuditJob) => !['completed', 'failed', 'cancelled'].includes(job.status);
+const stepLabels: Record<H5AuditStep, string> = {
+  preflight: '检查登录', catalog: '读取目录', capture: '采集会场', profile: '准备规范',
+  audit: '模型审核', report: '生成报告', ingest: '收录结果',
+};
+const dismissedKey = 'audit-jobs:dismissed:v1';
+function failureExpiry(job: AuditJob): number {
+  if (job.status !== 'failed' || !job.finished_at) return 0;
+  const timestamp = /(?:Z|[+-]\d{2}:\d{2})$/i.test(job.finished_at) ? job.finished_at : `${job.finished_at}Z`;
+  return Date.parse(timestamp) + 24 * 60 * 60 * 1000;
+}
+const recentFailure = (job: AuditJob) => failureExpiry(job) > Date.now();
+function readDismissed(): Set<string> {
+  try {
+    const stored: unknown = JSON.parse(localStorage.getItem(dismissedKey) || '[]');
+    return new Set(Array.isArray(stored) ? stored.filter((id): id is string => typeof id === 'string') : []);
+  } catch { return new Set(); }
+}
 function errorText(error: unknown) {
   return isAxiosError(error) && typeof error.response?.data?.detail === 'string'
     ? error.response.data.detail : '操作失败，请重试。';
@@ -19,6 +36,7 @@ export function AuditLaunchDialog({ project, initialCarrier = 'h5', onClose, onC
   project?: AuditProjectDetail; initialCarrier?: AuditCarrier; onClose: () => void; onCreated: () => void;
 }) {
   const [carrier, setCarrier] = useState<AuditCarrier>(initialCarrier);
+  const [h5Source, setH5Source] = useState<'catalog_url' | 'catalog_dir'>('catalog_url');
   const [phase, setPhase] = useState<AuditPhase>('pre');
   const [specs, setSpecs] = useState<AuditSpec[]>([]);
   const [selectedVersion, setSelectedVersion] = useState('');
@@ -55,8 +73,16 @@ export function AuditLaunchDialog({ project, initialCarrier = 'h5', onClose, onC
     if (!checked?.available || busy) return;
     const fields = new FormData(event.currentTarget);
     const value = (name: string) => String(fields.get(name) || '').trim();
-    const recordIds = value('record_ids').split(/[\s,，]+/).filter(Boolean);
-    const input = carrier === 'h5' ? (recordIds.length ? { record_ids: recordIds } : {}) : {
+    const venueIds = [...new Set(value('venue_ids').split(/\r?\n/).map(id => id.trim()).filter(Boolean))];
+    if (carrier === 'h5' && venueIds.some(id => !/^RA\d+$/.test(id))) {
+      setError('会场 ID 请按 RA 编号逐行填写，例如 RA092915121822266376。');
+      return;
+    }
+    const h5Input: H5AuditInput = {
+      ...(h5Source === 'catalog_url' ? { catalog_url: value('catalog_url') } : { catalog_dir: value('catalog_dir') }),
+      ...(venueIds.length ? { venue_ids: venueIds } : {}),
+    };
+    const input = carrier === 'h5' ? h5Input : {
       target_name: value('target_name'), business_key: value('business_key') || undefined,
       target_app: value('target_app'), scenario: value('scenario'), description: value('description') || undefined,
     };
@@ -81,7 +107,17 @@ export function AuditLaunchDialog({ project, initialCarrier = 'h5', onClose, onC
         <label>目标 App<input name="target_app" required pattern=".*\S.*" /></label>
         <label>场景<input name="scenario" required pattern=".*\S.*" /></label>
         <label>补充描述（可选）<textarea name="description" rows={3} /></label>
-      </> : <label>会场 ID（可选）<textarea name="record_ids" rows={4} placeholder="每行一个会场 ID；留空使用最新目录中的全部会场" /></label>}
+      </> : <>
+        <fieldset className="aw-job-source"><legend>会场来源</legend>
+          <label className="aw-check"><input type="radio" name="h5_source" value="catalog_url" checked={h5Source === 'catalog_url'} onChange={() => setH5Source('catalog_url')} />提报列表链接</label>
+          <label className="aw-check"><input type="radio" name="h5_source" value="catalog_dir" checked={h5Source === 'catalog_dir'} onChange={() => setH5Source('catalog_dir')} />复用已有目录</label>
+        </fieldset>
+        {h5Source === 'catalog_url'
+          ? <label>提报列表链接<input name="catalog_url" type="url" required pattern="https://yx\.jd\.com/.*" placeholder="https://yx.jd.com/…" /></label>
+          : <label>已有目录<input name="catalog_dir" required pattern=".*\S.*" placeholder="data/ 下的相对路径，如 tasks/venue-capture" /></label>}
+        <label>会场 ID（可选）<textarea name="venue_ids" rows={4} placeholder={'每行一个 RA 编号，例如：\nRA092915121822266376'} aria-describedby="aw-venue-hint" /></label>
+        <p className="aw-muted" id="aw-venue-hint">留空表示全部会场；会场多时模型审核耗时和费用较高，建议先选少量会场试跑。</p>
+      </>}
       {error ? <p role="alert">{error}</p> : null}
       <div className="aw-actions"><button type="button" className="aw-secondary" onClick={onClose}>取消</button><button disabled={busy || !checked?.available}>{busy ? '正在发起…' : '发起审核'}</button></div>
     </form>}
@@ -94,6 +130,7 @@ export function AuditJobsSection({ projectId, reload, onTerminal }: { projectId?
   const [error, setError] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
+  const [dismissed, setDismissed] = useState(readDismissed);
   useEffect(() => {
     let active = true;
     let timer: ReturnType<typeof setTimeout>;
@@ -108,7 +145,8 @@ export function AuditJobsSection({ projectId, reload, onTerminal }: { projectId?
         if ((firstRead && data.some(job => job.status === 'completed')) || [...previous].some(id => !current.has(id))) onTerminal();
         firstRead = false; previous = current;
         setJobs(data); setError('');
-        if (current.size) timer = setTimeout(poll, 5000);
+        const nextExpiry = Math.min(...data.filter(recentFailure).map(failureExpiry));
+        if (current.size || Number.isFinite(nextExpiry)) timer = setTimeout(poll, current.size ? 5000 : Math.max(1, nextExpiry - Date.now() + 1));
       } catch (err) {
         if (active) { setError(errorText(err)); timer = setTimeout(poll, 5000); }
       }
@@ -124,11 +162,27 @@ export function AuditJobsSection({ projectId, reload, onTerminal }: { projectId?
       if (!isActive(data)) onTerminal();
     } catch (err) { setError(errorText(err)); } finally { setBusy(null); }
   }
-  const visible = jobs.filter(job => isActive(job) || job.status === 'failed');
+  function dismiss(jobId: string) {
+    const next = new Set([...dismissed, jobId]);
+    setDismissed(next);
+    try { localStorage.setItem(dismissedKey, JSON.stringify([...next])); } catch { /* Hiding still works for this visit. */ }
+  }
+  const visible = jobs.filter(job => isActive(job) || (recentFailure(job) && !dismissed.has(job.id)));
   return <section className="aw-jobs" aria-label="进行中的审核任务">
     {visible.length ? <h2>进行中 <span className="aw-muted">{jobs.filter(isActive).length}</span></h2> : !projectId ? <h2>进行中 <span className="aw-muted">0</span></h2> : null}
     {error ? <p role="alert">{error} <button type="button" className="aw-secondary" onClick={() => setRetry(value => value + 1)}>重试</button></p> : null}
-    {visible.map(job => <article className="aw-panel aw-job-card" key={job.id}><div className="aw-heading"><h3>{job.name}</h3><span className={`aw-chip ${job.status === 'failed' ? 'aw-warning' : 'aw-pre'}`}>{statusLabels[job.status]}</span></div><p className="aw-muted">{job.carrier === 'h5' ? 'H5' : 'App'} · {job.phase === 'pre' ? '上线前' : '上线后'} · {auditTime(job.created_at)}</p>{job.status_detail ? <p>{job.status_detail}</p> : null}{job.status === 'failed' && job.error ? <p role="alert">{job.error}</p> : null}{hasRole('operator') && isActive(job) ? <div className="aw-actions">{job.status === 'needs_action' ? <button type="button" disabled={busy !== null} onClick={() => act(job, 'continue')}>继续</button> : null}<button type="button" className="aw-secondary" disabled={busy !== null} onClick={() => act(job, 'cancel')}>{busy === job.id ? '处理中…' : '取消'}</button></div> : null}</article>)}
+    {visible.map(job => <article className={`aw-panel aw-job-card${job.status === 'needs_action' ? ' aw-job-needs-action' : ''}`} key={job.id}>
+      <div className="aw-heading"><h3>{job.name}</h3><span className={`aw-chip ${job.status === 'failed' || job.status === 'needs_action' ? 'aw-warning' : 'aw-pre'}`}>{statusLabels[job.status]}</span></div>
+      <p className="aw-muted">{job.carrier === 'h5' ? 'H5' : 'App'} · {job.phase === 'pre' ? '上线前' : '上线后'} · {auditTime(job.created_at)}</p>
+      {job.status === 'running' && job.executor_ref_json.step ? <p className="aw-job-step">当前步骤：{stepLabels[job.executor_ref_json.step as H5AuditStep] || job.executor_ref_json.step}</p> : null}
+      {job.status_detail ? <p className="aw-job-detail" role={job.status === 'needs_action' ? 'status' : undefined}>{job.status_detail}</p> : null}
+      {job.status === 'failed' && job.error ? <p role="alert">{job.error}</p> : null}
+      {job.status === 'failed' ? <div className="aw-actions"><button type="button" className="aw-secondary" onClick={() => dismiss(job.id)}>知道了</button></div> : null}
+      {hasRole('operator') && isActive(job) ? <div className="aw-actions">
+        {job.status === 'needs_action' ? <button type="button" disabled={busy !== null} onClick={() => act(job, 'continue')}>继续</button> : null}
+        <button type="button" className="aw-secondary" disabled={busy !== null} onClick={() => act(job, 'cancel')}>{busy === job.id ? '处理中…' : '取消'}</button>
+      </div> : null}
+    </article>)}
   </section>;
 }
 
