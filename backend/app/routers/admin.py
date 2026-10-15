@@ -10,9 +10,10 @@ from uuid import UUID
 from typing import Optional
 from pathlib import Path
 from app.services.task_events import ensure_queue, task_event_type
-from app.services.task_planner import append_execution_rules, keyword_instruction, plan_task
+from app.services.task_planner import plan_task
 from app.services.task_goals import append_target_goal_checklist, build_target_goals
-from app.services.task_queue import TaskQueueError, start_or_enqueue_task
+from app.services.task_queue import TaskQueueError
+from app.services.task_execution import build_autoglm_prompt, start_task
 from app.services.embedder import embedder
 from app.services.auth import data_scope_user_id, get_current_user, require_at_least
 from app.services.devices import refresh_devices
@@ -81,44 +82,6 @@ def _next_daily_image_task_name(db: Session, target_app: str | None, keyword: st
         f"{_task_name_part(keyword, '无关键词')}-"
         f"{date_key}-{daily_count + 1:03d}"
     )
-
-
-def build_autoglm_prompt(task) -> str:
-    """
-    根据前端表单字段拼接 AutoGLM 可执行的自然语言指令。
-    利用 task 关联的 request 获取完整上下文。
-    """
-    parts = []
-    req = task.request
-
-    # 1. 打开目标 App
-    app_name = task.target_app or (req.target_app if req else None)
-    if app_name:
-        parts.append(f"打开{app_name}App")
-
-    # 2. 关键词：搜索类场景才搜索，非输入类场景作为关注点
-    keyword = task.keyword
-    if req and req.keywords:
-        keyword = "、".join(req.keywords)
-
-    # 3. 目标场景/页面
-    scenario = task.target_scenario or (req.target_scenario if req else None)
-    keyword_part = keyword_instruction([keyword] if keyword else [], scenario)
-    if keyword_part:
-        parts.append(keyword_part)
-
-    if scenario:
-        parts.append(f"找到{scenario}")
-
-    # 4. 补充说明
-    if req and req.description:
-        parts.append(req.description)
-
-    # 5. 最终动作
-    parts.append("并截图保存到本地")
-
-    instruction = append_execution_rules("，".join(parts))
-    return append_target_goal_checklist(instruction, getattr(task, "target_goals_json", None))
 
 
 def _get_visible_request(db: Session, request_id: UUID, user: models.User) -> models.Request:
@@ -310,14 +273,12 @@ def run_task(
     user: models.User = Depends(require_at_least("operator")),
 ):
     task = _get_visible_task(db, task_id, user)
-    prompt = task.generated_instruction or build_autoglm_prompt(task) if task.mode == "autoglm" else None
     try:
-        start_or_enqueue_task(
+        start_task(
             db,
             task,
             created_by=user.id,
             requested_device_id=body.device_id if body else None,
-            prompt=prompt,
         )
     except FileNotFoundError as e:
         crud.update_task_status(db, task_id, "failed")

@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -10,6 +11,29 @@ from app import crud, models, schemas
 from app.config import settings
 from app.services.goal_validator import refresh_task_run_goal_validation
 from app.services.task_events import push_event, task_event
+
+logger = logging.getLogger(__name__)
+
+
+def _reconcile_audit_jobs(db: Session, run_id: UUID) -> None:
+    try:
+        from app.services import audit_jobs
+
+        # Worker completion is already committed. Roll back only hook writes if ingestion fails.
+        with db.begin_nested():
+            jobs = db.query(models.AuditJob).filter(
+                models.AuditJob.executor_ref_json['task_run_id'].astext == str(run_id),
+                models.AuditJob.status.in_(audit_jobs.ACTIVE_STATUSES),
+            ).order_by(models.AuditJob.id).all()
+            for job in jobs:
+                audit_jobs.reconcile_job(db, job)
+        db.commit()
+    except Exception:
+        logger.exception('Audit job reconciliation failed for task run %s', run_id)
+        try:
+            db.rollback()
+        except Exception:
+            logger.exception('Audit job hook rollback failed for task run %s', run_id)
 
 
 WORKER_NOTE_PREFIX = "worker:"
@@ -131,6 +155,7 @@ def _fail_run(db: Session, run: models.TaskRun, *, exit_code: int | None, reason
     push_event(str(run.task_id), task_event("error", message=reason))
     push_event(str(run.task_id), task_event("done", status=TASK_STATUS_FAILED))
     _finish_queue_tail()
+    _reconcile_audit_jobs(db, run.id)
     return updated
 
 
@@ -337,6 +362,7 @@ def finish_worker_run(db: Session, run_id: UUID, node_key: str, exit_code: int, 
     crud.release_device_for_run(db, run.id)
     push_event(str(run.task_id), task_event("done", status=TASK_STATUS_COMPLETED, screenshots=screenshot_count))
     _finish_queue_tail()
+    _reconcile_audit_jobs(db, run.id)
     return updated
 
 

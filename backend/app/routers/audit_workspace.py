@@ -182,6 +182,11 @@ def cancel_job(job_id: UUID, db: Session = Depends(get_db),
                _user: models.User = Depends(require_at_least("operator"))):
     with _errors(db):
         job = jobs.cancel_job(db, _get(db, models.AuditJob, job_id))
+        # cancel_job clears transition details; retain the App executor's running-device notice.
+        if job.carrier == 'app' and job.executor_ref_json.get('task_run_id'):
+            run = db.get(models.TaskRun, UUID(job.executor_ref_json['task_run_id']))
+            if run is not None and run.status == 'running':
+                job.status_detail = '设备任务继续运行，结果不会收录'
         db.commit()
         return job
 
