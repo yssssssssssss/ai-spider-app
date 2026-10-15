@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { AuditProjectDetail as Project, AuditProjectMatrix as Matrix, AuditRule, AuditRun, AuditStage, getAuditProject, getAuditProjectMatrix, getAuditSpecVersion, listAuditRuns } from '../api';
 import { DemoBadge, LoadState, outcomeLabels } from '../components/AuditWorkspaceUI';
 import { pageDeltaText, pageLifelinePath, PageStatusStrip, ProjectViews, stageHints, stageLabels, stageOrder, StageBadge } from '../components/AuditProjectUI';
 import AuditProjectFlow from '../components/AuditProjectFlow';
+import { AssignAuditRunsDialog, AuditJobsSection, AuditLaunchDialog } from '../components/AuditJobUI';
+import { useAuth } from '../auth';
 import AuditProjectMatrix from '../components/AuditProjectMatrix';
 
 function LifecycleRail({ project, selected, dominant, onSelect }: { project: Project; selected: AuditStage | null; dominant: AuditStage | null; onSelect: (stage: AuditStage | null) => void }) {
@@ -35,6 +37,10 @@ function PageCards({ project, matrix, selected }: { project: Project; matrix: Ma
 
 export default function AuditProjectDetail() {
   const { id = '' } = useParams();
+  const { hasRole } = useAuth();
+  const [launching, setLaunching] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+  const [jobsReload, setJobsReload] = useState(0);
   const [params] = useSearchParams();
   const view = params.get('view') === 'matrix' ? 'matrix' : 'cockpit';
   const [data, setData] = useState<{ project: Project; matrix: Matrix; runs: AuditRun[]; rules: Map<string, AuditRule> } | null>(null);
@@ -42,11 +48,14 @@ export default function AuditProjectDetail() {
   const [error, setError] = useState(false);
   const [reload, setReload] = useState(0);
   const [selected, setSelected] = useState<AuditStage | null>(null);
+  const refresh = useCallback(() => setReload(value => value + 1), []);
   useEffect(() => {
     let active = true;
-    setLoading(true); setError(false); setData(null); setSelected(null);
+    setLoading(true); setError(false); setData(previous => previous?.project.id === id ? previous : null); setSelected(null);
     (async () => {
-      const [{ data: project }, { data: matrix }, { data: runs }] = await Promise.all([getAuditProject(id), getAuditProjectMatrix(id), listAuditRuns({ project_id: id })]);
+      // Project reads reconcile jobs, so load its dependent views after that transaction.
+      const { data: project } = await getAuditProject(id);
+      const [{ data: matrix }, { data: runs }] = await Promise.all([getAuditProjectMatrix(id), listAuditRuns({ project_id: id })]);
       const versions = await Promise.all([...new Set(runs.map(run => run.spec_version_id))].map(versionId => getAuditSpecVersion(versionId)));
       const rules = new Map(versions.flatMap(version => version.data.rules_json.map(rule => [rule.rule_id, rule] as const)));
       if (active) setData({ project, matrix, runs, rules });
@@ -60,9 +69,14 @@ export default function AuditProjectDetail() {
   const carried = project?.flow.counts.still_open || 0;
   const closure = fixed + carried ? Math.round(fixed / (fixed + carried) * 100) : null;
   return <div className="aw"><div className="aw-heading"><nav className="aw-breadcrumb" aria-label="面包屑"><Link to="/audit-projects">项目走查</Link><span>/</span>{view === 'matrix' ? <><Link to={`/audit-projects/${id}`}>{project?.name || '项目'}</Link><span>/</span><span>规范矩阵</span></> : <span>{project?.name || '项目驾驶舱'}</span>}</nav><ProjectViews id={id} view={view} /></div>
-    {loading || !data ? <LoadState loading={loading} error={error} retry={() => setReload(value => value + 1)} /> : view === 'matrix' ? <AuditProjectMatrix key={id} project={data.project} matrix={data.matrix} /> : <>
-      <header className="ap-project-header"><div className="aw-run-header"><div className="aw-chips">{(['pre', 'post'] as const).flatMap(phase => data.project.stage_specs[phase].map(version => <Link className={`aw-chip aw-${phase}`} key={`${phase}-${version.id}`} to={`/specs/${version.spec_id}?version=${version.id}`}>{phase === 'pre' ? '上线前' : '上线后'}规范 {version.label}</Link>))}{dominant && <span className="aw-chip aw-post">当前主要阶段 · {stageLabels[dominant]}</span>}{demo && <DemoBadge source={{ demo: true }} />}</div><h1>{data.project.name}</h1><p className="aw-summary">{data.project.page_count} 个页面、{data.project.run_count} 次审核，{data.matrix.pages.filter(page => page.pre_target_id).length} 个页面已有上线前记录，{data.matrix.pages.filter(page => page.post_target_id).length} 个已进入上线后巡检；发布回归 {data.project.clusters.regressed.total} 项，系统性问题 {data.project.clusters.systemic.length} 条规则，证据缺口 {data.project.clusters.evidence_gaps.total} 项。</p></div><div className="ap-project-metrics"><div className="ap-metric"><strong>{closure === null ? '暂无' : `${closure}%`}</strong><span>上线前问题闭环率 · {fixed}/{fixed + carried}</span></div><div className="ap-metric"><strong className="ap-regression-number">{data.project.clusters.regressed.total}</strong><span>发布回归</span></div><div className="ap-metric"><strong className="aw-warning">{data.project.clusters.evidence_gaps.total}</strong><span>证据缺口</span></div></div></header>
+    {error && data ? <LoadState error retry={refresh} /> : null}
+    {!data ? <LoadState loading={loading} error={error} retry={() => setReload(value => value + 1)} /> : view === 'matrix' ? <AuditProjectMatrix key={id} project={data.project} matrix={data.matrix} /> : <>
+      <header className="ap-project-header"><div className="aw-run-header"><div className="aw-chips">{(['pre', 'post'] as const).flatMap(phase => data.project.stage_specs[phase].map(version => <Link className={`aw-chip aw-${phase}`} key={`${phase}-${version.id}`} to={`/specs/${version.spec_id}?version=${version.id}`}>{phase === 'pre' ? '上线前' : '上线后'}规范 {version.label}</Link>))}{dominant && <span className="aw-chip aw-post">当前主要阶段 · {stageLabels[dominant]}</span>}{demo && <DemoBadge source={{ demo: true }} />}</div><div className="aw-heading"><h1>{data.project.name}</h1>{hasRole('operator') && <button type="button" onClick={() => setLaunching(true)}>发起审核</button>}</div><p className="aw-summary">{data.project.page_count} 个页面、{data.project.run_count} 次审核，{data.matrix.pages.filter(page => page.pre_target_id).length} 个页面已有上线前记录，{data.matrix.pages.filter(page => page.post_target_id).length} 个已进入上线后巡检；发布回归 {data.project.clusters.regressed.total} 项，系统性问题 {data.project.clusters.systemic.length} 条规则，证据缺口 {data.project.clusters.evidence_gaps.total} 项。</p></div><div className="ap-project-metrics"><div className="ap-metric"><strong>{closure === null ? '暂无' : `${closure}%`}</strong><span>上线前问题闭环率 · {fixed}/{fixed + carried}</span></div><div className="ap-metric"><strong className="ap-regression-number">{data.project.clusters.regressed.total}</strong><span>发布回归</span></div><div className="ap-metric"><strong className="aw-warning">{data.project.clusters.evidence_gaps.total}</strong><span>证据缺口</span></div></div></header>
+      <AuditJobsSection key={id} projectId={id} reload={jobsReload} onTerminal={refresh} />
+      {data.project.run_count === 0 ? <section className="aw-panel aw-empty"><h2>项目还没有审核记录</h2><p>发起第一次审核，或将已有审核归入项目。</p>{hasRole('operator') && <div className="aw-actions aw-empty-actions"><button type="button" onClick={() => setLaunching(true)}>发起第一次审核</button><button type="button" className="aw-secondary" onClick={() => setAssigning(true)}>归入已有审核</button></div>}</section> : null}
       <LifecycleRail project={data.project} selected={selected} dominant={dominant} onSelect={setSelected} /><div className="ap-cockpit-columns"><ProjectClusters project={data.project} matrix={data.matrix} rules={data.rules} /><AuditProjectFlow flow={data.project.flow} /></div><PageCards project={data.project} matrix={data.matrix} selected={selected} />
     </>}
+    {launching && data ? <AuditLaunchDialog project={data.project} onClose={() => setLaunching(false)} onCreated={() => setJobsReload(value => value + 1)} /> : null}
+    {assigning ? <AssignAuditRunsDialog projectId={id} onClose={() => setAssigning(false)} onAssigned={refresh} /> : null}
   </div>;
 }

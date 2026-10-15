@@ -1,6 +1,7 @@
 import uuid
+from enum import Enum
 from datetime import datetime, time, timezone
-from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Index, Integer, String, Text, Time, UniqueConstraint
+from sqlalchemy import Boolean, Column, Date, DateTime, Enum as SAEnum, ForeignKey, Index, Integer, String, Text, Time, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB, UUID, ARRAY as PGArray
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
@@ -496,6 +497,41 @@ class AuditRun(Base):
     spec_version = relationship("AuditSpecVersion")
     project = relationship("AuditProject", back_populates="runs")
     targets = relationship("AuditTarget", back_populates="run", cascade="all, delete-orphan", passive_deletes=True)
+
+
+class AuditJobStatus(str, Enum):
+    queued = "queued"
+    running = "running"
+    needs_action = "needs_action"
+    ingesting = "ingesting"
+    completed = "completed"
+    failed = "failed"
+    cancelled = "cancelled"
+
+
+class AuditJob(Base):
+    __tablename__ = "audit_jobs"
+    __table_args__ = (Index("ix_audit_jobs_project_status", "project_id", "status"),)
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(Text, nullable=False)
+    carrier = Column(String, nullable=False)
+    phase = Column(String, nullable=False)
+    spec_version_id = Column(UUID(as_uuid=True), ForeignKey("audit_spec_versions.id"), nullable=False)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("audit_projects.id", ondelete="SET NULL"), nullable=True)
+    status = Column(SAEnum(AuditJobStatus, native_enum=False, create_constraint=True), nullable=False,
+                    default=AuditJobStatus.queued)
+    status_detail = Column(Text)
+    input_json = Column(JSONB, nullable=False, default=dict)
+    executor_ref_json = Column(JSONB, nullable=False, default=dict)
+    audit_run_id = Column(UUID(as_uuid=True), ForeignKey("audit_runs.id", ondelete="SET NULL"), nullable=True)
+    error = Column(Text)
+    created_by = Column(UUID(as_uuid=True), nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+    finished_at = Column(DateTime)
+
+    spec_version = relationship("AuditSpecVersion")
 
 
 class AuditTarget(Base):

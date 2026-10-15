@@ -606,6 +606,43 @@ class AuditSpecCreate(BaseModel):
     description: str | None = None
 
 
+class AuditJobCreate(BaseModel):
+    name: str
+    carrier: str
+    phase: str
+    spec_version_id: UUID
+    project_id: UUID | None = None
+    input: dict = Field(default_factory=dict)
+
+
+class AuditJobOut(OrmModel):
+    id: UUID
+    name: str
+    carrier: str
+    phase: str
+    spec_version_id: UUID
+    project_id: UUID | None
+    status: str
+    status_detail: str | None
+    input_json: dict
+    executor_ref_json: dict
+    audit_run_id: UUID | None
+    error: str | None
+    created_by: UUID | None
+    created_at: datetime
+    updated_at: datetime
+    finished_at: datetime | None
+
+
+class AuditExecutorOut(BaseModel):
+    available: bool
+    reason: str | None
+
+
+class AuditAssignRuns(BaseModel):
+    run_ids: list[UUID] = Field(min_length=1)
+
+
 class AuditProjectCreate(BaseModel):
     name: str
     description: str | None = None

@@ -2440,6 +2440,17 @@ tr:hover td {
 .aw .aw-warning { color: #F2D38A; }
 .aw-panel { display: flex; flex-direction: column; gap: 14px; padding: 20px; min-width: 0; background: var(--aw-inset); border: 1px solid var(--aw-line); border-radius: 20px; }
 .aw-empty { padding: 40px 16px; text-align: center; color: var(--aw-muted); }
+.aw-empty-actions { justify-content: center; margin-top: 20px; }
+.aw-jobs { display: grid; gap: 16px; }
+.aw-jobs:empty { display: none; }
+.aw-job-card { display: grid; gap: 12px; }
+.aw-job-card [role="alert"] { color: #FFB49A; white-space: pre-wrap; overflow-wrap: anywhere; }
+.aw-job-notice { padding: 16px; border: 1px solid var(--aw-line); border-radius: 12px; }
+.aw-job-notice a { display: inline-block; margin-top: 8px; }
+.aw-assign-list { display: grid; gap: 8px; max-height: 360px; overflow-y: auto; }
+.aw-form .aw-assign-option { flex-direction: row; padding: 12px; border: 1px solid var(--aw-line); border-radius: 10px; }
+.aw-assign-option input { width: auto; flex: none; }
+.aw-assign-option span { display: grid; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
 .aw-scroll { max-width: 100%; min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; }
 .aw table { width: 100%; border-collapse: collapse; background: transparent; border-radius: 0; font-size: 13px; }
 .aw th { padding: 12px; text-align: left; font-weight: 500; color: var(--aw-muted); background: #11141B; border-bottom: 1px solid var(--aw-line); white-space: nowrap; }

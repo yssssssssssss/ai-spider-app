@@ -2,6 +2,7 @@ from contextlib import contextmanager
 import json
 import re
 from uuid import UUID
+from typing import Literal
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy import func
@@ -10,7 +11,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app import models, schemas
 from app.database import get_db
-from app.services import audit_analytics as analytics, audit_workspace as service
+from app.services import audit_analytics as analytics, audit_workspace as service, audit_jobs as jobs
 from app.services.auth import get_current_user, require_at_least
 
 router = APIRouter(tags=["audit-workspace"], dependencies=[Depends(get_current_user)])
@@ -27,6 +28,9 @@ def _get(db, model, object_id):
 def _errors(db):
     try:
         yield
+    except jobs.InvalidJobTransition as exc:
+        db.rollback()
+        raise HTTPException(409, str(exc)) from exc
     except (ValueError, LookupError) as exc:
         db.rollback()
         raise HTTPException(400 if isinstance(exc, ValueError) else 404, str(exc)) from exc
@@ -119,6 +123,67 @@ def list_runs(carrier: str | None = None, project_id: UUID | None = None, unassi
         if unassigned:
             query = query.filter(models.AuditRun.project_id.is_(None))
         return query.order_by(models.AuditRun.created_at.desc(), models.AuditRun.id).all()
+
+
+@router.get("/audit-specs/versions/{version_id}/executor", response_model=schemas.AuditExecutorOut)
+def executor_availability(version_id: UUID, carrier: str, db: Session = Depends(get_db)):
+    with _errors(db):
+        available, reason = jobs.executor_availability(_get(db, models.AuditSpecVersion, version_id), carrier)
+        return {"available": available, "reason": reason}
+
+
+@router.get("/audit-jobs", response_model=list[schemas.AuditJobOut])
+def list_jobs(project_id: UUID | None = None, status: Literal["active", "all"] = "active",
+              db: Session = Depends(get_db)):
+    with _errors(db):
+        query = db.query(models.AuditJob)
+        if project_id is not None:
+            _get(db, models.AuditProject, project_id)
+            query = query.filter_by(project_id=project_id)
+        if status == "active":
+            query = query.filter(models.AuditJob.status.in_(jobs.ACTIVE_STATUSES))
+        result = query.order_by(models.AuditJob.created_at.desc(), models.AuditJob.id).all()
+        # Every multi-job read takes locks in the same order as project reads.
+        for job in sorted(result, key=lambda job: job.id):
+            if job.status in jobs.ACTIVE_STATUSES:
+                jobs.reconcile_job(db, job)
+        db.commit()
+        return result if status == "all" else [job for job in result if job.status in jobs.ACTIVE_STATUSES]
+
+
+@router.post("/audit-jobs", response_model=schemas.AuditJobOut)
+def create_job(body: schemas.AuditJobCreate, db: Session = Depends(get_db),
+               user: models.User = Depends(require_at_least("operator"))):
+    with _errors(db):
+        job = jobs.create_job(db, **body.model_dump(), user_id=user.id)
+        db.commit()
+        return job
+
+
+@router.get("/audit-jobs/{job_id}", response_model=schemas.AuditJobOut)
+def job_detail(job_id: UUID, db: Session = Depends(get_db)):
+    with _errors(db):
+        job = jobs.reconcile_job(db, _get(db, models.AuditJob, job_id))
+        db.commit()
+        return job
+
+
+@router.post("/audit-jobs/{job_id}/continue", response_model=schemas.AuditJobOut)
+def continue_job(job_id: UUID, db: Session = Depends(get_db),
+                 _user: models.User = Depends(require_at_least("operator"))):
+    with _errors(db):
+        job = jobs.continue_job(db, _get(db, models.AuditJob, job_id))
+        db.commit()
+        return job
+
+
+@router.post("/audit-jobs/{job_id}/cancel", response_model=schemas.AuditJobOut)
+def cancel_job(job_id: UUID, db: Session = Depends(get_db),
+               _user: models.User = Depends(require_at_least("operator"))):
+    with _errors(db):
+        job = jobs.cancel_job(db, _get(db, models.AuditJob, job_id))
+        db.commit()
+        return job
 
 
 def _venue_ids(value):
@@ -249,8 +314,30 @@ def create_project(body: schemas.AuditProjectCreate, db: Session = Depends(get_d
 @router.get("/audit-projects/{project_id}", response_model=schemas.AuditProjectDetailOut)
 def project_detail(project_id: UUID, db: Session = Depends(get_db)):
     project = _get(db, models.AuditProject, project_id)
-    return {**schemas.AuditProjectOut.model_validate(project).model_dump(),
-            **analytics.project_cockpit(service.load_project_runs(db, project_id))}
+    with _errors(db):
+        for job in db.query(models.AuditJob).filter_by(project_id=project_id).filter(
+                models.AuditJob.status.in_(jobs.ACTIVE_STATUSES)).order_by(models.AuditJob.id).all():
+            jobs.reconcile_job(db, job)
+        db.commit()
+        return {**schemas.AuditProjectOut.model_validate(project).model_dump(),
+                **analytics.project_cockpit(service.load_project_runs(db, project_id))}
+
+
+@router.post("/audit-projects/{project_id}/assign-runs", response_model=list[schemas.AuditRunOut])
+def assign_runs(project_id: UUID, body: schemas.AuditAssignRuns, db: Session = Depends(get_db),
+                _user: models.User = Depends(require_at_least("operator"))):
+    project = _get(db, models.AuditProject, project_id)
+    with _errors(db):
+        run_ids = set(body.run_ids)
+        runs = db.query(models.AuditRun).filter(models.AuditRun.id.in_(run_ids)).order_by(
+            models.AuditRun.phase, models.AuditRun.created_at, models.AuditRun.id).with_for_update().all()
+        if len(runs) != len(run_ids):
+            raise ValueError("One or more audit runs do not exist")
+        # Baselines must be assigned before post runs, regardless of selection order.
+        for run in sorted(runs, key=lambda run: run.phase != "pre"):
+            service.assign_run(db, run, project)
+        db.commit()
+        return runs
 
 
 @router.patch("/audit-projects/{project_id}", response_model=schemas.AuditProjectOut)

@@ -121,6 +121,18 @@ export const createComparisonReport = (data: any) => api.post('/compare/reports'
 // Audit workspace v2. Shapes follow audit_workspace.py and audit_analytics.py.
 export type AuditPhase = 'pre' | 'post';
 export type AuditCarrier = 'h5' | 'app';
+export type AuditJobStatus = 'queued' | 'running' | 'needs_action' | 'ingesting' | 'completed' | 'failed' | 'cancelled';
+export interface AuditJob {
+  id: string; name: string; carrier: AuditCarrier; phase: AuditPhase;
+  spec_version_id: string; project_id: string | null; status: AuditJobStatus;
+  status_detail: string | null; input_json: Record<string, unknown>; executor_ref_json: Record<string, unknown>;
+  audit_run_id: string | null; error: string | null; created_by: string | null;
+  created_at: string; updated_at: string; finished_at: string | null;
+}
+export interface AuditJobInput {
+  name: string; carrier: AuditCarrier; phase: AuditPhase; spec_version_id: string;
+  project_id?: string; input: Record<string, unknown>;
+}
 export type AuditCarrierScope = AuditCarrier | 'both';
 export type AuditOutcome = 'issues' | 'needs_confirmation' | 'partial' | 'clean' | 'capture_failed';
 export type AuditStatus = 'pass' | 'fail' | 'uncertain' | 'not_applicable' | 'disabled';
@@ -242,6 +254,12 @@ export interface AuditPageLifeline {
   groups: Record<'need_action' | 'needs_confirmation' | 'closed', AuditComparisonRule[]>;
 }
 export const listAuditSpecs = () => api.get<AuditSpec[]>('/audit-specs');
+export const listAuditJobs = (params?: { project_id?: string; status?: 'active' | 'all' }) => api.get<AuditJob[]>('/audit-jobs', { params });
+export const createAuditJob = (data: AuditJobInput) => api.post<AuditJob>('/audit-jobs', data);
+export const continueAuditJob = (id: string) => api.post<AuditJob>(`/audit-jobs/${id}/continue`);
+export const cancelAuditJob = (id: string) => api.post<AuditJob>(`/audit-jobs/${id}/cancel`);
+export const getAuditExecutor = (id: string, carrier: AuditCarrier) => api.get<{ available: boolean; reason: string | null }>(`/audit-specs/versions/${id}/executor`, { params: { carrier } });
+export const assignAuditRuns = (projectId: string, runIds: string[]) => api.post<AuditRun[]>(`/audit-projects/${projectId}/assign-runs`, { run_ids: runIds });
 export const createAuditSpec = (data: AuditSpecInput) => api.post<AuditSpec>('/audit-specs', data);
 export const getAuditSpec = (id: string) => api.get<AuditSpec>(`/audit-specs/${id}`);
 export const getAuditSpecVersion = (id: string) => api.get<AuditVersionDetail>(`/audit-spec-versions/${id}`);
