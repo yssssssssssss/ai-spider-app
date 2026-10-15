@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>信息架构</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0A0C11}
+a{color:#AFC4FF;text-decoration:none}a:hover{color:#E9ECF2}
+.mono{font-family:'IBM Plex Mono',monospace}
+.chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:12px;font-size:12px;white-space:nowrap}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0A0C11; color: #E9ECF2; font-family: 'IBM Plex Sans', 'Noto Sans SC', 'PingFang SC', sans-serif; font-size: 14px; line-height: 1.6">
+<div style="max-width: 1320px; margin: 0 auto; padding: 40px 40px 72px; display: flex; flex-direction: column; gap: 32px">
+
+<section style="display: flex; flex-direction: column; gap: 10px; max-width: 860px">
+  <span style="font-size: 13px; color: #8790A3">信息架构</span>
+  <h1 style="margin: 0; font-size: 32px; line-height: 1.25; font-weight: 700">规范、审核、项目，三者解耦</h1>
+  <p style="margin: 0; color: #9AA3B5; font-size: 15px">审核是最小单位，可以只有 H5 或只有 App；规范独立成库，每次审核快照所用版本；项目只是可选的组合，有了上线前和上线后两侧记录，才出现生命周期视图。</p>
+</section>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1.2fr) 56px minmax(0, 1fr); align-items: stretch; overflow-x: auto">
+
+  <section aria-labelledby="lib-title" style="min-width: 300px; display: flex; flex-direction: column; gap: 12px; padding: 20px; background: #0E1117; border: 1px solid #1F2430; border-radius: 20px">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+      <h2 id="lib-title" style="margin: 0; font-size: 18px; font-weight: 600">规范库</h2>
+      <span class="chip" style="background: #171B24; color: #9AA3B5">独立管理版本</span>
+    </div>
+    <article style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: #11141B; border: 1px solid #2A3550; border-radius: 14px">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+        <span style="font-weight: 600">官方会场 H5 审核</span>
+        <span class="chip" style="height: 22px; background: #16213A; color: #AFC4FF">H5</span>
+      </div>
+      <span style="font-size: 12px; color: #9AA3B5">当前 v5 · 23 条规则 · 启用 13 条</span>
+      <span style="display: flex; gap: 4px" aria-label="版本历史 v2 至 v5">
+        <span class="chip" style="height: 20px; background: #171B24; color: #8790A3">v2</span>
+        <span class="chip" style="height: 20px; background: #171B24; color: #8790A3">v3</span>
+        <span class="chip" style="height: 20px; background: #171B24; color: #8790A3">v4</span>
+        <span class="chip" style="height: 20px; background: #24304D; color: #E9ECF2">v5</span>
+      </span>
+      <span style="font-size: 12px; color: #8790A3">被引用：官方会场 H5 审核（408 会场）· 11.11 官方会场</span>
+    </article>
+    <article style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: #11141B; border: 1px solid #3A2F52; border-radius: 14px">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+        <span style="font-weight: 600">双入口排列检查</span>
+        <span class="chip" style="height: 22px; background: #241A33; color: #D7BEFF">App</span>
+      </div>
+      <span style="font-size: 12px; color: #9AA3B5">v1 · 1 条规则</span>
+      <span style="font-size: 12px; color: #8790A3">被引用：第一轮真机巡查</span>
+    </article>
+    <article style="display: flex; flex-direction: column; gap: 6px; padding: 14px; border: 1px dashed #2F3542; border-radius: 14px">
+      <span style="font-weight: 600; color: #C8CEDA">官方会场 App 巡检</span>
+      <span style="font-size: 12px; color: #8790A3">[待建立] 从 H5 v5 派生，逐条确认是否适用于 App 及其测量方式</span>
+    </article>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; background: #171B24; border-radius: 12px; font-size: 12px; color: #C8CEDA">
+      <span style="font-weight: 600">每条规则声明</span>
+      <span>适用载体（H5 / App）· 强度（强制 / 条件 / 建议）· 测量方式（DOM / 截图标定 / 模型判读）· 例外</span>
+    </div>
+  </section>
+
+  <div aria-hidden="true" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #4A5262; font-size: 11px; text-align: center">
+    <span style="width: 100%; height: 2px; background: #2A303C"></span>
+    <span>快照<br>版本</span>
+  </div>
+
+  <section aria-labelledby="audit-title" style="min-width: 360px; display: flex; flex-direction: column; gap: 12px; padding: 20px; background: #0E1117; border: 1px solid #1F2430; border-radius: 20px">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+      <h2 id="audit-title" style="margin: 0; font-size: 18px; font-weight: 600">审核</h2>
+      <span class="chip" style="background: #171B24; color: #9AA3B5">可独立存在</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 13px; font-weight: 600; color: #AFC4FF">H5 审核 · 上线前</span>
+        <a href="Scale.dc.html" style="display: flex; flex-direction: column; gap: 6px; padding: 14px; background: #11141B; border: 1px solid #2A3550; border-radius: 14px; color: #E9ECF2">
+          <span style="font-weight: 600">官方会场 H5 审核</span>
+          <span style="font-size: 12px; color: #9AA3B5">10/12 · 408 会场 · 规范 H5 v5</span>
+          <span class="chip" style="align-self: flex-start; height: 20px; background: #171B24; color: #9AA3B5">独立审核</span>
+        </a>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px; background: #11141B; border: 1px solid #242A36; border-radius: 14px">
+          <span style="font-weight: 600">11.11 官方会场 · 上线前</span>
+          <span style="font-size: 12px; color: #9AA3B5">10 会场 · 规范 H5 v5</span>
+          <span class="chip" style="align-self: flex-start; height: 20px; background: #10251C; color: #6EE7B7">已归入项目</span>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 13px; font-weight: 600; color: #D7BEFF">App 巡检 · 上线后</span>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px; background: #11141B; border: 1px solid #3A2F52; border-radius: 14px">
+          <span style="font-weight: 600">第一轮真机巡查</span>
+          <span style="font-size: 12px; color: #9AA3B5">10/09 · OnePlus 7T · 双入口排列检查</span>
+          <span class="chip" style="align-self: flex-start; height: 20px; background: #171B24; color: #9AA3B5">独立审核</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px; background: #11141B; border: 1px solid #242A36; border-radius: 14px">
+          <span style="font-weight: 600">11.11 官方会场 · 上线后</span>
+          <span style="font-size: 12px; color: #9AA3B5">3 会场 · [演示数据]</span>
+          <span class="chip" style="align-self: flex-start; height: 20px; background: #10251C; color: #6EE7B7">已归入项目</span>
+        </div>
+      </div>
+    </div>
+    <p style="margin: 0; font-size: 12px; color: #8790A3">每次审核保存：载体、对象清单、规范快照、证据、逐条结论。不属于任何项目时，打开的就是它自己的审核驾驶舱。</p>
+  </section>
+
+  <div aria-hidden="true" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #4A5262; font-size: 11px; text-align: center">
+    <span style="width: 100%; height: 2px; background: repeating-linear-gradient(90deg, #2A303C 0 6px, transparent 6px 12px)"></span>
+    <span>可选<br>归入</span>
+  </div>
+
+  <section aria-labelledby="proj-title" style="min-width: 300px; display: flex; flex-direction: column; gap: 12px; padding: 20px; background: #0E1117; border: 1px solid #1F2430; border-radius: 20px">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+      <h2 id="proj-title" style="margin: 0; font-size: 18px; font-weight: 600">项目</h2>
+      <span class="chip" style="background: #171B24; color: #9AA3B5">可选</span>
+    </div>
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; gap: 10px; padding: 14px; background: #11141B; border: 1px solid #242A36; border-radius: 14px; color: #E9ECF2">
+      <span style="font-weight: 600">11.11 官方会场</span>
+      <span style="display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 6px; font-size: 12px">
+        <span style="color: #AFC4FF">上线前</span><span style="color: #C8CEDA">规范 H5 v5</span>
+        <span style="color: #D7BEFF">上线后</span><span style="color: #C8CEDA">规范 App 版 [待建立]</span>
+      </span>
+      <span style="font-size: 12px; color: #8790A3">每个阶段各自绑定规范；比对只在两侧共同且适用的规则上进行</span>
+    </a>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; background: #171B24; border-radius: 12px; font-size: 12px; color: #C8CEDA">
+      <span style="font-weight: 600">项目负责的事</span>
+      <span>页面对应（会场 ID）· 基线关联 · 阶段推进 · 跨阶段比对</span>
+    </div>
+  </section>
+</div>
+
+<section aria-labelledby="shape-title" style="display: flex; flex-direction: column; gap: 14px">
+  <h2 id="shape-title" style="margin: 0; font-size: 18px; font-weight: 600">界面随数据形态变化</h2>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+    <article style="display: flex; flex-direction: column; gap: 10px; padding: 18px; background: #11141B; border: 1px solid #2A3550; border-radius: 16px">
+      <span style="display: flex; align-items: center; gap: 8px"><span style="width: 28px; height: 6px; border-radius: 3px; background: #7AA2FF"></span><span style="width: 28px; height: 6px; border-radius: 3px; border: 1px dashed #4A5262; box-sizing: border-box"></span></span>
+      <h3 style="margin: 0; font-size: 15px; font-weight: 600">只有上线前（H5）</h3>
+      <p style="margin: 0; font-size: 13px; color: #9AA3B5">审核驾驶舱：可审核性漏斗、规则 × 页面热力条码、按规则批量处理。不出现生命周期轨道。</p>
+      <a href="Scale.dc.html" style="font-size: 13px">看 408 会场示例 →</a>
+    </article>
+    <article style="display: flex; flex-direction: column; gap: 10px; padding: 18px; background: #11141B; border: 1px solid #3A2F52; border-radius: 16px">
+      <span style="display: flex; align-items: center; gap: 8px"><span style="width: 28px; height: 6px; border-radius: 3px; border: 1px dashed #4A5262; box-sizing: border-box"></span><span style="width: 28px; height: 6px; border-radius: 3px; background: #C49BFF"></span></span>
+      <h3 style="margin: 0; font-size: 15px; font-weight: 600">只有上线后（App）</h3>
+      <p style="margin: 0; font-size: 13px; color: #9AA3B5">巡检驾驶舱：同样的热力与分诊；多次巡检时增加时间趋势，与持续观察合并。</p>
+    </article>
+    <article style="display: flex; flex-direction: column; gap: 10px; padding: 18px; background: #11141B; border: 1px solid #242A36; border-radius: 16px">
+      <span style="display: flex; align-items: center; gap: 8px"><span style="width: 28px; height: 6px; border-radius: 3px; background: #7AA2FF"></span><span style="width: 28px; height: 6px; border-radius: 3px; background: #C49BFF"></span></span>
+      <h3 style="margin: 0; font-size: 15px; font-weight: 600">两侧都有（全周期）</h3>
+      <p style="margin: 0; font-size: 13px; color: #9AA3B5">项目驾驶舱：在审核驾驶舱之上叠加生命周期轨道、规则流向和页面生命线。</p>
+      <a href="Main.dc.html" style="font-size: 13px">看项目驾驶舱 →</a>
+    </article>
+  </div>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

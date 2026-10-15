@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>项目驾驶舱</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0A0C11}
+a{color:#AFC4FF;text-decoration:none}a:hover{color:#E9ECF2}
+.cell{width:10px;height:10px;border-radius:2px;flex:none}
+.mono{font-family:'IBM Plex Mono',monospace}
+.chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:12px;font-size:12px;white-space:nowrap}
+.stage-btn{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:14px;min-height:172px}
+.stage-btn:focus-visible,.tab:focus-visible{outline:2px solid #7AA2FF;outline-offset:2px}
+.tab{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:10px;font-size:13px}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0A0C11; color: #E9ECF2; font-family: 'IBM Plex Sans', 'Noto Sans SC', 'PingFang SC', sans-serif; font-size: 14px; line-height: 1.6">
+<div style="max-width: 1320px; margin: 0 auto; padding: 28px 40px 72px; display: flex; flex-direction: column; gap: 32px">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+  <nav aria-label="面包屑" style="display: flex; align-items: center; gap: 8px; color: #8790A3; font-size: 13px">
+    <a href="#">项目走查</a><span aria-hidden="true">/</span><span style="color: #E9ECF2">11.11 官方会场</span>
+  </nav>
+  <nav aria-label="视图" style="display: flex; gap: 4px; padding: 4px; background: #11141B; border: 1px solid #242A36; border-radius: 12px">
+    <a class="tab" href="Main.dc.html" style="background: #1E2430; color: #E9ECF2">驾驶舱</a>
+    <a class="tab" href="Matrix.dc.html" style="color: #9AA3B5">规范矩阵</a>
+    <a class="tab" href="Lifeline.dc.html" style="color: #9AA3B5">页面生命线</a>
+  </nav>
+</header>
+
+<section style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px">
+  <div style="display: flex; flex-direction: column; gap: 10px; max-width: 720px">
+    <div style="display: flex; flex-wrap: wrap; gap: 8px">
+      <span class="chip" style="background: #16213A; color: #AFC4FF"><span class="cell" style="width: 8px; height: 8px; border-radius: 4px; background: #7AA2FF"></span>规范 官方会场 v5 · 13 项启用</span>
+      <span class="chip" style="background: #241A33; color: #D7BEFF"><span class="cell" style="width: 8px; height: 8px; border-radius: 4px; background: #C49BFF"></span>当前阶段 上线后巡检</span>
+      <span class="chip" style="background: #2A2412; color: #F2D38A">上线后记录为演示数据</span>
+    </div>
+    <h1 style="margin: 0; font-size: 40px; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em">11.11 官方会场</h1>
+    <p style="margin: 0; color: #9AA3B5; font-size: 16px">10 个页面已完成上线前审核，3 个已进入上线后巡检。上线后出现 <strong style="color: #FF8A63">2 处发布回归</strong>，另有 1 条规则在多个页面重复不符合，建议在组件层统一修复。</p>
+  </div>
+  <div style="display: flex; gap: 12px; flex-wrap: wrap">
+    <div style="display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: #11141B; border: 1px solid #242A36; border-radius: 16px">
+      <svg width="56" height="56" viewBox="0 0 56 56" role="img" aria-label="闭环率 60%">
+        <circle cx="28" cy="28" r="23" fill="none" stroke="#242A36" stroke-width="6"></circle>
+        <circle cx="28" cy="28" r="23" fill="none" stroke="#34D399" stroke-width="6" stroke-linecap="round" stroke-dasharray="86.7 144.5" transform="rotate(-90 28 28)"></circle>
+      </svg>
+      <div><div style="font-size: 26px; font-weight: 700; line-height: 1.1">60%</div><div style="font-size: 12px; color: #9AA3B5">上线前问题闭环率 · 3/5</div></div>
+    </div>
+    <div style="display: flex; flex-direction: column; justify-content: center; padding: 14px 18px; background: #11141B; border: 1px solid #242A36; border-radius: 16px; min-width: 120px">
+      <div style="font-size: 26px; font-weight: 700; line-height: 1.1; color: #FF8A63">2</div><div style="font-size: 12px; color: #9AA3B5">发布回归</div>
+    </div>
+    <div style="display: flex; flex-direction: column; justify-content: center; padding: 14px 18px; background: #11141B; border: 1px solid #242A36; border-radius: 16px; min-width: 120px">
+      <div style="font-size: 26px; font-weight: 700; line-height: 1.1; color: #F2C14E">9</div><div style="font-size: 12px; color: #9AA3B5">证据缺口</div>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="rail-title" style="display: flex; flex-direction: column; gap: 16px; padding: 24px; background: #0E1117; border: 1px solid #1F2430; border-radius: 20px">
+  <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px">
+    <h2 id="rail-title" style="margin: 0; font-size: 18px; font-weight: 600">生命周期轨道</h2>
+    <p style="margin: 0; color: #8790A3; font-size: 13px">每个圆点是一个页面，停在它当前所处的阶段。点击阶段筛选下方页面。</p>
+  </div>
+  <div style="position: relative">
+    <div aria-hidden="true" style="position: absolute; left: 40px; right: 40px; top: 31px; height: 2px; background: linear-gradient(90deg, #7AA2FF 0%, #7AA2FF 50%, #C49BFF 66%, #2A303C 84%)"></div>
+    <div style="position: relative; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; overflow-x: auto">
+      <sc-for list="{{stages}}" as="s" hint-placeholder-count="6">
+        <button class="stage-btn" type="button" onClick="{{s.pick}}" aria-pressed="{{s.pressed}}" style="{{s.boxStyle}}">
+          <span style="display: flex; align-items: center; gap: 10px">
+            <span aria-hidden="true" style="{{s.markStyle}}"></span>
+            <span style="font-size: 12px; color: #8790A3">{{s.step}}</span>
+          </span>
+          <span style="font-size: 15px; font-weight: 600; color: #E9ECF2">{{s.name}}</span>
+          <span style="font-size: 28px; font-weight: 700; line-height: 1; color: {{s.numColor}}">{{s.count}}</span>
+          <span style="font-size: 12px; color: #9AA3B5">{{s.hint}}</span>
+          <span style="display: flex; flex-wrap: wrap; gap: 6px; min-height: 12px">
+            <sc-for list="{{s.dots}}" as="d" hint-placeholder-count="3">
+              <span title="{{d.name}}" style="{{d.style}}"></span>
+            </sc-for>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+
+<section aria-labelledby="queue-title" style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+    <h2 id="queue-title" style="margin: 0; font-size: 18px; font-weight: 600">需要处理 · 按影响聚类</h2>
+    <span style="color: #8790A3; font-size: 13px">按 规则 × 影响页面 × 生命周期 聚合，不再逐条平铺</span>
+  </div>
+
+  <article style="display: flex; flex-direction: column; gap: 14px; padding: 20px; background: #160F0D; border: 1px solid #4A2418; border-radius: 18px">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span class="chip" style="background: #FF6A3D; color: #1A0A04; font-weight: 600">发布回归</span>
+        <h3 style="margin: 0; font-size: 16px; font-weight: 600">上线前符合，上线后不符合</h3>
+      </div>
+      <span style="color: #FFB49A; font-size: 13px">2 个页面 · 最高优先级</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+      <a href="Lifeline.dc.html" style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: #1E1411; border: 1px solid #3A2018; border-radius: 12px; color: #E9ECF2">
+        <span class="mono" style="font-size: 12px; color: #FFB49A">OV-001</span>
+        <span style="font-weight: 600">固定框架和顺序</span>
+        <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #9AA3B5">鞋靴双11会场
+          <span class="chip" style="height: 20px; background: #10251C; color: #6EE7B7">符合</span><span aria-hidden="true">→</span><span class="chip" style="height: 20px; background: #3A1810; color: #FF9B78">不符合</span>
+        </span>
+      </a>
+      <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: #1E1411; border: 1px solid #3A2018; border-radius: 12px">
+        <span class="mono" style="font-size: 12px; color: #FFB49A">OV-002</span>
+        <span style="font-weight: 600">新增楼层的位置</span>
+        <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #9AA3B5">家具双十一会场
+          <span class="chip" style="height: 20px; background: #10251C; color: #6EE7B7">符合</span><span aria-hidden="true">→</span><span class="chip" style="height: 20px; background: #3A1810; color: #FF9B78">不符合</span>
+        </span>
+      </div>
+    </div>
+  </article>
+
+  <article style="display: flex; flex-direction: column; gap: 14px; padding: 20px; background: #11141B; border: 1px solid #242A36; border-radius: 18px">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span class="chip" style="background: #2B2140; color: #D7BEFF; font-weight: 600">系统性问题</span>
+        <h3 style="margin: 0; font-size: 16px; font-weight: 600"><span class="mono" style="color: #9AA3B5; font-weight: 500">OV-009</span> 分类Tab上方间距 7–9px</h3>
+      </div>
+      <span style="color: #9AA3B5; font-size: 13px">4 / 10 页面上线前不符合</span>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+      <div style="display: flex; gap: 4px" role="img" aria-label="10 个页面中 4 个不符合，1 个上线后已修复">
+        <sc-for list="{{ov009}}" as="c" hint-placeholder-count="10"><span title="{{c.name}}" style="{{c.style}}"></span></sc-for>
+      </div>
+      <span style="font-size: 13px; color: #9AA3B5">鞋靴双11会场已在上线后修复；美酒、元器件、汽车装饰仍待处理</span>
+    </div>
+    <p style="margin: 0; padding: 12px 14px; background: #171B24; border-radius: 10px; font-size: 13px; color: #C8CEDA">同一条规则跨页面重复出现，说明根源在共享组件或楼层模板。建议在组件层统一修复间距，再一次性复查 4 个页面。全量 408 会场中该规则 30 个不符合、293 个待确认，测量能力同样需要补齐。</p>
+  </article>
+
+  <article style="display: flex; flex-direction: column; gap: 12px; padding: 20px; background: #11141B; border: 1px solid #242A36; border-radius: 18px">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span class="chip" style="background: #33200F; color: #FFC48A; font-weight: 600">跨阶段未修</span>
+        <h3 style="margin: 0; font-size: 16px; font-weight: 600">上线前已指出，上线后仍不符合</h3>
+      </div>
+      <span style="color: #9AA3B5; font-size: 13px">2 条规则</span>
+    </div>
+    <sc-for list="{{carried}}" as="r" hint-placeholder-count="2">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 14px; background: #171B24; border-radius: 12px">
+        <span class="mono" style="font-size: 12px; color: #9AA3B5; width: 56px">{{r.id}}</span>
+        <span style="font-weight: 600; flex: 1 1 160px">{{r.title}}</span>
+        <span style="display: flex; flex-wrap: wrap; gap: 6px">
+          <sc-for list="{{r.venues}}" as="v" hint-placeholder-count="3"><span class="chip" style="{{v.style}}">{{v.label}}</span></sc-for>
+        </span>
+      </div>
+    </sc-for>
+  </article>
+
+  <article style="display: flex; flex-direction: column; gap: 12px; padding: 20px; background: #11141B; border: 1px dashed #4A4020; border-radius: 18px">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span class="chip" style="background: #2A2412; color: #F2D38A; font-weight: 600">证据缺口</span>
+        <h3 style="margin: 0; font-size: 16px; font-weight: 600">9 项待确认，缺的是证据而不是整改</h3>
+      </div>
+      <span style="color: #9AA3B5; font-size: 13px">5 个页面</span>
+    </div>
+    <p style="margin: 0; font-size: 13px; color: #C8CEDA">婚庆用品 3 · 家具双十一 3 · 汽车装饰 1 · 超级品牌联盟 1 · 鞋靴双11 1。补充 DOM 测量或未滚动首屏截图后即可判定，不应计入页面问题数。</p>
+  </article>
+</section>
+
+<section aria-labelledby="flow-title" style="flex: 1 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 14px; padding: 20px; background: #0E1117; border: 1px solid #1F2430; border-radius: 20px">
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <h2 id="flow-title" style="margin: 0; font-size: 18px; font-weight: 600">规则流向 · 上线前 → 上线后</h2>
+    <p style="margin: 0; color: #8790A3; font-size: 13px">已关联基线的 2 个页面，24 条可比对规则</p>
+  </div>
+  <div style="overflow-x: auto">
+  <svg viewBox="0 0 600 310" width="100%" role="img" aria-label="规则流向图：上线前不符合 5 条中 3 条已修、2 条未修；上线前符合 11 条中 7 条保持、2 条回归、2 条转为待确认；上线前待确认 4 条仍待确认；上线前未覆盖 4 条在上线后新增问题" style="min-width: 520px; display: block">
+    <g fill-opacity="0.42">
+      <path d="M84,0 C300,0 300,0 516,0 L516,31.5 C300,31.5 300,31.5 84,31.5 Z" fill="#34D399"></path>
+      <path d="M84,31.5 C300,31.5 300,39.5 516,39.5 L516,60.5 C300,60.5 300,52.5 84,52.5 Z" fill="#FF9E57"></path>
+      <path d="M84,62.5 C300,62.5 300,68.5 516,68.5 L516,89.5 C300,89.5 300,83.5 84,83.5 Z" fill="#FF5A36"></path>
+      <path d="M84,83.5 C300,83.5 300,97.5 516,97.5 L516,171 C300,171 300,157 84,157 Z" fill="#2F7D62"></path>
+      <path d="M84,157 C300,157 300,179 516,179 L516,200 C300,200 300,178 84,178 Z" fill="#F2C14E"></path>
+      <path d="M84,188 C300,188 300,200 516,200 L516,242 C300,242 300,230 84,230 Z" fill="#F2C14E"></path>
+      <path d="M84,240 C300,240 300,250 516,250 L516,292 C300,292 300,282 84,282 Z" fill="#D96BFF"></path>
+    </g>
+    <g>
+      <rect x="76" y="0" width="8" height="52.5" rx="2" fill="#FF6A3D"></rect>
+      <rect x="76" y="62.5" width="8" height="115.5" rx="2" fill="#34D399"></rect>
+      <rect x="76" y="188" width="8" height="42" rx="2" fill="#F2C14E"></rect>
+      <rect x="76" y="240" width="8" height="42" rx="2" fill="#4A5262"></rect>
+      <rect x="516" y="0" width="8" height="31.5" rx="2" fill="#34D399"></rect>
+      <rect x="516" y="39.5" width="8" height="21" rx="2" fill="#FF9E57"></rect>
+      <rect x="516" y="68.5" width="8" height="21" rx="2" fill="#FF5A36"></rect>
+      <rect x="516" y="97.5" width="8" height="73.5" rx="2" fill="#2F7D62"></rect>
+      <rect x="516" y="179" width="8" height="63" rx="2" fill="#F2C14E"></rect>
+      <rect x="516" y="250" width="8" height="42" rx="2" fill="#D96BFF"></rect>
+    </g>
+    <g font-size="12" fill="#C8CEDA" font-family="IBM Plex Sans, Noto Sans SC, sans-serif">
+      <text x="70" y="30" text-anchor="end">不符合 5</text>
+      <text x="70" y="124" text-anchor="end">符合 11</text>
+      <text x="70" y="213" text-anchor="end">待确认 4</text>
+      <text x="70" y="265" text-anchor="end">未覆盖 4</text>
+      <text x="532" y="20">已修 3</text>
+      <text x="532" y="54">未修 2</text>
+      <text x="532" y="83">回归 2</text>
+      <text x="532" y="138">保持 7</text>
+      <text x="532" y="214">待确认 6</text>
+      <text x="532" y="275">新增 4</text>
+    </g>
+  </svg>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: #9AA3B5">
+    <span style="display: inline-flex; align-items: center; gap: 6px"><span class="cell" style="background: #7AA2FF"></span>左：上线前 H5 审核</span>
+    <span style="display: inline-flex; align-items: center; gap: 6px"><span class="cell" style="background: #C49BFF"></span>右：上线后 App 巡检（演示）</span>
+  </div>
+  <p style="margin: 0; padding: 12px 14px; background: #171B24; border-radius: 10px; font-size: 13px; color: #C8CEDA">“未覆盖 → 新增”的 4 条来自上线前未启用或不适用的规则：上线后规范范围变大时，这些不是回归，而是新的检查面。</p>
+</section>
+</div>
+
+<section aria-labelledby="pages-title" style="display: flex; flex-direction: column; gap: 16px">
+  <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px">
+    <h2 id="pages-title" style="margin: 0; font-size: 18px; font-weight: 600">页面生命线 <span style="color: #8790A3; font-weight: 400; font-size: 14px">{{filterLabel}}</span></h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #9AA3B5">
+      <span style="display: inline-flex; align-items: center; gap: 6px"><span class="cell" style="background: #FF6A3D"></span>不符合</span>
+      <span style="display: inline-flex; align-items: center; gap: 6px"><span class="cell" style="background: #F2C14E"></span>待确认</span>
+      <span style="display: inline-flex; align-items: center; gap: 6px"><span class="cell" style="background: #34D399"></span>符合</span>
+      <span style="display: inline-flex; align-items: center; gap: 6px"><span class="cell" style="background: #2A303C"></span>不适用</span>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px">
+    <sc-for list="{{venues}}" as="v" hint-placeholder-count="10">
+      <article style="display: flex; flex-direction: column; gap: 12px; padding: 16px; background: #11141B; border: 1px solid #242A36; border-radius: 16px">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px">
+          <div style="display: flex; flex-direction: column; min-width: 0">
+            <span style="font-weight: 600">{{v.name}}</span>
+            <span class="mono" style="font-size: 11px; color: #8790A3">{{v.id}}</span>
+          </div>
+          <span class="chip" style="{{v.stageStyle}}">{{v.stageLabel}}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 36px minmax(0, 1fr); row-gap: 8px; align-items: center; font-size: 11px; color: #8790A3">
+          <span>上线前</span>
+          <span style="display: flex; gap: 3px"><sc-for list="{{v.pre}}" as="c" hint-placeholder-count="13"><span class="cell" style="{{c.style}}"></span></sc-for></span>
+          <span>上线后</span>
+          <span style="display: flex; gap: 3px; align-items: center">
+            <sc-if value="{{v.hasPost}}" hint-placeholder-val="{{true}}"><sc-for list="{{v.post}}" as="c" hint-placeholder-count="13"><span class="cell" style="{{c.style}}"></span></sc-for></sc-if>
+            <sc-if value="{{v.noPost}}" hint-placeholder-val="{{false}}"><span style="flex: 1; height: 10px; border: 1px dashed #2F3542; border-radius: 3px"></span></sc-if>
+          </span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px">
+          <span style="color: {{v.deltaColor}}">{{v.delta}}</span>
+          <sc-if value="{{v.link}}" hint-placeholder-val="{{false}}"><a href="Lifeline.dc.html" style="font-size: 12px">查看生命线 →</a></sc-if>
+        </div>
+      </article>
+    </sc-for>
+  </div>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const stage = (this.state && this.state.stage) || 'all';
+    const color = { F: '#FF6A3D', U: '#F2C14E', P: '#34D399', '-': '#2A303C', x: '#1B1F28' };
+    const cells = (s) => s.split('').map((c) => ({ style: 'background:' + (color[c] || '#1B1F28') }));
+    const V = [
+      { name: '婚庆用品会场', id: 'RA092915121822266376', stage: 'review', pre: 'UU-UP-PPP-P-P', post: null, delta: '3 项待确认，需补证据', dc: '#F2C14E' },
+      { name: '京东电器11.11会场', id: 'RA092413435922556127', stage: 'baseline', pre: 'PPPPPPPPP-P-P', post: null, delta: '无问题，可作为上线后基线', dc: '#6EE7B7' },
+      { name: '美酒双11会场', id: 'RA092813460322037302', stage: 'post', pre: 'PPP-PFPPF-PPP', post: 'FPUFPPPPF-PPP', delta: '未关联基线 · 本轮为独立检查', dc: '#F2D38A' },
+      { name: '元器件专场会场', id: 'RA101011470453809760', stage: 'review', pre: 'PP--PFPP-PP-P', post: null, delta: '1 处待整改', dc: '#FF9B78' },
+      { name: '汽车装饰小件会场', id: 'RA092410352984983411', stage: 'review', pre: 'PPP-PFPPU-P-P', post: null, delta: '1 处待整改 · 1 项待确认', dc: '#FF9B78' },
+      { name: '超级品牌联盟会场', id: 'RA092417144866829038', stage: 'review', pre: 'UP--P-FP-PP-P', post: null, delta: '1 处待整改 · 1 项待确认', dc: '#FF9B78' },
+      { name: '纪念币邮币会场', id: 'RA092818061884404521', stage: 'baseline', pre: 'PP--PPPPP-P-P', post: null, delta: '无问题，可作为上线后基线', dc: '#6EE7B7' },
+      { name: '产业投资会场', id: 'RA092818064610080338', stage: 'baseline', pre: 'PP--PPPP-PP-P', post: null, delta: '无问题，可作为上线后基线', dc: '#6EE7B7' },
+      { name: '鞋靴双11会场', id: 'RA100813313228639998', stage: 'post', pre: 'PPP-PFFPU-F-P', post: 'FPUFPPFPU-P-P', delta: '回归 1 · 未修 1 · 已修 2', dc: '#FF9B78', link: true },
+      { name: '家具双十一会场', id: 'RA092417533558135247', stage: 'post', pre: 'UPPUP-FPU-F-P', post: 'UFPUUFPPU-F-P', delta: '回归 1 · 未修 1 · 已修 1', dc: '#FF9B78' },
+    ];
+    const S = [
+      { key: 'spec', step: '01', name: '规范确认', hint: '官方会场 v5 · 23 项中 13 项启用', count: 'v5', done: true },
+      { key: 'review', step: '02', name: '上线前审核', hint: 'H5 已审，待整改或待确认', done: true },
+      { key: 'recheck', step: '03', name: '整改复查', hint: '提交修改稿后复查', done: true },
+      { key: 'baseline', step: '04', name: '基线确认', hint: '无问题，可作为对照基线', done: true },
+      { key: 'post', step: '05', name: '上线后巡检', hint: 'App 手机端核对上线效果', current: true },
+      { key: 'closed', step: '06', name: '闭环归档', hint: '问题全部关闭后归档' },
+    ];
+    const pick = (key) => () => this.setState({ stage: stage === key ? 'all' : key });
+    const stages = S.map((s) => {
+      const vs = V.filter((v) => v.stage === s.key);
+      const active = stage === s.key;
+      const tone = s.current ? '#C49BFF' : (s.done ? '#7AA2FF' : '#4A5262');
+      return {
+        ...s,
+        count: s.count || String(vs.length),
+        numColor: vs.length || s.count ? '#E9ECF2' : '#4A5262',
+        pressed: active ? 'true' : 'false',
+        pick: pick(s.key),
+        boxStyle: 'background:' + (active ? '#1A2030' : (s.current ? '#151024' : '#11141B')) + ';border:1px solid ' + (active ? tone : (s.current ? '#4B3870' : '#242A36')),
+        markStyle: 'width:14px;height:14px;border-radius:7px;box-sizing:border-box;' + (s.current ? 'background:#0A0C11;border:3px solid #C49BFF;box-shadow:0 0 0 4px rgba(196,155,255,.18)' : (s.done ? 'background:' + tone : 'border:2px solid #4A5262')),
+        dots: vs.map((v) => ({ name: v.name, style: 'width:12px;height:12px;border-radius:6px;background:' + (v.pre.includes('F') && !v.post ? '#FF6A3D' : v.pre.includes('U') && !v.post ? '#F2C14E' : v.post ? '#C49BFF' : '#34D399') })),
+      };
+    });
+    const stageMeta = {
+      review: ['上线前审核', 'background:#16213A;color:#AFC4FF'],
+      baseline: ['可作基线', 'background:#10251C;color:#6EE7B7'],
+      post: ['上线后巡检', 'background:#241A33;color:#D7BEFF'],
+    };
+    const shown = stage === 'all' ? V : V.filter((v) => v.stage === stage);
+    const venues = shown.map((v) => ({
+      name: v.name, id: v.id, delta: v.delta, deltaColor: v.dc, link: !!v.link,
+      stageLabel: stageMeta[v.stage][0], stageStyle: stageMeta[v.stage][1],
+      pre: cells(v.pre), post: v.post ? cells(v.post) : [], hasPost: !!v.post, noPost: !v.post,
+    }));
+    const ov009 = [
+      ['婚庆用品', '#34D399'], ['京东电器', '#34D399'], ['美酒', '#FF6A3D'], ['元器件', '#FF6A3D'], ['汽车装饰', '#FF6A3D'],
+      ['超级品牌', '#2A303C'], ['纪念币', '#34D399'], ['产业投资', '#34D399'], ['鞋靴（已修）', 'linear-gradient(90deg,#FF6A3D 50%,#34D399 50%)'], ['家具', '#2A303C'],
+    ].map(([name, bg]) => ({ name, style: 'width:22px;height:22px;border-radius:5px;background:' + bg }));
+    const tag = (label, kind) => ({ label, style: kind === 'open' ? 'background:#3A1810;color:#FF9B78' : kind === 'fixed' ? 'background:#10251C;color:#6EE7B7' : 'background:#16213A;color:#AFC4FF' });
+    const carried = [
+      { id: 'OV-010', title: 'feeds 背景为白色', venues: [tag('鞋靴 未修', 'open'), tag('家具 已修', 'fixed'), tag('超级品牌 待整改', 'pre')] },
+      { id: 'OV-017', title: '头图主标题字数上限', venues: [tag('家具 未修', 'open'), tag('鞋靴 已修', 'fixed')] },
+    ];
+    const label = { all: '· 全部 10 个页面', review: '· 上线前审核', recheck: '· 整改复查', baseline: '· 基线确认', post: '· 上线后巡检', closed: '· 闭环归档', spec: '· 规范确认' };
+    return { stages, venues, ov009, carried, filterLabel: label[stage] + (stage === 'all' ? '' : '（再次点击阶段取消筛选）') };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>大规模审核驾驶舱</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0A0C11}
+a{color:#AFC4FF;text-decoration:none}a:hover{color:#E9ECF2}
+.mono{font-family:'IBM Plex Mono',monospace}
+.chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:12px;font-size:12px;white-space:nowrap}
+.seg{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;padding:10px 12px;min-height:76px;min-width:0}
+.seg:focus-visible,.act:focus-visible{outline:2px solid #7AA2FF;outline-offset:-2px}
+.act{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 14px;border-radius:10px;font-size:13px}
+.sq{width:14px;height:14px;border-radius:3px}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0A0C11; color: #E9ECF2; font-family: 'IBM Plex Sans', 'Noto Sans SC', 'PingFang SC', sans-serif; font-size: 14px; line-height: 1.6">
+<div style="max-width: 1320px; margin: 0 auto; padding: 28px 40px 72px; display: flex; flex-direction: column; gap: 28px">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+  <nav aria-label="面包屑" style="display: flex; align-items: center; gap: 8px; color: #8790A3; font-size: 13px">
+    <a href="#">审核</a><span aria-hidden="true">/</span><a href="#">H5 审核</a><span aria-hidden="true">/</span><span style="color: #E9ECF2">官方会场 H5 审核 · 10/12</span>
+  </nav>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px">
+    <button class="act" type="button" style="background: #171B24; color: #C8CEDA; border: 1px solid #2A303C">导出报告</button>
+    <button class="act" type="button" style="background: #7C5CFF; color: #FFFFFF; font-weight: 600">归入项目</button>
+  </div>
+</header>
+
+<section style="display: flex; flex-direction: column; gap: 10px; max-width: 900px">
+  <div style="display: flex; flex-wrap: wrap; gap: 8px">
+    <span class="chip" style="background: #16213A; color: #AFC4FF">H5 · 上线前</span>
+    <span class="chip" style="background: #171B24; color: #C8CEDA">规范 官方会场 H5 审核 v5 · 13 项启用</span>
+    <span class="chip" style="background: #171B24; color: #9AA3B5">独立审核 · 未归入项目</span>
+  </div>
+  <h1 style="margin: 0; font-size: 34px; line-height: 1.2; font-weight: 700">官方会场 H5 审核 · 408 会场</h1>
+  <p style="margin: 0; color: #9AA3B5; font-size: 15px">半数页面没能采集到可审核的画面，先把它们和设计问题分开。可审核的 202 个会场里，95 个有问题，其中 11 个问题集中；其余大多只差一项，适合按规则批量处理。</p>
+</section>
+
+<section aria-labelledby="funnel-title" style="display: flex; flex-direction: column; gap: 14px; padding: 20px; background: #0E1117; border: 1px solid #1F2430; border-radius: 20px">
+  <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px">
+    <h2 id="funnel-title" style="margin: 0; font-size: 18px; font-weight: 600">先看能不能审：408 会场的结果构成</h2>
+    <span style="font-size: 13px; color: #8790A3">点击分段筛选下方所有视图 · {{filterLabel}}</span>
+  </div>
+  <div role="group" aria-label="按结果筛选" style="display: flex; border-radius: 14px; overflow: hidden; border: 1px solid #242A36">
+    <sc-for list="{{segs}}" as="s" hint-placeholder-count="4">
+      <button class="seg" type="button" aria-pressed="{{s.pressed}}" onClick="{{s.pick}}" style="{{s.style}}">
+        <span style="font-size: 22px; font-weight: 700; line-height: 1.1; color: {{s.fg}}">{{s.n}}</span>
+        <span style="font-size: 12px; color: {{s.fg}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{s.label}}</span>
+      </button>
+    </sc-for>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 20px; font-size: 13px; color: #9AA3B5">
+    <span>采集失败原因：</span>
+    <span>活动已下线 <strong style="color: #E9ECF2">195</strong></span>
+    <span>已过期或已结束 <strong style="color: #E9ECF2">3</strong></span>
+    <span>需要登录 <strong style="color: #E9ECF2">2</strong></span>
+    <span>其他（楼层异常、入口身份冲突等）<strong style="color: #E9ECF2">6</strong></span>
+    <span style="color: #F2D38A">这些不是设计问题：重新采集或移出批次</span>
+  </div>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch">
+  <section aria-labelledby="waffle-title" style="flex: 1 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 12px; padding: 20px; background: #0E1117; border: 1px solid #1F2430; border-radius: 20px">
+    <h2 id="waffle-title" style="margin: 0; font-size: 18px; font-weight: 600">每格一个会场</h2>
+    <p style="margin: 0; font-size: 13px; color: #8790A3">按结果分组、按不符合项数排序；颜色越深问题越多。悬停查看。</p>
+    <div style="display: grid; grid-template-columns: repeat(34, 14px); gap: 3px; overflow-x: auto" role="img" aria-label="408 个会场的结果分布">
+      <sc-for list="{{waffle}}" as="w" hint-placeholder-count="408"><span class="sq" title="{{w.title}}" style="{{w.style}}"></span></sc-for>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #9AA3B5">
+      <span style="display: inline-flex; align-items: center; gap: 6px"><span class="sq" style="width: 10px; height: 10px; background: #FF4B1F"></span>3+ 项不符合</span>
+      <span style="display: inline-flex; align-items: center; gap: 6px"><span class="sq" style="width: 10px; height: 10px; background: #FF7A50"></span>2 项</span>
+      <span style="display: inline-flex; align-items: center; gap: 6px"><span class="sq" style="width: 10px; height: 10px; background: #FFA27F"></span>1 项</span>
+      <span style="display: inline-flex; align-items: center; gap: 6px"><span class="sq" style="width: 10px; height: 10px; background: #F2C14E"></span>待确认</span>
+      <span style="display: inline-flex; align-items: center; gap: 6px"><span class="sq" style="width: 10px; height: 10px; background: #2F9E73"></span>部分审核·可检项均符合</span>
+      <span style="display: inline-flex; align-items: center; gap: 6px"><span class="sq" style="width: 10px; height: 10px; background: repeating-linear-gradient(135deg,#1B1F28 0 2px,#303644 2px 4px)"></span>采集失败</span>
+    </div>
+  </section>
+
+  <section aria-labelledby="pareto-title" style="flex: 1 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 12px; padding: 20px; background: #0E1117; border: 1px solid #1F2430; border-radius: 20px">
+    <h2 id="pareto-title" style="margin: 0; font-size: 18px; font-weight: 600">问题集中在哪些规则</h2>
+    <p style="margin: 0; font-size: 13px; color: #8790A3">实色为不符合会场数，浅色为待确认；按不符合降序。</p>
+    <sc-for list="{{pareto}}" as="p" hint-placeholder-count="13">
+      <div style="display: grid; grid-template-columns: 172px minmax(0, 1fr) 72px; gap: 10px; align-items: center">
+        <span style="display: flex; gap: 6px; min-width: 0; font-size: 12px"><span class="mono" style="color: #8790A3">{{p.id}}</span><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #C8CEDA">{{p.title}}</span></span>
+        <span style="display: flex; height: 12px; border-radius: 3px; overflow: hidden; background: #141820">
+          <span style="{{p.failStyle}}"></span><span style="{{p.uncStyle}}"></span>
+        </span>
+        <span style="font-size: 12px; text-align: right"><strong style="color: {{p.failColor}}">{{p.fail}}</strong><span style="color: #8790A3"> / {{p.unc}}</span></span>
+      </div>
+    </sc-for>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; background: #171B24; border-radius: 12px; font-size: 13px; color: #C8CEDA">
+      <span><strong style="color: #E9ECF2">OV-005 与 OV-023</strong> 同时出现 9 次：共用首屏商品证据，合并为一个问题计数。</span>
+      <span><strong style="color: #E9ECF2">OV-009 与 OV-017 / OV-010</strong> 各同时出现 5 次：常见于同一批楼层模板，可一起修。</span>
+    </div>
+  </section>
+</div>
+
+<section aria-labelledby="barcode-title" style="display: flex; flex-direction: column; gap: 12px; padding: 20px; background: #0E1117; border: 1px solid #1F2430; border-radius: 20px">
+  <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px">
+    <h2 id="barcode-title" style="margin: 0; font-size: 18px; font-weight: 600">规则 × 会场 热力条码</h2>
+    <span style="font-size: 13px; color: #8790A3">每一根竖线是一个会场（共 {{barN}} 个），每一行是一条规则。竖向成片 = 页面问题集中；横向成片 = 规则普遍问题。</span>
+  </div>
+  <div style="overflow-x: auto">
+    <div style="min-width: 900px; display: grid; grid-template-columns: 196px minmax(0, 1fr) 56px; gap: 6px 12px; align-items: center">
+      <span></span>
+      <span style="display: flex; height: 18px; font-size: 11px; color: #8790A3">
+        <sc-for list="{{bands}}" as="b" hint-placeholder-count="3"><span style="{{b.style}}">{{b.label}}</span></sc-for>
+      </span>
+      <span style="font-size: 11px; color: #8790A3; text-align: right">不符合</span>
+      <sc-for list="{{barRows}}" as="r" hint-placeholder-count="13">
+        <span style="display: flex; gap: 6px; min-width: 0; font-size: 12px"><span class="mono" style="color: #8790A3">{{r.id}}</span><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #C8CEDA">{{r.title}}</span></span>
+        <span role="img" aria-label="{{r.aria}}" style="{{r.style}}"></span>
+        <span style="font-size: 12px; text-align: right; color: {{r.nColor}}">{{r.n}}</span>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="triage-title" style="display: flex; flex-direction: column; gap: 14px">
+  <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px">
+    <h2 id="triage-title" style="margin: 0; font-size: 18px; font-weight: 600">处理顺序：按动作分组，而不是按会场逐个看</h2>
+    <a href="#" style="font-size: 13px">查看全部 408 会场明细（搜索 · 排序 · 分页）→</a>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px">
+
+    <article style="display: flex; flex-direction: column; gap: 10px; padding: 18px; background: #160F0D; border: 1px solid #4A2418; border-radius: 18px">
+      <span class="chip" style="align-self: flex-start; background: #FF6A3D; color: #1A0A04; font-weight: 600">逐个整改 · 11</span>
+      <h3 style="margin: 0; font-size: 15px; font-weight: 600">问题集中的会场（≥3 项不符合）</h3>
+      <sc-for list="{{top}}" as="t" hint-placeholder-count="11">
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto 18px; gap: 8px; align-items: center; font-size: 13px">
+          <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{t.name}}</span>
+          <span style="display: flex; gap: 2px"><sc-for list="{{t.cells}}" as="c" hint-placeholder-count="13"><span style="{{c.style}}"></span></sc-for></span>
+          <strong style="color: #FF9B78; text-align: right">{{t.n}}</strong>
+        </div>
+      </sc-for>
+    </article>
+
+    <article style="display: flex; flex-direction: column; gap: 10px; padding: 18px; background: #11141B; border: 1px solid #242A36; border-radius: 18px">
+      <span class="chip" style="align-self: flex-start; background: #33200F; color: #FFC48A; font-weight: 600">按规则批量 · {{singleTotal}}</span>
+      <h3 style="margin: 0; font-size: 15px; font-weight: 600">只差一项的会场，按规则一次性通知</h3>
+      <sc-for list="{{single}}" as="s" hint-placeholder-count="6">
+        <div style="display: grid; grid-template-columns: 56px minmax(0, 1fr) 32px; gap: 8px; align-items: center; font-size: 13px">
+          <span class="mono" style="font-size: 12px; color: #8790A3">{{s.id}}</span>
+          <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{s.title}}</span>
+            <span style="height: 4px; border-radius: 2px; background: #141820"><span style="{{s.bar}}"></span></span>
+          </span>
+          <strong style="text-align: right">{{s.n}}</strong>
+        </div>
+      </sc-for>
+    </article>
+
+    <article style="display: flex; flex-direction: column; gap: 10px; padding: 18px; background: #11141B; border: 1px dashed #4A4020; border-radius: 18px">
+      <span class="chip" style="align-self: flex-start; background: #2A2412; color: #F2D38A; font-weight: 600">补证据 · 78</span>
+      <h3 style="margin: 0; font-size: 15px; font-weight: 600">待确认集中在这些规则</h3>
+      <sc-for list="{{gaps}}" as="g" hint-placeholder-count="5">
+        <div style="display: grid; grid-template-columns: 56px minmax(0, 1fr) 32px; gap: 8px; align-items: center; font-size: 13px">
+          <span class="mono" style="font-size: 12px; color: #8790A3">{{g.id}}</span>
+          <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{g.title}}</span>
+          <strong style="text-align: right; color: #F2D38A">{{g.n}}</strong>
+        </div>
+      </sc-for>
+      <p style="margin: 0; font-size: 12px; color: #8790A3">补充 DOM 测量或未滚动首屏后重新判定，不计入问题数。</p>
+    </article>
+
+    <article style="display: flex; flex-direction: column; gap: 10px; padding: 18px; background: #11141B; border: 1px solid #242A36; border-radius: 18px">
+      <span class="chip" style="align-self: flex-start; background: #1B1F28; color: #C8CEDA; font-weight: 600">重新采集 · 206</span>
+      <h3 style="margin: 0; font-size: 15px; font-weight: 600">采集失败，不进入审核结论</h3>
+      <p style="margin: 0; font-size: 13px; color: #9AA3B5">195 个活动已下线：建议直接移出批次。另有 11 个因登录、过期或入口冲突失败，可重新采集。</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <button class="act" type="button" style="background: #171B24; color: #C8CEDA; border: 1px solid #2A303C">移出 195 个已下线</button>
+        <button class="act" type="button" style="background: #171B24; color: #C8CEDA; border: 1px solid #2A303C">重新采集 11 个</button>
+      </div>
+    </article>
+  </div>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2360}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const filter = (this.state && this.state.filter) || 'all';
+    const ISS = 'UPUUUUPP-FF-U FPPPPFPP-FF-P PPP-PFPPF-PPP PP--PFPP-PP-P PPPPPPPPF-F-P PP--PPFPP-P-P PPP-PFUPP-PPP PPP-PFPPU-P-P UPPPUFPP-PP-U UPPUU-UFU-P-U UP--P-FP-PP-P PP-PPPFP-PP-P PP--FPPPP-P-F PPPPPUPP-FP-P PPP-PFFPU-F-P P---PFPPP-P-P P-P-PFFPP-P-P PPPPFUPPP-FPF PPP-PFPPP-FPP UPPUP-FPU-F-P PP--PPPPP-FPP P--PFUFPP-P-F PPP-PFPP-PP-P PPP-PFPP-PP-P PP--PUPP-FP-P PP--PUPP-PF-P UPU-PFPPP-P-P PPP-PFFP-PPPP UUPUUUPPP-FPU PP--FUFP-PF-F PPP-FPPP--PPF UPU-UUPPP-FPU PP--PFPPP-P-P PP--PFPPP-P-P PP-FFUFPU-F-F UUFUU-UPP-P-U UPFUU-UPP-P-U PPP-PFPPP-P-P UUUUU-UPP-F-U UPFUFUUPP-P-F PPP-PFPPP-P-P PPP-PPFPU-P-P PPP-PUPPP-F-P PPPPPPPFP-PPP PP-PPFFPP-P-P PPP-PUPPP-F-P PPP-PFPPU-P-P PP--FFUP-PP-F PPP-PUPPP-F-P PPP-PFPPP-P-P F-P-FUFP-PP-F PP--PUPPP-F-P UPPPU-FPP-P-U PPPPPFPPF-P-P PPPPPUPPP-FUP UUPPPUPPP-F-P PPP-PUPPP-F-P FP--PUFP-PP-P FP--PUPPP-P-P PPPPPPFFP-P-P UPFUU-UPF-P-U PPP-PFPPP-F-P FP--PUPPP-PPP UPUUUUPP-PF-U PPP-PUFPU-P-P P---PUPP-PF-P UPPUPUFPU-P-P FPUPUUUP--F-U PP--PFPPP-P-P UPFUU-UFF-P-U UUUUPUPPP-F-P UPU-PUPP-PF-P PP--PFPPP-P-P FP--PUPPP-P-P FP--PUPPU-P-P FPP-PUPP-PP-P PPP-PFPPP-P-P PP--PUPPP-F-P FP--PUPPP-P-P FPF-PUPP-UP-P PPP-PUFPP-P-P UPPUPUFPP-P-P PP--PFPP-PF-P UPUUU-FPU-P-U PPPPPUUFP-P-P PP--PUFFF-P-P FP--PPFPP-PPP PPPPPPFPP-P-P PPP-PUPFP-P-P U-UUU-FPF-P-U PP--PUPP-PF-P UPP-P-PPF-FPP PPP-PFPPF-P-P PPPPPUPPP-F-P UPU-UFFPP-P-U'.split(' ');
+    const CON = 'UPPUUUUPF-P-U UP-PP-PP--P-P UP-UP-PPU-P-P UU-UP-PPP-P-P UPUUPUPPP-P-P UPU-PUPP-PP-P PPP-PPPPU-P-P PP--PUPPU-P-P PP-PPUPPP-P-P UPUUUUUPP-P-U UPPPPUPPP-P-P UPP-U-PP-PP-U PP--PUPP-PPPP PP--PUPPP-P-P PP--PUPPP-P-P UUPPU-PPF-P-U UPPPPUPPP-PPP P---PUPPU-P-P UPUPU-PPP-P-U PPPPPUPPU-PPP PPPPPPUP-PP-P UUUUPUPPP-P-P UPUUPUPUUUUUP UPP-U-PPP-P-U PPPUPUPPU-P-P PPPPPPUUUUUUP UPPUUUPPP-P-U PPPPPUPPP-P-P PPP-PUPPP-PPP PPP-PUPPP-P-P UPPPPUUP-PP-P PPPPPPPPU-P-P UPUUPUPPP-P-P UPPPPUPP-PP-P UPPUU-PPF-P-U PPP-PUPPP-P-P UPP-P-PPU-P-P UPUUU-UPP-P-U UP--U-UPP-P-U UPUUU-UPU-P-U PPPPPPPPU-P-P UPPUPUPPP-P-P P-P-PUPPP-P-P PP--PUUPU-P-P UPPUU-PP--P-U UPPUP-UPP-PPP UPPUU-PPP-P-U PPPPPUUPU-P-P UPUUUPPPP-P-U PPPPPUPPP-P-P UP--PUPPP-PPP UP--P-UPP-P-P UPUUU-UPP-P-U UPPUP-PPF-P-P UPUUUUPP--U-U UPUUUPPPP-P-U PP--PUPPP-P-P PPPPPUPPP-PPP PP--PUPPU-P-P UPUUPPPP--PPP PPP-PUPPP-P-P PP--PUPPP-P-P PP--PUPPP-P-P UPUUUUPP--P-U PPP-PUPP-PP-P UPUUU-UPF-P-U UU-UP-PPP-P-P UPUUU-PPP-P-U UPPUU-UPP-P-U PP--PUUPP-P-P PP--PUPPP-P-P PP--PUPP--P-P PP-PPUPPP-P-P U-UPUUPPP-PUU UPUUU-PPP-P-U UP-UU-PP-PP-U PPP-PPPPU-P-P P-P-PUPPP-P-P'.split(' ');
+    const PAR = 'PPPPPPPPP-P-P PPP-PPPPP-P-P PPPPPPPPP-PPP PP--PPPPP-P-P P--PPPPP-PP-P PP-PPPPP-PP-P PP--PPPP-PP-P PP--PPPPP-P-P PP--PPPP-PP-P PP-PPPPPP-P-P P---PPPPP-P-P PPPPPPPP-PPPP PPP-PPPPP-P-P PPP-PPPPP-P-P PPPPPPPPP-P-P PPPPPPPP--PPP PPPPPPPPP-P-P PP--PPPP--PPP PP--PPPPP-P-P PPPPPPPPP-P-P PPPPPPPP-PP-P PP--PPPPP-P-P PPPPPPPPP-P-P PPPPPPPPP-P-P PPP-PPPP-PP-P PP--PPPP-PP-P PPP-PPPPP-P-P PPPPPPPP-PP-P PP-PPPPPP-P-P'.split(' ');
+    const R = [
+      ['OV-001', '固定框架和顺序'], ['OV-002', '新增楼层的位置'], ['OV-003', '权益组件样式唯一'], ['OV-004', '导购魔方样式唯一'],
+      ['OV-005', 'feeds 及首屏完整商品'], ['OV-009', '分类Tab上方间距 7–9px'], ['OV-010', 'feeds 背景为白色'], ['OV-014', '活动LOGO不重复重叠'],
+      ['OV-015', '头图商品数量建议'], ['OV-016', '头图人物数量'], ['OV-017', '头图主标题字数上限'], ['OV-018', '倒计时位置'], ['OV-023', '首屏完整feeds商品数量'],
+    ];
+    const nF = (s) => (s.match(/F/g) || []).length;
+    const nU = (s) => (s.match(/U/g) || []).length;
+    const iss = ISS.slice().sort((a, b) => nF(b) - nF(a) || nU(b) - nU(a));
+    const con = CON.slice().sort((a, b) => nU(b) - nU(a));
+    const on = (k) => filter === 'all' || filter === k;
+
+    const SEG = [
+      ['issues', 95, '有问题', '#FF6A3D', '#2A140E', '#FFB49A'],
+      ['confirm', 78, '待确认', '#F2C14E', '#2A2412', '#F2D38A'],
+      ['partial', 29, '部分审核 · 可检项均符合', '#2F9E73', '#0F1F19', '#7FCDB0'],
+      ['error', 206, '采集失败', '#4A5262', '#14171E', '#C8CEDA'],
+    ];
+    const segs = SEG.map(([k, n, label, , bg, fg]) => ({
+      n: String(n), label, fg, pressed: filter === k ? 'true' : 'false',
+      pick: () => this.setState({ filter: filter === k ? 'all' : k }),
+      style: 'flex:' + n + ' 1 0;background:' + (k === 'error' ? 'repeating-linear-gradient(135deg,#12151C 0 6px,#1A1E27 6px 12px)' : bg) + ';opacity:' + (on(k) ? 1 : 0.35) + (filter === k ? ';box-shadow:inset 0 0 0 2px ' + fg : '') + ';border-right:1px solid #0A0C11',
+    }));
+
+    const issColor = (s) => { const f = nF(s); return f >= 3 ? '#FF4B1F' : f === 2 ? '#FF7A50' : '#FFA27F'; };
+    const sq = (bg, title, k) => ({ title, style: 'background:' + bg + ';opacity:' + (on(k) ? 1 : 0.18) });
+    const waffle = []
+      .concat(iss.map((s) => sq(issColor(s), nF(s) + ' 项不符合 · ' + nU(s) + ' 项待确认', 'issues')))
+      .concat(con.map((s) => sq('#F2C14E', nU(s) + ' 项待确认', 'confirm')))
+      .concat(PAR.map(() => sq('#2F9E73', '部分审核，可检项均符合', 'partial')))
+      .concat(Array.from({ length: 206 }, () => sq('repeating-linear-gradient(135deg,#1B1F28 0 2px,#303644 2px 4px)', '采集失败', 'error')));
+
+    const pool = filter === 'issues' ? iss : filter === 'confirm' ? con : filter === 'partial' ? PAR : iss.concat(con, PAR);
+    const auditable = iss.concat(con, PAR);
+    const pareto = R.map((r, i) => {
+      const f = pool.filter((s) => s[i] === 'F').length, u = pool.filter((s) => s[i] === 'U').length;
+      return { id: r[0], title: r[1], f, u };
+    }).sort((a, b) => b.f - a.f || b.u - a.u).map((p) => {
+      const max = Math.max(pool.length, 1);
+      return { id: p.id, title: p.title, fail: String(p.f), unc: String(p.u), failColor: p.f >= 20 ? '#FF8A63' : p.f ? '#E9ECF2' : '#4A5262',
+        failStyle: 'width:' + (p.f / max * 100) + '%;background:#FF6A3D', uncStyle: 'width:' + (p.u / max * 100) + '%;background:#5A4A1E' };
+    });
+
+    const col = { F: '#FF6A3D', U: '#8C7A3A', P: '#1F5C46', '-': '#161A22', x: '#161A22' };
+    const barSet = filter === 'error' ? [] : pool;
+    const n = barSet.length || 1;
+    const barRows = R.map((r, i) => {
+      const stops = barSet.map((s, j) => col[s[i]] + ' ' + (j / n * 100).toFixed(3) + '% ' + ((j + 1) / n * 100).toFixed(3) + '%').join(',');
+      const f = barSet.filter((s) => s[i] === 'F').length;
+      return { id: r[0], title: r[1], n: String(f), nColor: f >= 20 ? '#FF8A63' : f ? '#C8CEDA' : '#4A5262', aria: r[0] + '：' + f + ' 个会场不符合',
+        style: 'display:block;height:16px;border-radius:3px;background:' + (stops ? 'linear-gradient(90deg,' + stops + ')' : 'repeating-linear-gradient(135deg,#1B1F28 0 4px,#303644 4px 8px)') };
+    });
+    const bandDefs = filter === 'all' ? [['有问题 95', 95, '#FFB49A'], ['待确认 78', 78, '#F2D38A'], ['部分 29', 29, '#7FCDB0']]
+      : filter === 'issues' ? [['有问题 95 · 左侧问题最多', 95, '#FFB49A']] : filter === 'confirm' ? [['待确认 78', 78, '#F2D38A']] : filter === 'partial' ? [['部分审核 29', 29, '#7FCDB0']] : [['采集失败：无可审核画面', 1, '#C8CEDA']];
+    const bands = bandDefs.map(([label, w, c]) => ({ label, style: 'flex:' + w + ' 1 0;border-left:1px solid ' + c + ';padding-left:6px;color:' + c + ';white-space:nowrap;overflow:hidden' }));
+
+    const cellCol = { F: '#FF6A3D', U: '#F2C14E', P: '#2F9E73', '-': '#232833' };
+    const TOP = [['美妆双11爆品会场', 'PP-FFUFPU-F-F'], ['男女装双十一会场', 'FPPPPFPP-FF-P'], ['京东医美双十一会场', 'PP--FUFP-PF-F'], ['26年鞋服降温好物会场', 'F-P-FUFP-PP-F'], ['鞋靴双11会场', 'PPP-PFFPU-F-P'], ['超级品牌联盟TCL会场', 'UPFUU-UFF-P-U'], ['显示器好屏来袭会场', 'P--PFUFPP-P-F'], ['小天才爆款热卖会场', 'UPFUFUUPP-P-F'], ['国产轮胎会场', 'PPPPFUPPP-FPF'], ['双十一直播会场', 'PP--FFUP-PP-F'], ['专配组双十一会场', 'PP--PUFFF-P-P']];
+    const top = TOP.map(([name, s]) => ({ name, n: String(nF(s)), cells: s.split('').map((c) => ({ style: 'width:6px;height:14px;border-radius:1px;background:' + (cellCol[c] || '#232833') })) }));
+
+    const singles = ISS.filter((s) => nF(s) === 1);
+    const singleCount = R.map((r, i) => ({ id: r[0], title: r[1], n: singles.filter((s) => s[i] === 'F').length })).filter((x) => x.n).sort((a, b) => b.n - a.n);
+    const smax = singleCount.length ? singleCount[0].n : 1;
+    const single = singleCount.map((x) => ({ id: x.id, title: x.title, n: String(x.n), bar: 'display:block;height:4px;border-radius:2px;background:#FF9E57;width:' + (x.n / smax * 100) + '%' }));
+    const gaps = R.map((r, i) => ({ id: r[0], title: r[1], n: CON.filter((s) => s[i] === 'U').length })).sort((a, b) => b.n - a.n).slice(0, 5).map((g) => ({ ...g, n: String(g.n) }));
+
+    const label = { all: '全部 408', issues: '有问题 95', confirm: '待确认 78', partial: '部分审核 29', error: '采集失败 206' };
+    return { segs, waffle, pareto, barRows, bands, barN: String(barSet.length), top, single, singleTotal: String(singles.length), gaps, filterLabel: '当前：' + label[filter] };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>页面生命线</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0A0C11}
+a{color:#AFC4FF;text-decoration:none}a:hover{color:#E9ECF2}
+.mono{font-family:'IBM Plex Mono',monospace}
+.chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:12px;font-size:12px;white-space:nowrap}
+.tab{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:10px;font-size:13px}
+.row{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:minmax(0,220px) minmax(160px,1fr) 96px;gap:12px;align-items:center;width:100%;min-height:48px;padding:6px 12px;border-radius:10px}
+.row:focus-visible,.tab:focus-visible,.act:focus-visible{outline:2px solid #7AA2FF;outline-offset:2px}
+.act{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 16px;border-radius:10px;font-size:13px}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0A0C11; color: #E9ECF2; font-family: 'IBM Plex Sans', 'Noto Sans SC', 'PingFang SC', sans-serif; font-size: 14px; line-height: 1.6">
+<div style="max-width: 1320px; margin: 0 auto; padding: 28px 40px 72px; display: flex; flex-direction: column; gap: 28px">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+  <nav aria-label="面包屑" style="display: flex; align-items: center; gap: 8px; color: #8790A3; font-size: 13px">
+    <a href="#">项目走查</a><span aria-hidden="true">/</span><a href="Main.dc.html">11.11 官方会场</a><span aria-hidden="true">/</span><span style="color: #E9ECF2">鞋靴双11会场</span>
+  </nav>
+  <nav aria-label="视图" style="display: flex; gap: 4px; padding: 4px; background: #11141B; border: 1px solid #242A36; border-radius: 12px">
+    <a class="tab" href="Main.dc.html" style="color: #9AA3B5">驾驶舱</a>
+    <a class="tab" href="Matrix.dc.html" style="color: #9AA3B5">规范矩阵</a>
+    <a class="tab" href="Lifeline.dc.html" style="background: #1E2430; color: #E9ECF2">页面生命线</a>
+  </nav>
+</header>
+
+<section style="display: flex; flex-direction: column; gap: 8px">
+  <div style="display: flex; flex-wrap: wrap; gap: 8px">
+    <span class="chip" style="background: #241A33; color: #D7BEFF">上线后巡检</span>
+    <span class="chip" style="background: #10251C; color: #6EE7B7">已关联上线前基线</span>
+    <span class="chip" style="background: #2A2412; color: #F2D38A">上线后记录为演示数据</span>
+  </div>
+  <h1 style="margin: 0; font-size: 32px; line-height: 1.25; font-weight: 700">鞋靴双11会场</h1>
+  <p class="mono" style="margin: 0; color: #8790A3; font-size: 13px">会场 ID RA100813313228639998</p>
+</section>
+
+<section aria-label="这个页面的审核轨迹" style="padding: 24px; background: #0E1117; border: 1px solid #1F2430; border-radius: 20px; overflow-x: auto">
+  <ol style="list-style: none; margin: 0; padding: 0; min-width: 880px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: relative">
+    <sc-for list="{{track}}" as="t" hint-placeholder-count="5">
+      <li style="display: flex; flex-direction: column; gap: 8px; position: relative; padding-right: 16px">
+        <span style="display: flex; align-items: center">
+          <span aria-hidden="true" style="{{t.dot}}"></span>
+          <span aria-hidden="true" style="{{t.line}}"></span>
+        </span>
+        <span style="font-size: 12px; color: #8790A3">{{t.date}}</span>
+        <span style="font-weight: 600">{{t.name}}</span>
+        <span style="font-size: 12px; color: #9AA3B5">{{t.detail}}</span>
+      </li>
+    </sc-for>
+  </ol>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+
+<section aria-labelledby="tracks-title" style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 18px">
+  <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px">
+    <h2 id="tracks-title" style="margin: 0; font-size: 18px; font-weight: 600">规则轨迹</h2>
+    <span style="display: flex; gap: 16px; font-size: 12px; color: #8790A3"><span style="color: #AFC4FF">● 上线前 H5</span><span style="color: #D7BEFF">● 上线后 App</span></span>
+  </div>
+  <sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <div style="display: flex; align-items: center; gap: 10px; padding: 0 12px 6px">
+        <span style="{{g.badge}}">{{g.label}}</span>
+        <span style="font-size: 12px; color: #8790A3">{{g.hint}}</span>
+      </div>
+      <sc-for list="{{g.rows}}" as="r" hint-placeholder-count="3">
+        <button class="row" type="button" aria-pressed="{{r.pressed}}" onClick="{{r.pick}}" style="{{r.rowStyle}}">
+          <span style="display: flex; flex-direction: column; line-height: 1.35; min-width: 0">
+            <span class="mono" style="font-size: 11px; color: #8790A3">{{r.id}}</span>
+            <span style="font-size: 13px; color: #E9ECF2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.title}}</span>
+          </span>
+          <span style="position: relative; height: 28px" role="img" aria-label="{{r.aria}}">
+            <span style="position: absolute; left: 12%; right: 12%; top: 13px; height: 2px; background: {{r.lineColor}}"></span>
+            <span style="{{r.preDot}}"></span>
+            <span style="{{r.postDot}}"></span>
+          </span>
+          <span style="{{r.catStyle}}">{{r.cat}}</span>
+        </button>
+      </sc-for>
+    </div>
+  </sc-for>
+  <p style="margin: 0; padding: 0 12px; font-size: 12px; color: #8790A3">另有 2 条规则无法比对（OV-016 头图人物数量、OV-018 倒计时位置：两侧均不适用）。</p>
+</section>
+
+<aside aria-labelledby="ev-title" style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 16px; padding: 20px; background: #11141B; border: 1px solid #242A36; border-radius: 20px">
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <span style="{{sel.catStyle}}">{{sel.cat}}</span>
+    <h2 id="ev-title" style="margin: 0; font-size: 20px; font-weight: 600"><span class="mono" style="color: #9AA3B5; font-weight: 500">{{sel.id}}</span> {{sel.title}}</h2>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+    <figure style="margin: 0; display: flex; flex-direction: column; gap: 8px">
+      <div style="position: relative; aspect-ratio: 9 / 16; border-radius: 14px; background: repeating-linear-gradient(180deg, #151A24 0 46px, #121620 46px 92px); border: 1px solid #2A3245; overflow: hidden">
+        <span style="position: absolute; left: 10px; top: 10px; font-size: 11px; color: #8790A3">[上线前 H5 首屏截图]</span>
+        <span style="{{sel.preBox}}"></span>
+      </div>
+      <figcaption style="font-size: 12px; color: #AFC4FF">上线前 · H5 · 10/12 · <span style="color: {{sel.preColor}}">{{sel.preLabel}}</span></figcaption>
+    </figure>
+    <figure style="margin: 0; display: flex; flex-direction: column; gap: 8px">
+      <div style="position: relative; aspect-ratio: 9 / 16; border-radius: 14px; background: repeating-linear-gradient(180deg, #1A1626 0 46px, #151220 46px 92px); border: 1px solid #3A2F52; overflow: hidden">
+        <span style="position: absolute; left: 10px; top: 10px; font-size: 11px; color: #8790A3">[上线后 App 首屏截图]</span>
+        <span style="{{sel.postBox}}"></span>
+      </div>
+      <figcaption style="font-size: 12px; color: #D7BEFF">上线后 · App · 10/15 · <span style="color: {{sel.postColor}}">{{sel.postLabel}}</span></figcaption>
+    </figure>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <span style="font-size: 12px; font-weight: 600; color: #AFC4FF">上线前观察</span>
+      <p style="margin: 0; font-size: 13px; color: #C8CEDA">{{sel.preObs}}</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <span style="font-size: 12px; font-weight: 600; color: #D7BEFF">上线后观察</span>
+      <p style="margin: 0; font-size: 13px; color: #C8CEDA">{{sel.postObs}}</p>
+    </div>
+    <div style="padding: 12px 14px; background: #171B24; border-radius: 10px">
+      <span style="font-size: 12px; font-weight: 600; color: #C8CEDA">建议下一步</span>
+      <p style="margin: 0; font-size: 13px; color: #C8CEDA">{{sel.next}}</p>
+    </div>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px">
+    <button class="act" type="button" style="background: #7C5CFF; color: #FFFFFF; font-weight: 600">发起复查</button>
+    <button class="act" type="button" style="background: #171B24; color: #C8CEDA; border: 1px solid #2A303C">标记为已知例外</button>
+  </div>
+</aside>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1560}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const selId = (this.state && this.state.sel) || 'OV-001';
+    const sc = { fail: ['#FF6A3D', '不符合'], uncertain: ['#F2C14E', '待确认'], pass: ['#34D399', '符合'], not_applicable: ['#4A5262', '不适用'], disabled: ['#2A303C', '未启用'] };
+    const cat = {
+      regressed: ['发布回归', '#FF5A36', '#3A1810', '#FF9B78'], still_open: ['未修', '#E8875A', '#33200F', '#FFC48A'], new_issue: ['上线后新增', '#D96BFF', '#2C1438', '#E6A8FF'],
+      needs_confirmation: ['待确认', '#F2C14E', '#2A2412', '#F2D38A'], fixed: ['已修', '#34D399', '#10251C', '#6EE7B7'], kept: ['保持合规', '#2F7D62', '#0F1F19', '#7FCDB0'],
+    };
+    const D = [
+      ['OV-001', '固定框架和顺序', 'regressed', 'pass', 'fail', '首屏可见顺序为顶部导航、主视觉、权益组件、分类Tab、feeds；未见导购魔方。', [8, 6, 84, 70], '对照基线确认是哪次发布改动了楼层顺序，修复后发起复查。'],
+      ['OV-010', 'feeds 背景为白色', 'still_open', 'fail', 'fail', 'feeds 卡外背景主色 #623D1F，占比 100%，非白色。', [6, 58, 88, 36], '上线前已指出且未修复，需要确认是否为已批准的例外；否则推动整改。'],
+      ['OV-004', '导购魔方样式唯一', 'new_issue', 'not_applicable', 'fail', '主视觉、权益组件与分类Tab之间未发现导购魔方组件。', [8, 30, 84, 12], '上线前不适用，上线后出现了新组件。确认新增组件是否经过上线前审核。'],
+      ['OV-006', '底部导航存在及样式', 'new_issue', 'disabled', 'fail', '上线前规范未启用此规则，本轮不执行。', [0, 90, 100, 10], '上线后规范范围扩大带来的新检查面，不属于回归；纳入下一轮上线前审核。'],
+      ['OV-003', '权益组件样式唯一', 'needs_confirmation', 'pass', 'uncertain', '主视觉下方为权益券包“神券折上折”，同类平铺券卡并带“一键领券”。', [8, 22, 84, 10], '上线后证据不足以判定，补充权益区截图后重新判定。'],
+      ['OV-015', '头图商品数量建议', 'needs_confirmation', 'uncertain', 'uncertain', '证据区域超出头图，未形成可靠的数量测量。', [8, 6, 84, 16], '两侧都缺测量，属于证据缺口；补充头图区域裁切后判定。'],
+      ['OV-009', '分类Tab上方间距 7–9px', 'fixed', 'fail', 'pass', '实时 H5：权益券包底部到分类Tab顶部 16px，标准 7–9px。', [8, 33, 84, 4], '已修复。该规则在本项目另有 3 个页面不符合，建议组件层统一处理。'],
+      ['OV-017', '头图主标题字数上限', 'fixed', 'fail', 'pass', '头图主标题“品质鞋靴 现货不用等”，9 个字符，上限 8。', [10, 10, 60, 8], '已修复，保持。'],
+      ['OV-002', '新增楼层的位置', 'kept', 'pass', 'pass', '两屏未见互动组件、招商楼层或拉新楼层。', [0, 0, 0, 0], '保持合规，无需处理。'],
+      ['OV-005', 'feeds 及首屏完整商品', 'kept', 'pass', 'pass', '首屏完整 feeds 商品数 3。', [6, 62, 88, 30], '保持合规，无需处理。'],
+      ['OV-014', '活动LOGO不重复重叠', 'kept', 'pass', 'pass', '主视觉内一个“11.11”活动标识，未见重复或重叠。', [30, 8, 40, 8], '保持合规，无需处理。'],
+      ['OV-023', '首屏完整feeds商品数量', 'kept', 'pass', 'pass', '首屏完整 feeds 商品数 3。', [6, 62, 88, 30], '保持合规，无需处理。'],
+    ];
+    const dot = (left, status) => 'position:absolute;top:6px;left:calc(' + left + ' - 8px);width:16px;height:16px;border-radius:8px;box-sizing:border-box;background:' + sc[status][0] + (status === 'disabled' || status === 'not_applicable' ? ';background:#0A0C11;border:2px dashed ' + sc[status][0] : '');
+    const row = (d) => {
+      const c = cat[d[2]], on = d[0] === selId;
+      return {
+        id: d[0], title: d[1], cat: c[0], pressed: on ? 'true' : 'false', pick: () => this.setState({ sel: d[0] }),
+        rowStyle: on ? 'background:#1A2030;box-shadow:inset 0 0 0 1px #3B4A6B' : 'background:transparent',
+        lineColor: c[1], preDot: dot('12%', d[3]), postDot: dot('88%', d[4]),
+        catStyle: 'justify-self:end;font-size:12px;padding:2px 10px;border-radius:10px;white-space:nowrap;background:' + c[2] + ';color:' + c[3],
+        aria: d[0] + ' 上线前' + sc[d[3]][1] + '，上线后' + sc[d[4]][1] + '，' + c[0],
+      };
+    };
+    const G = [
+      ['需要处理', ['regressed', 'still_open', 'new_issue'], '回归优先，其次未修与新增', '#3A1810', '#FF9B78'],
+      ['待确认', ['needs_confirmation'], '缺证据，不计入问题数', '#2A2412', '#F2D38A'],
+      ['已闭环', ['fixed', 'kept'], '已修复或保持合规', '#10251C', '#6EE7B7'],
+    ];
+    const groups = G.map(([label, keys, hint, bg, fg]) => ({
+      label: label + ' · ' + D.filter((d) => keys.includes(d[2])).length, hint,
+      badge: 'font-size:13px;font-weight:600;padding:2px 12px;border-radius:12px;background:' + bg + ';color:' + fg,
+      rows: D.filter((d) => keys.includes(d[2])).map(row),
+    }));
+    const s = D.find((d) => d[0] === selId);
+    const c = cat[s[2]];
+    const box = (b, color) => b[2] ? 'position:absolute;left:' + b[0] + '%;top:' + b[1] + '%;width:' + b[2] + '%;height:' + b[3] + '%;border:2px solid ' + color + ';border-radius:6px;background:' + color + '22' : 'display:none';
+    const sel = {
+      id: s[0], title: s[1], cat: c[0],
+      catStyle: 'align-self:flex-start;font-size:12px;font-weight:600;padding:2px 10px;border-radius:10px;background:' + c[2] + ';color:' + c[3],
+      preLabel: sc[s[3]][1], postLabel: sc[s[4]][1], preColor: sc[s[3]][0], postColor: sc[s[4]][0],
+      preBox: box(s[6], sc[s[3]][0]), postBox: box(s[6], sc[s[4]][0]),
+      preObs: s[5], postObs: '演示数据：上线后状态为模拟结果，正式接入时显示 App 巡检的观察与框选。', next: s[7],
+    };
+    const T = [
+      ['10/11', '规范确认', '官方会场 v5 · 13 项启用', 'done'],
+      ['10/12', '上线前审核 · H5', '不符合 3 · 待确认 1', 'done'],
+      ['10/15', '基线关联', '上线后记录引用此 H5 审核', 'done'],
+      ['10/15', '上线后巡检 · App', '回归 1 · 未修 1 · 新增 2（演示）', 'current'],
+      ['下一步', '整改复查', '修复后发起复查，问题清零即闭环', 'todo'],
+    ];
+    const track = T.map((t, i) => ({
+      date: t[0], name: t[1], detail: t[2],
+      dot: 'flex:none;width:18px;height:18px;border-radius:9px;box-sizing:border-box;' + (t[3] === 'current' ? 'background:#0A0C11;border:4px solid #C49BFF;box-shadow:0 0 0 5px rgba(196,155,255,.18)' : t[3] === 'done' ? 'background:' + (i < 3 ? '#7AA2FF' : '#C49BFF') : 'background:#0A0C11;border:2px dashed #4A5262'),
+      line: i === T.length - 1 ? 'display:none' : 'flex:1;height:2px;margin-left:8px;background:' + (t[3] === 'done' ? (i < 2 ? '#7AA2FF' : 'linear-gradient(90deg,#7AA2FF,#C49BFF)') : 'repeating-linear-gradient(90deg,#4A5262 0 6px,transparent 6px 12px)'),
+    }));
+    return { groups, sel, track };
+  }
+}
+</script>
+</body>
+</html>
