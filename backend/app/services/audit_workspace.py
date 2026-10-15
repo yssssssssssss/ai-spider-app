@@ -202,7 +202,12 @@ def _outcome(summary: dict) -> str:
 def _capture_failure(audit: dict) -> tuple[str, dict]:
     detail = {"page_warnings": audit.get("page_warnings"), "page_state": audit.get("page_state")}
     text = json.dumps(detail, ensure_ascii=False).lower()
-    if "迷路" in text:
+    gate_reason = (audit.get("capture_gate") or {}).get("reason")
+    if gate_reason:
+        # Keep the v2 reason vocabulary so analytics counts gated and model-detected failures alike.
+        reason = {"venue_lost": "offline"}.get(gate_reason, gate_reason)
+        reason = reason if reason in CAPTURE_REASONS else "other"
+    elif "迷路" in text:
         reason = "offline"
     elif "过期" in text or "已结束" in text:
         reason = "expired"

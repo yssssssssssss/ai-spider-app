@@ -10,6 +10,7 @@ export const statusLabels: Record<AuditStatus, string> = {
 };
 export const captureLabels: Record<AuditCaptureReason, string> = {
   offline: '活动已下线', expired: '已过期或已结束', login_required: '需要登录', other: '其他采集异常',
+  venue_lost: '活动迷路', not_ready: '加载未就绪', floor_error: '楼层异常', capture_failed: '采集失败',
 };
 export function auditTime(value?: string | null) {
   if (!value) return '暂无时间';

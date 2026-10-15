@@ -55,7 +55,7 @@ def catalog_at(root):
     return venues
 
 
-def capture_at(root, venue, failed=False):
+def capture_at(root, venue, failed=False, **metadata):
     capture = {"venue": venue, "identity_verification": {"status": "verified_entry"},
                "navigation_status": "verified_entry", "navigation_url": venue["preview_url"],
                "capture_status": "failed" if failed else "success", "screens": []}
@@ -69,6 +69,7 @@ def capture_at(root, venue, failed=False):
             Image.new("RGB", (390, 844), "white").save(path)
             capture["screens"].append({"number": number, "file": file, "width": 390, "height": 844,
                 "sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "scroll_y": (number - 1) * 844})
+    capture.update(metadata)
     write(root / "venues" / venue["record_id"] / "capture.json", capture)
 
 
@@ -84,6 +85,7 @@ class FakeRunner:
         self.entered = threading.Event()
         self.release = threading.Event()
         self.capture_failed = set()
+        self.capture_metadata = {}
         self.pid = 10000
         self.spaces = set()
 
@@ -129,7 +131,8 @@ class FakeRunner:
             for venue in replay.read(source / "catalog.json")["venues"]:
                 assert (source / venue["qr_file"]).is_file()  # capture's verifier checks the entire catalog.
                 if venue["record_id"] in ids:
-                    capture_at(source, venue, venue["venue_id"] in self.capture_failed)
+                    capture_at(source, venue, venue["venue_id"] in self.capture_failed,
+                               **self.capture_metadata.get(venue["venue_id"], {}))
                     emit({"stage": "captured", "record_id": venue["record_id"]})
                     if self.block_step == "capture_progress" and not self.entered.is_set():
                         self.entered.set()
@@ -146,12 +149,14 @@ class FakeRunner:
                 folder = output / "venues" / venue["record_id"]
                 capture = replay.read(folder / "capture.json")
                 warnings = replay.fresh_capture_warnings(output, venue, capture)
+                gate = replay.classify(capture)
                 reply = reply_for(spec)
-                if warnings:
+                if warnings or gate["verdict"] == "blocked":
                     reply = replay.Reply(page_state="error", overview="采集失败", page_warnings=warnings,
                         visual_regions=[], checks=[replay.Check(rule_id=r["id"], status="uncertain",
                             observed="采集失败", reason="页面未就绪", evidence=[]) for r in spec["rules"]])
                 audit = replay.normalize(reply, capture, spec, [], [], None)
+                replay.attach_capture_gate(audit, gate)
                 write(folder / "audit.json", audit)
                 emit({"stage": "audited", "record_id": venue["record_id"]})
             write(output / "run.json", {"status": "completed"})
@@ -287,6 +292,8 @@ def test_full_flow_matches_direct_parser_and_includes_capture_failures(context):
     assert run.summary_json["targets"] == 3
     assert run.summary_json["outcomes"]["capture_failed"] == 1
     assert {t.business_key: t.capture_reason for t in run.targets}["RA3"] == "other"
+    assert job.executor_ref_json["summary"] == {
+        "gate": {"blocked": 1, "by_reason": {"capture_failed": 1}, "degraded": 0}, "blocked_venue_ids": ["RA3"]}
     thread = context.executor._thread
     if thread:
         thread.join(10)
@@ -437,3 +444,43 @@ def test_process_runner_uses_process_group_signal(monkeypatch):
     monkeypatch.setattr(h5.os, "killpg", lambda pid, sig: calls.append((pid, sig)))
     h5.ProcessRunner().terminate(123)
     assert calls == [(123, h5.signal.SIGKILL)]
+
+
+@pytest.mark.parametrize("lost_count,has_hint", [(29, False), (30, True)])
+def test_gate_summary_hint_threshold_and_degraded(tmp_path, lost_count, has_hint):
+    venues = [{"record_id": str(n), "venue_id": f"RA{n}"} for n in range(100)]
+    for n, venue in enumerate(venues):
+        gate = {"verdict": "blocked", "reason": "venue_lost"} if n < lost_count else (
+            {"verdict": "degraded", "reason": "floor_error"} if n == 99 else {"verdict": "ok"})
+        write(tmp_path / "venues" / venue["record_id"] / "audit.json", {"capture_gate": gate})
+    summary = h5.gate_summary(tmp_path, venues)
+    assert summary["gate"] == {"blocked": lost_count, "by_reason": {"venue_lost": lost_count}, "degraded": 1}
+    assert summary["blocked_venue_ids"] == [v["venue_id"] for v in venues[:lost_count]]
+    assert ("hint" in summary) is has_hint
+    if has_hint:
+        assert summary["hint"] == "可能是预览时间或预览链接失效"
+
+
+def test_gate_summary_survives_report_failure_and_recapture_reloads_directory(context):
+    source = context.repo / "data/existing"
+    for venue in catalog_at(source):
+        capture_at(source, venue, page_title="挑好物逛京东" if venue["venue_id"] == "RA1" else "正常会场")
+    context.runner.fail_step = "report"
+    job_id = create(context, {"catalog_dir": "existing"})
+    job = wait_for(context, job_id, "failed")
+    summary = job.executor_ref_json["summary"]
+    assert summary["gate"] == {"blocked": 1, "by_reason": {"venue_lost": 1}, "degraded": 0}
+    assert summary["hint"] == "可能是预览时间或预览链接失效"
+    assert summary["blocked_venue_ids"] == ["RA1"]
+    context.runner.fail_step = None
+    response = context.client.post(f"/api/audit-jobs/{job_id}/recapture-failed")
+    assert response.status_code == 200, response.text
+    from uuid import UUID
+    new_job = wait_for(context, UUID(response.json()["id"]), "completed")
+    assert new_job.executor_ref_json["summary"]["gate"]["blocked"] == 0
+    assert new_job.executor_ref_json["summary"]["blocked_venue_ids"] == []
+    steps = [step for step, _, _ in context.runner.calls]
+    assert steps == ["profile", "audit", "report", "preflight", "capture", "profile", "audit", "report"]
+    run = context.db.get(models.AuditRun, new_job.audit_run_id)
+    assert [target.business_key for target in run.targets] == ["RA1"]
+    assert replay.read(source / "venues" / "p01-r01-RA1" / "capture.json")["page_title"] == "挑好物逛京东"

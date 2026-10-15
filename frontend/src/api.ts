@@ -128,7 +128,7 @@ export interface AuditJob {
   id: string; name: string; carrier: AuditCarrier; phase: AuditPhase;
   spec_version_id: string; project_id: string | null; status: AuditJobStatus;
   status_detail: string | null; input_json: Record<string, unknown>;
-  executor_ref_json: { step?: string; work_dir?: string; space_id?: number | null; pid?: number | null; [key: string]: unknown };
+  executor_ref_json: { step?: string; work_dir?: string; space_id?: number | null; pid?: number | null; summary?: { gate: { blocked: number; by_reason: Record<string, number>; degraded: number }; blocked_venue_ids: string[]; hint?: string }; [key: string]: unknown };
   audit_run_id: string | null; error: string | null; created_by: string | null;
   created_at: string; updated_at: string; finished_at: string | null;
 }
@@ -140,7 +140,7 @@ export type H5AuditInput = ({ catalog_url: string; catalog_dir?: never } | { cat
 export type AuditCarrierScope = AuditCarrier | 'both';
 export type AuditOutcome = 'issues' | 'needs_confirmation' | 'partial' | 'clean' | 'capture_failed';
 export type AuditStatus = 'pass' | 'fail' | 'uncertain' | 'not_applicable' | 'disabled';
-export type AuditCaptureReason = 'offline' | 'expired' | 'login_required' | 'other';
+export type AuditCaptureReason = 'offline' | 'expired' | 'login_required' | 'other' | 'venue_lost' | 'not_ready' | 'floor_error' | 'capture_failed';
 export type AuditSort = 'fail' | 'uncertain' | 'name';
 export interface AuditRule {
   rule_id: string; title: string; clause: string; expected: string;
@@ -288,6 +288,7 @@ export const listAuditJobs = (params?: { project_id?: string; status?: 'active' 
 export const createAuditJob = (data: AuditJobInput) => api.post<AuditJob>('/audit-jobs', data);
 export const continueAuditJob = (id: string) => api.post<AuditJob>(`/audit-jobs/${id}/continue`);
 export const cancelAuditJob = (id: string) => api.post<AuditJob>(`/audit-jobs/${id}/cancel`);
+export const recaptureFailedAuditJob = (id: string) => api.post<AuditJob>(`/audit-jobs/${id}/recapture-failed`);
 export const getAuditExecutor = (id: string, carrier: AuditCarrier) => api.get<{ available: boolean; reason: string | null }>(`/audit-specs/versions/${id}/executor`, { params: { carrier } });
 export const assignAuditRuns = (projectId: string, runIds: string[]) => api.post<AuditRun[]>(`/audit-projects/${projectId}/assign-runs`, { run_ids: runIds });
 export const createAuditSpec = (data: AuditSpecInput) => api.post<AuditSpec>('/audit-specs', data);

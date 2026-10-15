@@ -132,6 +132,20 @@ def cancel_job(db: Session, job: models.AuditJob) -> models.AuditJob:
     return job
 
 
+def recapture_failed(db: Session, job: models.AuditJob, *, user_id: UUID) -> models.AuditJob:
+    job = _lock_job(db, job.id)
+    if job.carrier != "h5" or job.status not in {"completed", "failed"}:
+        raise InvalidJobTransition("仅已完成或失败的 H5 任务可重采")
+    blocked = (job.executor_ref_json.get("summary") or {}).get("blocked_venue_ids")
+    if not blocked:
+        raise InvalidJobTransition("没有被闸门拦截的会场")
+    data = {key: job.input_json[key] for key in ("catalog_url", "catalog_dir") if key in job.input_json}
+    data.update(venue_ids=list(blocked), force_recapture=True)
+    return create_job(db, name=job.name + " · 重采", carrier="h5", phase=job.phase,
+                      spec_version_id=job.spec_version_id, project_id=job.project_id,
+                      input=data, user_id=user_id)
+
+
 def complete_with_run(db: Session, job: models.AuditJob, run: models.AuditRun) -> None:
     transition_job(job, "completed")
     db.flush()

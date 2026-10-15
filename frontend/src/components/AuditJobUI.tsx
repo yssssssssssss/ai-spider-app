@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { isAxiosError } from 'axios';
 import { Link } from 'react-router-dom';
-import { AuditCarrier, AuditJob, AuditJobStatus, AuditPhase, AuditProjectDetail, AuditRun, AuditSpec, H5AuditInput, H5AuditStep, assignAuditRuns, cancelAuditJob, continueAuditJob, createAuditJob, getAuditExecutor, listAuditJobs, listAuditRuns, listAuditSpecs } from '../api';
+import { AuditCarrier, AuditJob, AuditJobStatus, AuditPhase, AuditProjectDetail, AuditRun, AuditSpec, H5AuditInput, H5AuditStep, assignAuditRuns, cancelAuditJob, continueAuditJob, createAuditJob, getAuditExecutor, listAuditJobs, listAuditRuns, listAuditSpecs, recaptureFailedAuditJob } from '../api';
 import { useAuth } from '../auth';
 import { AuditDialog, auditTime, LoadState } from './AuditWorkspaceUI';
 
@@ -10,6 +10,8 @@ const statusLabels: Record<AuditJobStatus, string> = {
   completed: '已完成', failed: '失败', cancelled: '已取消',
 };
 const isActive = (job: AuditJob) => !['completed', 'failed', 'cancelled'].includes(job.status);
+const gateLabels: Record<string, string> = { venue_lost: '活动迷路', login_required: '需要登录', expired: '活动过期', not_ready: '加载未就绪', capture_failed: '采集失败' };
+const canRecapture = (job: AuditJob) => job.carrier === 'h5' && ['completed', 'failed'].includes(job.status) && !!job.executor_ref_json.summary?.blocked_venue_ids.length;
 const stepLabels: Record<H5AuditStep, string> = {
   preflight: '检查登录', catalog: '读取目录', capture: '采集会场', profile: '准备规范',
   audit: '模型审核', report: '生成报告', ingest: '收录结果',
@@ -154,11 +156,12 @@ export function AuditJobsSection({ projectId, reload, onTerminal }: { projectId?
     void poll();
     return () => { active = false; clearTimeout(timer); };
   }, [projectId, reload, retry, onTerminal]);
-  async function act(job: AuditJob, action: 'continue' | 'cancel') {
+  async function act(job: AuditJob, action: 'continue' | 'cancel' | 'recapture') {
     setBusy(job.id); setError('');
     try {
-      const { data } = await (action === 'continue' ? continueAuditJob(job.id) : cancelAuditJob(job.id));
-      setJobs(previous => previous.map(item => item.id === data.id ? data : item));
+      const { data } = await (action === 'recapture' ? recaptureFailedAuditJob(job.id) : action === 'continue' ? continueAuditJob(job.id) : cancelAuditJob(job.id));
+      setJobs(previous => action === 'recapture' ? [data, ...previous] : previous.map(item => item.id === data.id ? data : item));
+      if (action === 'recapture') setRetry(value => value + 1);
       if (!isActive(data)) onTerminal();
     } catch (err) { setError(errorText(err)); } finally { setBusy(null); }
   }
@@ -167,7 +170,7 @@ export function AuditJobsSection({ projectId, reload, onTerminal }: { projectId?
     setDismissed(next);
     try { localStorage.setItem(dismissedKey, JSON.stringify([...next])); } catch { /* Hiding still works for this visit. */ }
   }
-  const visible = jobs.filter(job => isActive(job) || (recentFailure(job) && !dismissed.has(job.id)));
+  const visible = jobs.filter(job => isActive(job) || ((recentFailure(job) || canRecapture(job)) && !dismissed.has(job.id)));
   return <section className="aw-jobs" aria-label="进行中的审核任务">
     {visible.length ? <h2>进行中 <span className="aw-muted">{jobs.filter(isActive).length}</span></h2> : !projectId ? <h2>进行中 <span className="aw-muted">0</span></h2> : null}
     {error ? <p role="alert">{error} <button type="button" className="aw-secondary" onClick={() => setRetry(value => value + 1)}>重试</button></p> : null}
@@ -177,7 +180,12 @@ export function AuditJobsSection({ projectId, reload, onTerminal }: { projectId?
       {job.status === 'running' && job.executor_ref_json.step ? <p className="aw-job-step">当前步骤：{stepLabels[job.executor_ref_json.step as H5AuditStep] || job.executor_ref_json.step}</p> : null}
       {job.status_detail ? <p className="aw-job-detail" role={job.status === 'needs_action' ? 'status' : undefined}>{job.status_detail}</p> : null}
       {job.status === 'failed' && job.error ? <p role="alert">{job.error}</p> : null}
-      {job.status === 'failed' ? <div className="aw-actions"><button type="button" className="aw-secondary" onClick={() => dismiss(job.id)}>知道了</button></div> : null}
+      {job.carrier === 'h5' && job.executor_ref_json.summary ? <div className="aw-job-notice">
+        <p>已拦截 {job.executor_ref_json.summary.gate.blocked} 个无效页面{job.executor_ref_json.summary.gate.blocked ? `：${Object.entries(job.executor_ref_json.summary.gate.by_reason).map(([reason, count]) => `${gateLabels[reason] || reason} ${count}`).join('，')}` : ''}；降级审核 {job.executor_ref_json.summary.gate.degraded} 个</p>
+        {job.executor_ref_json.summary.hint ? <p>{job.executor_ref_json.summary.hint}</p> : null}
+      </div> : null}
+      {hasRole('operator') && canRecapture(job) ? <div className="aw-actions"><button type="button" className="aw-secondary" disabled={busy !== null} onClick={() => act(job, 'recapture')}>{busy === job.id ? '处理中…' : '仅重采失败会场'}</button></div> : null}
+      {job.status === 'failed' || canRecapture(job) ? <div className="aw-actions"><button type="button" className="aw-secondary" onClick={() => dismiss(job.id)}>知道了</button></div> : null}
       {hasRole('operator') && isActive(job) ? <div className="aw-actions">
         {job.status === 'needs_action' ? <button type="button" disabled={busy !== null} onClick={() => act(job, 'continue')}>继续</button> : null}
         <button type="button" className="aw-secondary" disabled={busy !== null} onClick={() => act(job, 'cancel')}>{busy === job.id ? '处理中…' : '取消'}</button>
