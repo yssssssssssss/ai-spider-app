@@ -214,10 +214,14 @@ export interface AuditEvidenceMeasurement {
   verdict: string; source: 'dom' | 'pixel'; verified: boolean;
   asset?: string | null; file?: string | null; bbox_px?: AuditEvidenceBox;
   localization_method?: string;
+  label?: string;
 }
 export interface AuditEvidence {
   kind: 'h5_report' | 'app_images'; image_ids: string[];
   items?: AuditEvidenceItem[]; measurements?: AuditEvidenceMeasurement[]; state?: AuditEvidenceState;
+}
+export interface AuditEvidenceUploadResult {
+  matched_targets: number; stored_assets: number; missing: number; integrity_errors: number; unmatched: number;
 }
 export interface AuditFinding {
   rule_id: string; title: string; status: AuditStatus; observed: string; reason: string;
@@ -301,6 +305,10 @@ export const importAuditSpecVersion = (id: string, file: File, carrierScope: Aud
 };
 export const listAuditRuns = (params?: { carrier?: AuditCarrier; project_id?: string; unassigned?: boolean }) => api.get<AuditRun[]>('/audit-runs', { params });
 export const getAuditRun = (id: string, outcome?: AuditOutcome) => api.get<AuditRunDetail>(`/audit-runs/${id}`, { params: { outcome } });
+export const uploadAuditEvidence = (runId: string, evidence: File) => {
+  const data = new FormData(); data.append('evidence', evidence);
+  return api.post<AuditEvidenceUploadResult>(`/audit-runs/${runId}/evidence`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+};
 export const updateAuditRun = (id: string, data: AuditRunUpdate) => api.patch<AuditRun>(`/audit-runs/${id}`, data);
 export const deleteAuditRun = (id: string) => api.delete<{ ok: boolean }>(`/audit-runs/${id}`);
 export const importAuditH5Run = ({ file, ...fields }: AuditH5RunInput) => {

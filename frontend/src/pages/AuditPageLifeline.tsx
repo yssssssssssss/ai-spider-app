@@ -1,9 +1,10 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { AuditComparisonRule, AuditPageLifeline as Lifeline, AuditProjectDetail, AuditStatus, getAuditPageLifeline, getAuditProject, updateAuditTargetBaseline } from '../api';
+import { AuditComparisonRule, AuditPageLifeline as Lifeline, AuditProjectDetail, AuditStatus, AuditTarget, getAuditPageLifeline, getAuditProject, getAuditTarget, updateAuditTargetBaseline } from '../api';
 import { useAuth } from '../auth';
 import { auditTime, DemoBadge, LoadState, OutcomeBadge, statusLabels } from '../components/AuditWorkspaceUI';
 import { CategoryBadge, categoryColors, ProjectViews, StageBadge, statusGlyphs } from '../components/AuditProjectUI';
+import AuditEvidence from '../components/AuditEvidence';
 
 const nextSteps = {
   regressed: '对照基线排查发布变更，修复后重新检查此规则。',
@@ -26,6 +27,26 @@ function TrackDot({ status }: { status: AuditStatus | null }) {
 function RuleTrack({ rule, selected, onSelect }: { rule: AuditComparisonRule; selected: boolean; onSelect: () => void }) {
   const label = `上线前${rule.pre_status ? statusLabels[rule.pre_status] : '未覆盖'}，上线后${rule.post_status ? statusLabels[rule.post_status] : '未覆盖'}`;
   return <button type="button" className="ap-rule-track" aria-pressed={selected} onClick={onSelect}><span className="ap-track-rule"><span className="aw-mono">{rule.rule_id}</span><strong>{rule.title}</strong></span><span className="ap-dot-track" role="img" aria-label={label}><i style={{ background: categoryColors[rule.category] }} /><TrackDot status={rule.pre_status} /><TrackDot status={rule.post_status} /></span><CategoryBadge category={rule.category} /></button>;
+}
+
+function LifelineEvidence({ preId, postId, ruleId, onReload }: { preId?: string; postId?: string; ruleId: string; onReload: () => void }) {
+  const [targets, setTargets] = useState<(AuditTarget | null)[] | null>(null);
+  const [error, setError] = useState(false);
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    let active = true;
+    setTargets(null); setError(false);
+    Promise.all([preId, postId].map(targetId => targetId ? getAuditTarget(targetId).then(({ data }) => data) : Promise.resolve(null)))
+      .then(data => { if (active) setTargets(data); }).catch(() => { if (active) setError(true); });
+    return () => { active = false; };
+  }, [preId, postId, retry]);
+  if (!preId && !postId) return null;
+  if (!targets) return <LoadState loading={!error} error={error} retry={() => setRetry(value => value + 1)} />;
+  return <div className="aw-evidence-comparison">{targets.map((target, index) => {
+    if (!target) return null;
+    const finding = target.findings_json.find(item => item.rule_id === ruleId);
+    return <section className="aw-evidence-side" key={target.id}><h3>{index === 0 ? '上线前' : '上线后'}</h3>{finding ? <AuditEvidence key={ruleId} finding={finding} runId={target.run_id} onReload={onReload} /> : <p className="aw-muted">本次结果未覆盖该规则。</p>}</section>;
+  })}</div>;
 }
 
 function BaselineControl({ lifeline, onChange }: { lifeline: Lifeline; onChange: () => void }) {
@@ -75,7 +96,7 @@ export default function AuditPageLifeline() {
       {data.lifeline.independent_check && <aside className="aw-panel ap-independent-notice"><h2>独立检查</h2><p>最新上线后记录未关联基线，暂无规则变化轨迹。可从审核轨迹查看各次结果，或关联同一页面的上线前记录。</p></aside>}
       {data.lifeline.comparison?.spec_mismatch && <p className="aw-warning">两侧规范版本不同；变化类别已由接口按启用状态与载体适用性计算。</p>}
       <div className="ap-lifeline-layout"><section className="ap-rule-tracks" aria-labelledby="tracks-title"><div className="aw-heading"><h2 id="tracks-title">规则轨迹</h2><span className="aw-muted">左：上线前 · 右：上线后</span></div>{groups.map(group => <section key={group.key} className="ap-track-group"><div className="aw-heading"><h3 className={group.className}>{group.title} · {data.lifeline.groups[group.key].length}</h3><span className="aw-muted">{group.hint}</span></div>{data.lifeline.groups[group.key].map(rule => <RuleTrack key={rule.rule_id} rule={rule} selected={selected?.rule_id === rule.rule_id} onSelect={() => setSelectedId(rule.rule_id)} />)}{!data.lifeline.groups[group.key].length && <p className="aw-muted ap-track-empty">暂无此类比对记录。</p>}</section>)}{uncompared.length > 0 && <details className="ap-uncompared"><summary>另有 {uncompared.length} 条规则无法比对</summary>{uncompared.map(rule => <RuleTrack key={rule.rule_id} rule={rule} selected={selected?.rule_id === rule.rule_id} onSelect={() => setSelectedId(rule.rule_id)} />)}</details>}<p className="aw-muted">× 不符合 · ✓ 符合 · ? 待确认；虚线空心点表示不适用、未启用或未覆盖。</p></section>
-        <aside className="aw-panel ap-rule-panel" aria-labelledby="observed-title">{selected ? <><CategoryBadge category={selected.category} /><h2 id="observed-title"><span className="aw-mono">{selected.rule_id}</span> {selected.title}</h2><div className="ap-observed"><h3 className="ap-pre-text">上线前观察 · {selected.pre_status ? statusLabels[selected.pre_status] : '未覆盖'}</h3>{baseline && <p className="aw-muted">{baseline.run_name} · {auditTime(baseline.date)}</p>}<p>{selected.pre_observed || '暂无观察文本'}</p></div><div className="ap-observed"><h3 className="ap-post-text">上线后观察 · {selected.post_status ? statusLabels[selected.post_status] : '未覆盖'}</h3>{latestPost && <p className="aw-muted">{latestPost.run_name} · {auditTime(latestPost.date)}</p>}<p>{selected.post_observed || '暂无观察文本'}</p></div><div className="ap-insight"><h3>建议下一步</h3><p>{nextSteps[selected.category]}</p></div></> : <><h2 id="observed-title">规则观察</h2><p>关联基线后，选择规则可查看两侧观察文本与下一步建议。</p></>}</aside>
+        <aside className="aw-panel ap-rule-panel" aria-labelledby="observed-title">{selected ? <><CategoryBadge category={selected.category} /><h2 id="observed-title"><span className="aw-mono">{selected.rule_id}</span> {selected.title}</h2><div className="ap-observed"><h3 className="ap-pre-text">上线前观察 · {selected.pre_status ? statusLabels[selected.pre_status] : '未覆盖'}</h3>{baseline && <p className="aw-muted">{baseline.run_name} · {auditTime(baseline.date)}</p>}<p>{selected.pre_observed || '暂无观察文本'}</p></div><div className="ap-observed"><h3 className="ap-post-text">上线后观察 · {selected.post_status ? statusLabels[selected.post_status] : '未覆盖'}</h3>{latestPost && <p className="aw-muted">{latestPost.run_name} · {auditTime(latestPost.date)}</p>}<p>{selected.post_observed || '暂无观察文本'}</p></div><LifelineEvidence preId={baseline?.id} postId={latestPost?.id} ruleId={selected.rule_id} onReload={() => setReload(value => value + 1)} /><div className="ap-insight"><h3>建议下一步</h3><p>{nextSteps[selected.category]}</p></div></> : <><h2 id="observed-title">规则观察</h2><p>关联基线后，选择规则可查看两侧观察文本与下一步建议。</p></>}</aside>
       </div>
     </>}
   </div>;

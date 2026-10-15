@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useId, useRef } from 'react';
+import { KeyboardEventHandler, ReactNode, useEffect, useId, useRef } from 'react';
 import { AuditCaptureReason, AuditComposition, AuditOutcome, AuditStatus } from '../api';
 
 export const outcomeOrder: AuditOutcome[] = ['issues', 'needs_confirmation', 'partial', 'clean', 'capture_failed'];
@@ -27,7 +27,7 @@ export function OutcomeBadge({ outcome }: { outcome: AuditOutcome }) {
 export function DemoBadge({ source }: { source: Record<string, unknown> }) {
   return source.demo === true ? <span className="aw-chip aw-demo">演示数据</span> : null;
 }
-export function AuditDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+export function AuditDialog({ title, onClose, children, className = '', onKeyDown }: { title: string; onClose: () => void; children: ReactNode; className?: string; onKeyDown?: KeyboardEventHandler<HTMLDialogElement> }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   useEffect(() => {
@@ -40,7 +40,7 @@ export function AuditDialog({ title, onClose, children }: { title: string; onClo
       if (previous instanceof HTMLElement && previous.isConnected) previous.focus();
     };
   }, []);
-  return <dialog ref={ref} className="aw aw-dialog" aria-labelledby={titleId} onCancel={event => { event.preventDefault(); onClose(); }}>
+  return <dialog ref={ref} className={`aw aw-dialog ${className}`} aria-labelledby={titleId} onKeyDown={onKeyDown} onCancel={event => { event.preventDefault(); onClose(); }}>
     <div className="aw-heading"><h2 id={titleId}>{title}</h2><button type="button" className="aw-quiet" onClick={onClose}>关闭</button></div>
     {children}
   </dialog>;
