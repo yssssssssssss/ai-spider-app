@@ -2486,6 +2486,7 @@ tr:hover td {
 .aw-dialog { position: fixed; display: flex; gap: 24px; margin: auto; width: min(580px, calc(100% - 32px)); max-height: calc(100dvh - 48px); padding: 24px; border: 1px solid var(--aw-line); border-radius: 18px; background: var(--aw-surface); overflow-y: auto; }
 .aw-dialog:not([open]) { display: none; }
 .aw-dialog::backdrop { background: rgba(0,0,0,.8); }
+.aw-dialog .aw-form > .aw-actions { position: sticky; bottom: -24px; z-index: 1; margin: 0 -24px -24px; padding: 16px 24px 24px; border-top: 1px solid var(--aw-line); background: var(--aw-surface); }
 .aw-form { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 .aw-form label { display: flex; flex-direction: column; gap: 6px; }
 .aw-form small { font-size: 12px; }
@@ -2624,6 +2625,7 @@ tr:hover td {
   .aw-spec-grid, .aw-triage-grid { grid-template-columns: minmax(0, 1fr); }
   .aw .aw-heading { gap: 12px; }
   .aw-dialog { padding: 20px; }
+  .aw-dialog .aw-form > .aw-actions { bottom: -20px; margin: 0 -20px -20px; padding: 16px 20px 20px; }
   .aw-run-row { gap: 16px; }
   .aw-run-row h2 { font-size: 16px; }
   .aw-composition { overflow-x: auto; }
