@@ -1,5 +1,6 @@
 """H5 lifecycle requirements, with filesystem-producing substitutes for Ego/Python."""
 from collections import deque
+from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
@@ -24,6 +25,7 @@ from app.database import SessionLocal, engine, get_db, init_db
 from app.routers import audit_workspace as router
 from app.services import audit_job_h5 as h5, audit_jobs as jobs, audit_workspace as workspace
 from app.services.auth import create_access_token
+from app.services.audit_evidence import mark_not_attached
 from scripts import rerun_venue_audit as replay, build_venue_recheck_report as report
 from scripts.audit_spec_profile import build_profile
 from scripts.tests.test_venue_fresh_audit import reply_for
@@ -277,7 +279,10 @@ def test_full_flow_matches_direct_parser_and_includes_capture_failures(context):
     parsed = workspace.parse_h5_results(packet, rules=context.version.rules_json)
     assert len(parsed) == 3
     for target, direct in zip(sorted(run.targets, key=lambda t: t.business_key), sorted(parsed, key=lambda t: t.venue_id)):
-        assert (target.business_key, target.outcome, target.capture_reason, target.summary_json, target.findings_json) == (
+        findings = deepcopy(target.findings_json)
+        for finding in findings:
+            mark_not_attached(finding["evidence"])
+        assert (target.business_key, target.outcome, target.capture_reason, target.summary_json, findings) == (
             direct.venue_id, direct.outcome, direct.capture_reason, direct.summary, direct.findings)
     assert run.summary_json["targets"] == 3
     assert run.summary_json["outcomes"]["capture_failed"] == 1

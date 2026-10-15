@@ -101,6 +101,7 @@ export const listWatchReports = (id: string, params?: any) => api.get(`/admin/wa
 export const listWatchSnapshots = (id: string) => api.get(`/admin/watch-runs/${id}/snapshots`);
 export const exportWatchPlanUrl = (id: string, format: 'json' | 'xlsx') => withToken(`/api/admin/watch-plans/${id}/export?format=${format}`);
 export const imageFileUrl = (id: string) => withToken(`/api/images/${id}/file`);
+export const auditEvidenceUrl = (sha: string) => withToken(`/api/audit-evidence/${sha}`);
 export const taskEventsUrl = (id: string) => withToken(`/api/admin/tasks/${id}/events`);
 export const listComparisonAssets = () => api.get('/compare/assets');
 export const createComparisonAssetFromImage = (data: any) => api.post('/compare/assets/from-image', data);
@@ -183,7 +184,7 @@ export interface AuditRunDetail extends AuditRun {
 export interface AuditRunUpdate { name?: string; project_id?: string | null }
 export interface AuditH5RunInput {
   file: File; spec_version_id: string; name: string; phase?: AuditPhase;
-  venue_ids?: string; project_id?: string;
+  venue_ids?: string; project_id?: string; evidence?: File;
 }
 export interface AuditAppRunInput {
   task_run_id: string; skill_id: string; spec_version_id: string; name: string;
@@ -193,9 +194,35 @@ export interface AuditTargetBrief {
   id: string; name: string; business_key: string | null; outcome: AuditOutcome;
   fail: number; uncertain: number; capture_reason: AuditCaptureReason | null; baseline_target_id: string | null;
 }
+export type AuditEvidenceState = 'localized' | 'context' | 'missing' | 'not_attached';
+export type AuditEvidenceSource = 'dom' | 'pixel' | 'model';
+export type AuditEvidenceBox = [number, number, number, number];
+export interface AuditEvidenceMark {
+  kind: 'rect' | 'line'; source: AuditEvidenceSource; label: string;
+  bbox_px?: AuditEvidenceBox; start_px?: [number, number]; end_px?: [number, number];
+  color?: string; dashed?: boolean;
+}
+export interface AuditEvidenceItem {
+  asset?: string | null; image_id?: string; file?: string; screen?: number;
+  image_size?: [number, number] | null; crop_px?: AuditEvidenceBox | null;
+  marks: AuditEvidenceMark[]; role?: 'localized' | 'context'; label?: string;
+  state?: AuditEvidenceState; integrity_error?: boolean;
+}
+export interface AuditEvidenceMeasurement {
+  id: string; kind: 'distance' | 'color' | 'count' | 'text_length';
+  value: number | string | null; unit: string; expected: string | number | null;
+  verdict: string; source: 'dom' | 'pixel'; verified: boolean;
+  asset?: string | null; file?: string | null; bbox_px?: AuditEvidenceBox;
+  localization_method?: string;
+}
+export interface AuditEvidence {
+  kind: 'h5_report' | 'app_images'; image_ids: string[];
+  items?: AuditEvidenceItem[]; measurements?: AuditEvidenceMeasurement[]; state?: AuditEvidenceState;
+}
 export interface AuditFinding {
   rule_id: string; title: string; status: AuditStatus; observed: string; reason: string;
-  evidence: { kind: 'h5_report' | 'app_images'; image_ids: string[] };
+  evidence: AuditEvidence; method?: AuditEvidenceSource | 'hybrid'; model_status?: AuditStatus;
+  evidence_integrity_error?: boolean;
 }
 export interface AuditTarget {
   id: string; run_id: string; business_key: string | null; name: string; outcome: AuditOutcome;

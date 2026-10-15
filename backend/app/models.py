@@ -499,6 +499,19 @@ class AuditRun(Base):
     targets = relationship("AuditTarget", back_populates="run", cascade="all, delete-orphan", passive_deletes=True)
 
 
+class AuditEvidenceAsset(Base):
+    __tablename__ = "audit_evidence_assets"
+
+    sha256 = Column(String(64), primary_key=True)
+    mime = Column(String, nullable=False)
+    width = Column(Integer, nullable=False)
+    height = Column(Integer, nullable=False)
+    bytes = Column(Integer, nullable=False)
+    storage_path = Column(Text, nullable=False)  # Relative to AUDIT_EVIDENCE_ROOT.
+    created_at = Column(DateTime, nullable=False, default=utc_now)
+    first_run_id = Column(UUID(as_uuid=True), ForeignKey("audit_runs.id", ondelete="SET NULL"), nullable=True)
+
+
 class AuditJobStatus(str, Enum):
     queued = "queued"
     running = "running"

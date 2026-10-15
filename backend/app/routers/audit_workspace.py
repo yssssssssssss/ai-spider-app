@@ -1,10 +1,13 @@
 from contextlib import contextmanager
 import json
 import re
+import shutil
+import tempfile
 from uuid import UUID
 from typing import Literal
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload, selectinload
@@ -12,6 +15,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from app import models, schemas
 from app.database import get_db
 from app.services import audit_analytics as analytics, audit_workspace as service, audit_jobs as jobs
+from app.services import audit_evidence
 from app.services.auth import get_current_user, require_at_least
 
 router = APIRouter(tags=["audit-workspace"], dependencies=[Depends(get_current_user)])
@@ -201,18 +205,57 @@ def _venue_ids(value):
     return {v.strip() for v in values}
 
 
+@contextmanager
+def _evidence_source(upload):
+    if upload is None:
+        yield None
+        return
+    # UploadFile is spooled by Starlette; copy in bounded chunks even for large packages.
+    with tempfile.TemporaryFile() as temporary:
+        shutil.copyfileobj(upload.file, temporary, length=1024 * 1024)
+        temporary.seek(0)
+        with audit_evidence.ZipEvidenceSource(temporary) as source:
+            yield source
+
+
+@router.get("/audit-evidence/{sha256}")
+def evidence_file(sha256: str, db: Session = Depends(get_db)):
+    asset = db.get(models.AuditEvidenceAsset, sha256)
+    if asset is None:
+        raise HTTPException(404, "Audit evidence not found")
+    path = audit_evidence.asset_path(asset)
+    if not path.is_file():
+        raise HTTPException(404, "Audit evidence not found")
+    return FileResponse(path, media_type=asset.mime,
+                        headers={"Cache-Control": "private, max-age=31536000, immutable"})
+
+
 @router.post("/audit-runs/h5", response_model=schemas.AuditRunOut)
 def create_h5_run(file: UploadFile = File(...), spec_version_id: UUID = Form(...), name: str = Form(...),
                   venue_ids: str | None = Form(None), project_id: UUID | None = Form(None), phase: str = Form("pre"),
+                  evidence: UploadFile | None = File(None),
                   db: Session = Depends(get_db), user: models.User = Depends(require_at_least("operator"))):
     version = _get(db, models.AuditSpecVersion, spec_version_id)
     project = _get(db, models.AuditProject, project_id) if project_id else None
-    with _errors(db):
+    with _errors(db), _evidence_source(evidence) as source:
         ids = _venue_ids(venue_ids)
         run = service.create_h5_run(db, file.file.read(), file.filename or "results.json", version,
-                                    name, phase, ids, project, user.id)
+                                    name, phase, ids, project, user.id, evidence_source=source)
         db.commit()
         return run
+
+
+@router.post("/audit-runs/{run_id}/evidence")
+def attach_evidence(run_id: UUID, evidence: UploadFile = File(...), db: Session = Depends(get_db),
+                    _user: models.User = Depends(require_at_least("operator"))):
+    with _errors(db):
+        run = db.query(models.AuditRun).filter_by(id=run_id).with_for_update().first()
+        if run is None:
+            raise HTTPException(404, "AuditRun not found")
+        with _evidence_source(evidence) as source:
+            stats = audit_evidence.attach_run_evidence(db, run, source)
+        db.commit()
+        return stats
 
 
 @router.post("/audit-runs/app", response_model=schemas.AuditRunOut)

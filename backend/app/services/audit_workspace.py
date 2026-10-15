@@ -8,18 +8,22 @@ from collections import Counter
 from dataclasses import dataclass
 import hashlib
 import json
-from typing import Iterable, Literal, TypedDict
+from typing import Iterable, Literal, NotRequired, TypedDict
 from uuid import UUID
 
 from sqlalchemy import event, func
 from sqlalchemy.orm import Session, object_session
 
 from app import models
+from app.services import audit_evidence
 
 
 class Evidence(TypedDict):
     kind: Literal["h5_report", "app_images"]
     image_ids: list[str]
+    items: NotRequired[list[dict]]
+    measurements: NotRequired[list[dict]]
+    state: NotRequired[Literal["localized", "context", "missing", "not_attached"]]
 
 
 class Finding(TypedDict):
@@ -29,6 +33,9 @@ class Finding(TypedDict):
     observed: str
     reason: str
     evidence: Evidence
+    method: NotRequired[Literal["model", "dom", "pixel", "hybrid"]]
+    model_status: NotRequired[str]
+    evidence_integrity_error: NotRequired[bool]
 
 
 FINDING_STATUSES = ("pass", "fail", "uncertain", "not_applicable", "disabled")
@@ -47,11 +54,24 @@ def aggregate_app_findings(analyses: Iterable[models.Analysis]) -> list[Finding]
     for rule_id, checks in by_rule.items():
         status = min((check["status"] for _, check in checks), key=precedence.__getitem__)
         contributors = [(image_id, check) for image_id, check in checks if check["status"] == status]
+        items = {}
+        for image_id, check in contributors:
+            item = items.setdefault(image_id, {"image_id": image_id, "marks": []})
+            boxes = [e.get("bbox_px") for e in check.get("evidence", []) if e.get("image_id", image_id) == image_id]
+            if check.get("bbox"):
+                boxes.append(check["bbox"])
+            for bbox in boxes:
+                if bbox:
+                    mark = {"kind": "rect", "bbox_px": bbox, "source": "model", "label": check["clause"]}
+                    if mark not in item["marks"]:
+                        item["marks"].append(mark)
         findings.append({
             "rule_id": rule_id, "title": contributors[0][1]["clause"], "status": status,
             "observed": "\n".join(dict.fromkeys(check["observed"] for _, check in contributors if check["observed"])),
             "reason": "\n".join(dict.fromkeys(check["reason"] for _, check in contributors if check["reason"])),
-            "evidence": {"kind": "app_images", "image_ids": list(dict.fromkeys(image_id for image_id, _ in contributors))},
+            "evidence": {"kind": "app_images", "image_ids": list(items), "items": list(items.values()),
+                         "measurements": [], "state": "localized" if any(i["marks"] for i in items.values()) else "context"},
+            "method": "model",
         })
     return findings
 
@@ -221,10 +241,13 @@ def parse_h5_results(data: dict, venue_ids: set[str] | None = None,
             for check in audit.get("checks", []):
                 if check["status"] not in FINDING_STATUSES:
                     raise ValueError(f"Unknown H5 finding status: {check['status']}")
+                evidence = audit_evidence.convert_h5_evidence(result, check["rule_id"])
+                metadata = audit_evidence.h5_finding_metadata(result, check["rule_id"])
+                audit_evidence.mark_not_attached(evidence)
                 findings.append({
                     "rule_id": check["rule_id"], "title": check.get("title", ""), "status": check["status"],
                     "observed": check.get("observed", ""), "reason": check.get("reason", ""),
-                    "evidence": {"kind": "h5_report", "image_ids": []},
+                    "evidence": evidence, **metadata,
                 })
             summary = _summary(findings, rules if rules is not None else audit.get("checks", []))
             outcome = status_map.get(result.get("status")) or _outcome(summary)
@@ -259,7 +282,8 @@ def _validate_run(spec_version: models.AuditSpecVersion, carrier: str, name: str
 
 def create_h5_run(db: Session, raw_bytes: bytes, file_name: str, spec_version: models.AuditSpecVersion,
                   name: str, phase: str = "pre", venue_ids: set[str] | None = None,
-                  project: models.AuditProject | None = None, user_id: UUID | None = None) -> models.AuditRun:
+                  project: models.AuditProject | None = None, user_id: UUID | None = None,
+                  evidence_source: audit_evidence.EvidenceSource | None = None) -> models.AuditRun:
     name = _validate_run(spec_version, "h5", name, phase)
     data = _json_object(raw_bytes)  # The full results file is decoded exactly once.
     venues = parse_h5_results(data, venue_ids, spec_version.rules_json)
@@ -276,6 +300,8 @@ def create_h5_run(db: Session, raw_bytes: bytes, file_name: str, spec_version: m
     run.summary_json = _run_summary(run.targets)
     db.add(run)
     db.flush()
+    if evidence_source is not None:
+        audit_evidence.ingest_run_evidence(db, run, evidence_source)
     if project is not None:
         assign_run(db, run, project)
     return run

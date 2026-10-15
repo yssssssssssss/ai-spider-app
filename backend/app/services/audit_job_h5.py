@@ -17,6 +17,7 @@ from app import models
 from app.database import SessionLocal
 from app.services import audit_jobs as jobs
 from app.services.audit_workspace import create_h5_run
+from app.services.audit_evidence import DirectoryEvidenceSource
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPTS = ("capture_venues.mjs", "venue_identity.py", "audit_spec_profile.py",
@@ -418,7 +419,7 @@ console.log(JSON.stringify({{stage: "preflight", space_id: task.spaceId, ready}}
                     raise Stopped()
                 run = create_h5_run(db, (output / "results.json").read_bytes(), "results.json", job.spec_version,
                     job.name, phase=job.phase, project=db.get(models.AuditProject, job.project_id) if job.project_id else None,
-                    user_id=job.created_by)
+                    user_id=job.created_by, evidence_source=DirectoryEvidenceSource(output))
                 jobs.complete_with_run(db, job, run)
                 db.commit()
         except Stopped:

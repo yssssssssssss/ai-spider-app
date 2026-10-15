@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     )
 
     PROJECT_ROOT: str = PROJECT_ROOT
+    AUDIT_EVIDENCE_ROOT: str = "data/audit-evidence"
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/competitor_db"
     )

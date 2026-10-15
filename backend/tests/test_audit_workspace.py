@@ -109,10 +109,15 @@ class AppAggregationTests(unittest.TestCase):
                 analyses = [inspection_analysis({"OV-009": status}) for status in statuses]
                 original = copy.deepcopy([analysis.inspection_json for analysis in analyses])
                 result = aggregate_app_findings(analyses)
+                image_ids = [str(analysis.image_id) for analysis, status in zip(analyses, statuses) if status == expected]
+                marks = [{"kind": "rect", "bbox_px": [0, 0, 100, 200], "source": "model", "label": "条款 OV-009"}] if expected in {"pass", "fail"} else []
                 self.assertEqual(result, [{
                     "rule_id": "OV-009", "title": "条款 OV-009", "status": expected,
                     "observed": f"OV-009: {expected}", "reason": f"依据: {expected}",
-                    "evidence": {"kind": "app_images", "image_ids": [str(analysis.image_id) for analysis, status in zip(analyses, statuses) if status == expected]},
+                    "evidence": {"kind": "app_images", "image_ids": image_ids,
+                                 "items": [{"image_id": image_id, "marks": marks} for image_id in image_ids],
+                                 "measurements": [], "state": "localized" if marks else "context"},
+                    "method": "model",
                 }])
                 self.assertEqual([analysis.inspection_json for analysis in analyses], original)
                 self.assertEqual(aggregate_app_findings(list(reversed(analyses)))[0]["status"], expected)
@@ -151,7 +156,9 @@ class H5ParsingTests(unittest.TestCase):
         self.assertEqual(venues[1].summary["uncertain"], 1)
         self.assertEqual(venues[0].summary["disabled"], 1)
         self.assertEqual(venues[0].findings[0]["observed"], "未露出")
-        self.assertEqual(venues[0].findings[0]["evidence"], {"kind": "h5_report", "image_ids": []})
+        self.assertEqual(venues[0].findings[0]["evidence"], {
+            "kind": "h5_report", "image_ids": [], "items": [], "measurements": [], "state": "not_attached",
+        })
         self.assertEqual(data, original)
 
     def test_subset_empty_and_unknown_venues(self):
