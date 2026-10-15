@@ -1,4 +1,4 @@
-"""Build searchable replay results, pixel evidence, and a comparison with the frozen baseline."""
+"""Build audit results and pixel evidence, comparing a frozen baseline when present."""
 import argparse
 from collections import Counter
 import csv
@@ -116,7 +116,7 @@ details>summary{cursor:pointer;font-weight:600}button{padding:10px 22px;backgrou
 <div class="controls"><input id="search" type="search" placeholder="搜索会场名称、会场 ID、通天塔项目 ID">
 <select id="filter"><option value="all">全部会场</option><option value="visible_issues">可见规范疑似问题</option><option value="has_uncertain">含待确认项的会场</option><option value="partial_inspection">未发现强制项问题</option><option value="page_error">截图未就绪</option><option value="pending">审核处理中</option></select>
 <label><input id="changed-only" type="checkbox">仅显示结论变化的会场</label></div>
-<p><a href="README.md">本轮结论与范围说明</a> · <a href="venues.csv">会场清单</a> · <a href="checks.csv">逐项结论</a> · <a href="comparison.csv">新旧结论对比</a> · <a href="measurements.csv">像素测量数据</a> · <a href="results.json">完整JSON</a> · <a href="specification/source.pdf">原规范PDF</a><span id="spacing-link"></span></p></header>
+<p><a href="README.md">本轮结论与范围说明</a> · <a href="venues.csv">会场清单</a> · <a href="checks.csv">逐项结论</a><span id="comparison-link"> · <a href="comparison.csv">新旧结论对比</a></span> · <a href="measurements.csv">像素测量数据</a> · <a href="results.json">完整JSON</a><span id="source-pdf-link"> · <a href="specification/source.pdf">原规范PDF</a></span><span id="spacing-link"></span></p></header>
 <main><p id="shown" class="muted"></p><div id="cards"></div><button id="more">显示更多</button></main>
 <script id="report-data" type="application/json">__DATA__</script><script src="check-evidence.js"></script><script>
 const data=JSON.parse(document.querySelector('#report-data').textContent);
@@ -127,6 +127,11 @@ const activeChecks=a=>(a?.checks||[]).filter(c=>c.enabled!==false&&c.status!=='d
 const hasUncertain=r=>activeChecks(r.audit).some(c=>c.status==='uncertain');
 const badge=(status,text)=>`<span class="badge ${status}">${esc(text)}</span>`;
 document.title=data.title;
+if(data.fresh){
+ document.querySelector('#changed-only').closest('label').hidden=true;
+ document.querySelector('#comparison-link').hidden=true;
+}
+if(data.has_source_pdf===false)document.querySelector('#source-pdf-link').hidden=true;
 document.querySelector('#headline').textContent=data.title;
 document.querySelector('#scope').textContent=`共 ${data.total_venues} 个会场，保留 ${data.rules.length} 项规则，本轮执行 ${data.rules.filter(r=>r.enabled).length} 项。结论针对本轮两屏可见范围。`;
 document.querySelector('#limits').textContent=data.report_note;
@@ -137,7 +142,7 @@ if(data.has_spacing_review)document.querySelector('#spacing-link').innerHTML=' �
 let selected=data.results,limit=20;
 function check(c,r){
  const pages=[...new Set(c.sources.map(s=>s.page))].sort((a,b)=>a-b).join('、');
- const changed=c.previous_status!==c.status;
+ const changed=c.previous_status!=null&&c.previous_status!==c.status;
  const spacing=c.rule_id==='OV-009'&&c.facts?.dom_file?`<p><a href="${esc(c.facts.screenshot_file)}" target="_blank" rel="noopener">本轮间距截图</a> · <a href="${esc(c.facts.dom_file)}" target="_blank" rel="noopener">间距测量记录</a></p>`:'';
  return `<div class="check" data-rule-id="${esc(c.rule_id)}" data-status="${esc(c.status)}"><strong class="${c.status}">${esc(c.status==='fail'&&c.strength==='recommendation'?'建议优化':checkLabels[c.status])} · ${esc(c.rule_id)} ${esc(c.title)}</strong>${changed?`<span class="changed">原结论：${esc(checkLabels[c.previous_status])}</span>`:''}<p>${esc(c.observed)}</p><p>${esc(c.reason)}</p>${c.duplicate_of?`<small>与 ${esc(c.duplicate_of)} 共用证据，强制问题不重复计数。</small>`:''}<small>${c.rule_origin==='user_override'?'本轮用户口径；历史PDF依据：':'规范：'}第 ${pages} 页</small>${c.evidence.map(e=>`<a href="${esc(e.file)}" target="_blank" rel="noopener">截图 ${e.screen}，区域 [${e.bbox_px.join(', ')}]</a>`).join(' · ')}${spacing}${CheckEvidence.render(c,r.venue,r.check_evidence?.[c.rule_id])}${c.status==='fail'?`<p>建议：${esc(c.remediation)}</p>`:''}</div>`;
 }
@@ -152,7 +157,7 @@ function render(){
 }
 function filter(){
  const q=document.querySelector('#search').value.trim().toLowerCase(),status=document.querySelector('#filter').value,changed=document.querySelector('#changed-only').checked;
- selected=data.results.filter(r=>(status==='all'||(status==='has_uncertain'?hasUncertain(r):r.status===status))&&(!changed||r.audit?.checks.some(c=>c.previous_status!==c.status))&&[r.venue.venue_name,r.venue.venue_id,r.venue.project_id].some(x=>String(x||'').toLowerCase().includes(q)));
+ selected=data.results.filter(r=>(status==='all'||(status==='has_uncertain'?hasUncertain(r):r.status===status))&&(!changed||r.audit?.checks.some(c=>c.previous_status!=null&&c.previous_status!==c.status))&&[r.venue.venue_name,r.venue.venue_id,r.venue.project_id].some(x=>String(x||'').toLowerCase().includes(q)));
  limit=20;render();
 }
 document.querySelector('#search').addEventListener('input',filter);
@@ -164,9 +169,10 @@ document.querySelector('#more').onclick=()=>{limit+=20;render();};CheckEvidence.
 
 def build(root):
     catalog, baseline = read(root / "catalog.json"), read(root / "baseline.json")
+    fresh = baseline.get("fresh", False)
     spec = read(root / "specification/walkthrough.json")
     run = read(root / "run.json") if (root / "run.json").exists() else {}
-    original = read(Path(baseline["source"]) / "results.json")
+    original = {"results": []} if fresh else read(Path(baseline["source"]) / "results.json")
     old = {r["venue"]["record_id"]: r for r in original["results"]}
     evidence_builder = CheckEvidenceBuilder(root)
     results, changes, tool_rows = [], [], []
@@ -182,10 +188,12 @@ def build(root):
             continue
         results[-1]["check_evidence"] = {c["rule_id"]: evidence_builder.prepare(c, capture, venue)
                                          for c in audit["checks"] if c.get("enabled", True)}
-        previous_checks = {c["rule_id"]: c for c in old[venue["record_id"]]["audit"]["checks"]}
+        previous_checks = {} if fresh else {c["rule_id"]: c for c in old[venue["record_id"]]["audit"]["checks"]}
         new_counts.update(c["status"] for c in audit["checks"])
         background_counts[audit["measured_feeds_background"]] += 1
         for check in audit["checks"]:
+            if fresh:
+                continue
             before = previous_checks[check["rule_id"]]
             if before["status"] != check["status"]:
                 transition = before["status"] + "->" + check["status"]
@@ -218,9 +226,11 @@ def build(root):
               "report_note": run.get("report_note", spec.get("report_note", "本轮复用原始两屏截图；会场尚有待确认项时不计为全部通过。")),
               "has_spacing_review": (root / "spacing-review.json").exists(),
               "rules": [{"id": r["id"], "title": r["title"], "expected": r["expected"], "enabled": r.get("enabled", True)} for r in spec["rules"]],
-              "comparison": comparison, "results": results}
+              "fresh": fresh, "has_source_pdf": (root / "specification/source.pdf").exists(),
+              "comparison": None if fresh else comparison, "results": results}
     write(root / "results.json", packet)
-    write(root / "comparison.json", comparison)
+    if not fresh:
+        write(root / "comparison.json", comparison)
     data = json.dumps(packet, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
     for source, target in (("venue_check_evidence.js", "check-evidence.js"), ("venue_check_evidence.css", "check-evidence.css")):
         (root / target).write_bytes(Path(__file__).with_name(source).read_bytes())
@@ -232,8 +242,9 @@ def build(root):
     csv_file(root / "checks.csv", ["会场名称", "会场ID", "通天塔项目ID", "规则ID", "检查项", "激活状态", "共用规则", "原结论", "本轮结论", "观察及测量", "依据", "测量区域ID", "结论变化来源"],
              [[r["venue"]["venue_name"], r["venue"]["venue_id"], r["venue"]["project_id"], c["rule_id"], c["title"], c.get("enabled", True), c.get("duplicate_of"), c["previous_status"], c["status"], c["observed"], c["reason"],
                "/".join(c["measurement_ids"]), c["change_source"]] for r in results if r["audit"] for c in r["audit"]["checks"]])
-    csv_file(root / "comparison.csv", ["会场名称", "会场ID", "通天塔项目ID", "规则ID", "原结论", "本轮结论", "原依据", "本轮依据", "变化来源"],
-             [[c["venue"]["venue_name"], c["venue"]["venue_id"], c["venue"]["project_id"], c["rule_id"], c["previous_status"], c["status"], c["previous_reason"], c["reason"], c["change_source"]] for c in changes])
+    if not fresh:
+        csv_file(root / "comparison.csv", ["会场名称", "会场ID", "通天塔项目ID", "规则ID", "原结论", "本轮结论", "原依据", "本轮依据", "变化来源"],
+                 [[c["venue"]["venue_name"], c["venue"]["venue_id"], c["venue"]["project_id"], c["rule_id"], c["previous_status"], c["status"], c["previous_reason"], c["reason"], c["change_source"]] for c in changes])
     csv_file(root / "measurements.csv", ["会场名称", "会场ID", "通天塔项目ID", "区域ID", "测量对象", "截图序号", "测量状态", "区域坐标", "主色", "主色占比", "条带长度_截图像素", "模型边缘距离_截图像素", "条带换算与差值", "边缘换算与差值", "截图文件", "截图SHA256"], tool_rows)
     print(json.dumps({"stage": "report_built", "venues": len(results), "counts": counts, "pixel_resolved_uncertain": pixel_resolved, "measurements": len(tool_rows)}, ensure_ascii=False))
 

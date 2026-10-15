@@ -1,6 +1,6 @@
 # 会场审核工具运行说明
 
-这些工具复核已冻结的官方会场截图，并另存结果。测量方法见 [视觉测量](visual-measurement.md)，报告截图与框选见 [检查项证据](check-evidence.md)，规则资产见 [规范目录](specifications/official-venue-review/README.md)。
+这些工具对采集的官方会场截图做首轮审核或复核，并另存结果。测量方法见 [视觉测量](visual-measurement.md)，报告截图与框选见 [检查项证据](check-evidence.md)，规则资产见 [规范目录](specifications/official-venue-review/README.md)。
 
 ## 环境与输入
 
@@ -16,7 +16,11 @@ python3 -m pip install -r backend/requirements.txt pytest==9.0.2
 
 在线采集需要 Ego Lite 和 `ego-browser nodejs`，以及有权查看提报列表/预览页的浏览器会话。列表必须已在同一个 TaskSpace 的 `p1` 打开；登录由操作者完成。`VENUE_SPACE` 是该空间的数字 ID。采集脚本使用 Node 内置模块和 Ego 注入的 `taskSpace`，不能直接用 `node scripts/capture_venues.mjs` 运行。任务完成后使用该空间的 `finish({keep: []})` 关闭。
 
-复核输入目录需要 `catalog.json`、原审核 `results.json`、`qrcodes/`、每会场的两张 PNG 和 `capture.json`、`specification/walkthrough.json`、`specification/assets/` 和 `specification/source.pdf`。PDF 哈希须匹配规则来源。**采集脚本只生成目录、QR 和截图，不生成原审核 `results.json` 或规范副本**；需先提供已有的完整审核包。复核和验证都依赖原审核包仍可读取。真实审核包、PDF 本机副本和运行结果不随代码提交；所有输入/输出路径均由参数指定，示例的 `data/deployments/` 已被忽略。
+复核输入目录需要 `catalog.json`、原审核 `results.json`、`qrcodes/`、每会场的两张 PNG 和 `capture.json`、`specification/walkthrough.json`、`specification/assets/` 和 `specification/source.pdf`。PDF 哈希须匹配规则来源。复核和验证都依赖原审核包仍可读取。
+
+首轮审核使用 `--fresh --spec <profile.json>`，只需采集脚本生成的 `catalog.json`、`identity-verification.json`、`qrcodes/` 和 `venues/<record_id>/capture.json` 及截图，不读取 `results.json`。首轮仅支持 `audit_mode=h5_v2`；规范 profile 写入输出的 `specification/walkthrough.json`，参考图从仓库规范资产复制，原 PDF 不随仓库分发。正常会场的 `page_state` 由模型返回；采集失败、两屏不完整或身份未通过（包括登录页）的会场跳过模型，已启用规则记 `uncertain`，原因保存在 `page_warnings`。失败采集可以没有截图。
+
+真实审核包、PDF 本机副本和运行结果不随代码提交；所有输入/输出路径均由参数指定，示例的 `data/deployments/` 已被忽略。
 
 ## 工具与示例
 
@@ -24,8 +28,9 @@ python3 -m pip install -r backend/requirements.txt pytest==9.0.2
 | --- | --- |
 | `capture_venues.mjs` | 提报列表 → `catalog.json`、QR、身份核验；再按核验入口生成两屏截图和 `capture.json`。 |
 | `venue_identity.py` | 目录和 QR 像素 → `identity-verification.json`；`--repair-links` 可按 QR 修正目录预览链接并保存原目录备份。 |
-| `rerun_venue_audit.py` | 完整原审核包、可选 `--spec` / `--records-file` → 独立复核目录，含逐会场审核、测量和模型调用记录。`--normalize-only` 复用输出目录中已有模型响应。 |
-| `build_venue_recheck_report.py` | 复核目录 → `results.json`、比较数据、CSV、`report.html` 和证据 JS/CSS。 |
+| `audit_spec_profile.py` | 规范版本的 `rules_json` + `source_json`（文件或 stdin）→ `h5_v2` profile，只输出已启用且载体包含 H5 的规则。 |
+| `rerun_venue_audit.py` | 完整原审核包，或 `--fresh` 采集目录 → 独立审核目录，含逐会场审核、测量和模型调用记录。可选 `--records-file` 选固定样本；`--normalize-only` 复用输出目录中已有模型响应。 |
+| `build_venue_recheck_report.py` | 审核目录 → `results.json`、CSV、`report.html` 和证据 JS/CSS；首轮无新旧比较数据。 |
 | `venue_check_evidence.py` | 报告构建器调用的模块；核验截图/DOM，生成展示用裁切与框选数据，无独立 CLI。 |
 | `validate_venue_reaudit.py` | 已构建的复核目录及原审核包 → `validation.json`、实现副本、SHA256 清单和旁侧 ZIP；要求审核完成。 |
 | `capture_tab_spacing.mjs` | 同一 Ego 空间、已构建复核目录 → `spacing/` 下实时 H5 截图、DOM 与逐会场测量记录。 |
@@ -43,6 +48,24 @@ JS
 ```
 
 去掉 `VENUE_MODE=catalog` 再运行同一命令采集两屏。`VENUE_PYTHON` 可指定已安装依赖的解释器，`VENUE_HELPER` 可指定 QR 校验脚本；默认从项目根目录找脚本。可选 `VENUE_RECORDS_FILE` 使用 `{"record_ids": [...]}` 选择固定样本。
+
+采集后直接首轮审核并构建报告：
+
+```sh
+python3 scripts/rerun_venue_audit.py --fresh --source data/deployments/venue-source --output data/deployments/venue-first --spec docs/specifications/official-venue-review/h5-v5.json --concurrency 6
+python3 scripts/build_venue_recheck_report.py --output data/deployments/venue-first
+```
+
+首轮输出的 `baseline.json` 标记 `fresh: true`，原始结果哈希和计数为 `null`；检查项的 `previous_status` 为 `null`。报告不读取原始结果、不生成 `comparison.json` / `comparison.csv`，`results.json` 的 `comparison` 为 `null`，可由后端 `parse_h5_results` 导入。非 `ready` 会场的报告状态为 `page_error`，导入为 `capture_failed`；导入器只读取 `page_state` 与 `page_warnings` 识别原因，含 `login` 的原因映射为 `login_required`，普通采集失败映射为 `other`。`validate_venue_reaudit.py` 仍用于有基线的复核。
+
+规范版本转换输入为 `{"rules_json": [...], "source_json": {...}}`，使用后端版本字段的原值。CLI 默认从 stdin 读取、向 stdout 输出，也可指定文件：
+
+```sh
+python3 scripts/audit_spec_profile.py --input data/deployments/spec-version.json --output data/deployments/h5-profile.json
+python3 scripts/rerun_venue_audit.py --fresh --source data/deployments/venue-source --output data/deployments/venue-versioned --spec data/deployments/h5-profile.json
+```
+
+Python 调用入口为 `scripts.audit_spec_profile.build_profile(rules_json, source_json)`。转换恢复强度名称与来源规则的扩展字段，保留 `duplicate_of`；间距、文字计数、框架和结果策略来自 `source_json`，缺失会报错，不补默认策略。`--fresh --limit N` 按目录顺序选前 N 个会场；复核的 `--limit N` 保持只选择原审核 `ready` 会场。`--records-file` 与 `--limit` 互斥，若采集只选了部分会场，审核也应使用同一份 `--records-file`。
 
 已有完整原审核包时，先复核、再构建、最后验证：验证器需要构建器生成的 JSON 和 CSV。
 
@@ -73,7 +96,7 @@ python3 scripts/recheck_tab_spacing.py --source data/deployments/venue-recheck -
 
 ```sh
 (cd backend && python3 -m pytest -q tests/test_tab_spacing_review.py tests/test_venue_check_evidence.py tests/test_venue_h5_policy.py tests/test_venue_reaudit.py tests/test_visual_measurement.py)
-python3 -m pytest -q scripts/tests
+python3 -m pytest -p no:cacheprovider scripts/tests
 node --test scripts/tests/web_visual_probe.test.mjs
 ```
 

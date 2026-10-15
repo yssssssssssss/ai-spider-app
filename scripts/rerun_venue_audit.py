@@ -1,4 +1,4 @@
-"""Replay the frozen official-venue captures with fresh visual audits and pixel tools."""
+"""Audit official-venue captures, either as a first audit or against a frozen baseline."""
 import argparse
 import asyncio
 from collections import Counter
@@ -386,8 +386,8 @@ def normalize_h5(reply, capture, spec, measured, calls, previous, reviews=()):
     if reply.page_state == "ready" and reply.facts is None:
         raise ValueError("ready H5 response must include structured facts")
     bg, checks = background_class(measured), []
-    old = {c["rule_id"]: c for c in previous["checks"]}
-    warnings = list(dict.fromkeys(reply.page_warnings + previous.get("page_warnings", [])))
+    old = {c["rule_id"]: c for c in previous["checks"]} if previous is not None else {}
+    warnings = list(dict.fromkeys(reply.page_warnings + (previous or {}).get("page_warnings", [])))
     for review in reviews:
         expected = {str(index + 1): screen["sha256"] for index, screen in enumerate(capture["screens"])}
         if review["screen_sha256"] != expected:
@@ -440,7 +440,7 @@ def normalize_h5(reply, capture, spec, measured, calls, previous, reviews=()):
                     else:
                         result.update(status="uncertain", observed=f"分类Tab上方间距目标：{interval['min']}–{interval['max']}px；" + result["observed"],
                                       reason="候选条带或模型框尚未验证为真实组件边界；需核验实际H5边界后按范围判定。")
-                else:
+                elif capture["screens"]:
                     target = capture["screens"][0]["height"] * policy["expected_px"] / policy["reference_viewport_height_px"]
                     result.update(status="uncertain", observed=f"812整屏高度换算目标：{target:.4f}截图像素；" + result["observed"],
                                   reason="已确认高度换算；候选条带/模型边界不等于精确组件间距，且未提供验收误差容限，仅记录测量及差值。")
@@ -455,7 +455,8 @@ def normalize_h5(reply, capture, spec, measured, calls, previous, reviews=()):
         checks.append({"rule_id": rid, "title": rule["title"], "strength": rule["strength"], "expected": rule["expected"],
                        "enabled": rule["enabled"], "rule_origin": rule["rule_origin"], "sources": rule["sources"],
                        "duplicate_of": rule.get("duplicate_of"), "model_status": model_status,
-                       "previous_status": old[rid]["status"], "change_source": source, "method": "h5_user_policy_v2",
+                       "previous_status": old[rid]["status"] if previous is not None else None,
+                       "change_source": source, "method": "h5_user_policy_v2",
                        "measurement_ids": [m["id"] for m in measured if rid in m["rule_ids"]] if rule["enabled"] else [],
                        "remediation": rule["remediation"], **result})
     hard = sum(c["status"] == "fail" and c["strength"] in {"mandatory", "conditional_mandatory"} and not c["duplicate_of"] for c in checks)
@@ -570,39 +571,73 @@ def extract_reply(analyzer, content):
     return Reply.model_validate(raw)
 
 
-def prepare(source, output, spec_path=None, limit=None, records_path=None):
+def fresh_capture_warnings(root, venue, capture, recorded_identity=None):
+    """Return traceable skip reasons; the importer reads only page_state/page_warnings."""
+    warnings = []
+    try:
+        identity = verify_capture_identity(root, venue, capture)
+        if identity["status"] != "verified_entry":
+            warnings.append(f"capture_failed: identity_status={identity['status']}")
+    except (ValueError, OSError, KeyError) as exc:
+        warnings.append(f"capture_failed: identity_verification_failed: {exc}")
+    for identity in (recorded_identity, capture.get("identity_verification")):
+        if identity is not None and identity.get("status") != "verified_entry":
+            warnings.append(f"capture_failed: recorded_identity_status={identity.get('status', 'unknown')}")
+    navigation = capture.get("navigation_status")
+    if navigation and navigation != "verified_entry":
+        warnings.append(f"capture_failed: navigation_status={navigation}")
+    if capture.get("capture_status") == "failed":
+        warnings.append(f"capture_failed: {capture.get('error_type', 'capture_status=failed')}")
+    if len(capture["screens"]) != 2:
+        warnings.append(f"capture_failed: expected 2 screens, got {len(capture['screens'])}")
+    return list(dict.fromkeys(warnings))
+
+
+def prepare(source, output, spec_path=None, limit=None, records_path=None, fresh=False):
     if source == output or output.is_relative_to(source):
         raise ValueError("replay output must be separate from the original audit")
     catalog = read(source / "catalog.json")
-    baseline = read(source / "results.json")
-    spec = read(source / "specification/walkthrough.json")
-    if spec_path:
+    baseline = None if fresh else read(source / "results.json")
+    if fresh:
+        if not spec_path:
+            raise ValueError("--fresh requires --spec with an h5_v2 rule profile")
+        spec = read(Path(spec_path))
+        if spec.get("audit_mode") != "h5_v2":
+            raise ValueError('--fresh requires a profile with audit_mode="h5_v2"')
+    else:
+        spec = read(source / "specification/walkthrough.json")
+    if spec_path and not fresh:
         effective = read(Path(spec_path))
         if effective["source"]["sha256"] != spec["source"]["sha256"]:
             raise ValueError("rule profile belongs to another source document")
         spec = effective
-    originals = {r["venue"]["record_id"]: r for r in baseline["results"]}
+    originals = {r["venue"]["record_id"]: r for r in baseline["results"]} if baseline is not None else {}
     if records_path:
         selected = read(Path(records_path))["record_ids"]
-        if len(selected) != len(set(selected)) or not set(selected).issubset(originals):
+        known = {v["record_id"] for v in catalog["venues"]} if fresh else originals
+        if len(selected) != len(set(selected)) or not set(selected).issubset(known):
             raise ValueError("selected record IDs are duplicated or unknown")
         catalog["venues"] = [v for v in catalog["venues"] if v["record_id"] in selected]
     elif limit:
-        catalog["venues"] = [v for v in catalog["venues"] if originals[v["record_id"]]["audit"]["page_state"] == "ready"][:limit]
+        catalog["venues"] = [v for v in catalog["venues"] if fresh or originals[v["record_id"]]["audit"]["page_state"] == "ready"][:limit]
         if len(catalog["venues"]) != limit:
             raise ValueError("not enough ready captures for the requested sample")
     catalog["selected_venue_count"] = len(catalog["venues"])
     if (output / "catalog.json").exists() and read(output / "catalog.json")["venues"] != catalog["venues"]:
         raise ValueError("existing output has a different capture selection; choose a separate output")
-    # Complete entry checks before copying anything; equal metadata is not proof of ownership.
+    if (output / "baseline.json").exists() and bool(read(output / "baseline.json").get("fresh")) != fresh:
+        raise ValueError("existing output has a different audit mode; choose a separate output")
+    # Reaudits reject identity conflicts up front; first audits record them per venue.
+    if not fresh:
+        for venue in catalog["venues"]:
+            capture = read(source / "venues" / venue["record_id"] / "capture.json")
+            verify_capture_identity(source, venue, capture, originals[venue["record_id"]]["audit"]["page_state"])
     for venue in catalog["venues"]:
         capture = read(source / "venues" / venue["record_id"] / "capture.json")
-        verify_capture_identity(source, venue, capture, originals[venue["record_id"]]["audit"]["page_state"])
-    for venue in catalog["venues"]:
-        capture = read(source / "venues" / venue["record_id"] / "capture.json")
-        qr_destination = output / venue["qr_file"]
-        qr_destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(source / venue["qr_file"], qr_destination)
+        if not fresh or (venue.get("qr_file") and (source / venue["qr_file"]).is_file()):
+            qr_destination = output / venue["qr_file"]
+            qr_destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source / venue["qr_file"], qr_destination)
         for screen in capture["screens"]:
             path = source / screen["file"]
             if hashlib.sha256(path.read_bytes()).hexdigest() != screen["sha256"]:
@@ -617,14 +652,25 @@ def prepare(source, output, spec_path=None, limit=None, records_path=None):
             if not destination.exists():
                 shutil.copyfile(path, destination)
         destination = output / "venues" / venue["record_id"]
+        destination.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source / "venues" / venue["record_id"] / "capture.json", destination / "capture.json")
-    shutil.copytree(source / "specification", output / "specification", dirs_exist_ok=True)
-    if spec_path:
+    if fresh:
+        shutil.copytree(ROOT / "docs/specifications/official-venue-review/assets", output / "specification/assets", dirs_exist_ok=True)
+        atomic(output / "specification/walkthrough.json", spec)
+        if (source / "identity-verification.json").exists():
+            shutil.copyfile(source / "identity-verification.json", output / "identity-verification.json")
+    else:
+        shutil.copytree(source / "specification", output / "specification", dirs_exist_ok=True)
+    if spec_path and not fresh:
         shutil.copyfile(source / "specification/walkthrough.json", output / "specification/original-walkthrough.json")
         atomic(output / "specification/walkthrough.json", spec)
     atomic(output / "catalog.json", catalog)
-    selected_baseline = [originals[v["record_id"]] for v in catalog["venues"]]
-    atomic(output / "baseline.json", {"source": str(source), "results_sha256": hashlib.sha256((source / "results.json").read_bytes()).hexdigest(),
+    if fresh:
+        atomic(output / "baseline.json", {"fresh": True, "source": str(source), "results_sha256": None,
+                                           "venue_counts": None, "check_counts": None})
+    else:
+        selected_baseline = [originals[v["record_id"]] for v in catalog["venues"]]
+        atomic(output / "baseline.json", {"source": str(source), "results_sha256": hashlib.sha256((source / "results.json").read_bytes()).hexdigest(),
                                        "venue_counts": dict(Counter(r["status"] for r in selected_baseline)),
                                        "check_counts": dict(Counter(c["status"] for r in selected_baseline for c in r["audit"]["checks"]))})
     return catalog, baseline, spec
@@ -632,8 +678,10 @@ def prepare(source, output, spec_path=None, limit=None, records_path=None):
 
 async def main(args):
     source, output = Path(args.source).resolve(), Path(args.output).resolve()
-    catalog, baseline, spec = prepare(source, output, args.spec, args.limit, args.records_file)
-    originals = {r["venue"]["record_id"]: r for r in baseline["results"]}
+    fresh = getattr(args, "fresh", False)
+    catalog, baseline, spec = prepare(source, output, args.spec, args.limit, args.records_file, fresh=fresh)
+    originals = {r["venue"]["record_id"]: r for r in baseline["results"]} if baseline is not None else {}
+    identities = {e["record_id"]: e for e in read(output / "identity-verification.json")["entries"]} if fresh and (output / "identity-verification.json").exists() else {}
     rules = spec["rules"]
     reviews = read(output / "review-overrides.json")["reviews"] if (output / "review-overrides.json").exists() else []
     active_rules = [r for r in rules if r.get("enabled", True)]
@@ -654,7 +702,7 @@ async def main(args):
     references = [analyzer._encode_image(str(output / f"specification/assets/{name}.png")) for name in names]
     semaphore = asyncio.Semaphore(args.concurrency)
     progress = {"total": len(catalog["venues"]), "completed": 0, "failed": 0, "running": 0, "started_at": now()}
-    atomic(output / "run.json", {"status": "running", "mode": "frozen_capture_reaudit", "source": str(source),
+    atomic(output / "run.json", {"status": "running", "mode": "fresh_capture_audit" if fresh else "frozen_capture_reaudit", "source": str(source),
                                  "venue_count": len(catalog["venues"]), "source_pdf_sha256": spec["source"]["sha256"],
                                  "rule_profile_sha256": profile_hash, "rule_version": spec["version"],
                                  "unit_policy": ("user_confirmed_h5_pixel_range" if spec["spacing"].get("acceptable_range_px") else "user_confirmed_812_viewport_no_tolerance") if h5 else "screenshot_pixels_only_no_24px_verdict", "started_at": progress["started_at"]})
@@ -662,7 +710,9 @@ async def main(args):
     async def process(venue):
         record_id = venue["record_id"]
         folder = output / "venues" / record_id
-        capture, previous = read(folder / "capture.json"), originals[record_id]["audit"]
+        capture = read(folder / "capture.json")
+        previous = None if fresh else originals[record_id]["audit"]
+        skip_warnings = fresh_capture_warnings(output, venue, capture, identities.get(record_id)) if fresh else []
         if (folder / "audit.json").exists() and not args.normalize_only:
             cached = read(folder / "audit.json")
             if cached.get("capture_fingerprint") != capture_fingerprint(capture):
@@ -670,14 +720,17 @@ async def main(args):
             existing = cached["specification"]
             if existing.get("profile_sha256") != profile_hash and (args.spec or existing["version"] != spec["version"]):
                 raise ValueError("cached audit uses a different rule profile; choose a new output or explicitly re-normalize")
-            progress["completed"] += 1
-            return
-        if previous["page_state"] != "ready" or verify_capture_identity(output, venue, capture)["status"] != "verified_entry":
-            reply = Reply(page_state=previous["page_state"] if previous["page_state"] != "ready" else "unknown", overview=previous["overview"], page_warnings=previous["page_warnings"],
+            if not fresh or (not skip_warnings and cached.get("inspection_method") != "unavailable_fresh_capture"):
+                progress["completed"] += 1
+                return
+        if skip_warnings or (not fresh and (previous["page_state"] != "ready" or verify_capture_identity(output, venue, capture)["status"] != "verified_entry")):
+            reply = Reply(page_state="error" if fresh else previous["page_state"] if previous["page_state"] != "ready" else "unknown",
+                          overview="首轮审核跳过：采集或身份核验未通过。" if fresh else previous["overview"],
+                          page_warnings=skip_warnings if fresh else previous["page_warnings"],
                           checks=[Check(rule_id=r["id"], status="uncertain", observed="原始截图未展示可审核会场", reason="页面未就绪", evidence=[]) for r in active_rules], visual_regions=[])
             result = normalize(reply, capture, spec, [], [], previous)
             result["specification"]["profile_sha256"] = profile_hash
-            result["inspection_method"] = "hash_verified_unavailable_capture_replay"
+            result["inspection_method"] = "unavailable_fresh_capture" if fresh else "hash_verified_unavailable_capture_replay"
             result["capture_fingerprint"] = capture_fingerprint(capture)
             atomic(folder / "audit.json", result)
             progress["completed"] += 1
@@ -747,9 +800,12 @@ if __name__ == "__main__":
     parser.add_argument("--spec", help="versioned rule profile; omitted for the frozen original rules")
     parser.add_argument("--records-file", help="JSON with explicit record_ids for a fixed sample")
     parser.add_argument("--normalize-only", action="store_true")
+    parser.add_argument("--fresh", action="store_true", help="first audit of captures without results.json; requires --spec (h5_v2)")
     options = parser.parse_args()
     if options.concurrency < 1 or options.concurrency > 12 or (options.limit is not None and options.limit < 1):
         parser.error("concurrency must be 1..12 and limit must be positive")
     if options.limit and options.records_file:
         parser.error("choose either --limit or --records-file")
+    if options.fresh and not options.spec:
+        parser.error("--fresh requires --spec")
     asyncio.run(main(options))
