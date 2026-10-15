@@ -740,6 +740,20 @@ class AuditTargetOut(OrmModel):
     baseline_target_id: UUID | None
 
 
+class AuditReviewCreate(BaseModel):
+    rule_id: str
+    verdict: Literal['confirmed', 'false_positive', 'false_negative', 'exception', 'recapture']
+    corrected_status: Literal['pass', 'fail', 'not_applicable'] | None = None
+    note: str | None = None
+
+
+class AuditReviewOut(AuditReviewCreate, OrmModel):
+    id: UUID
+    target_id: UUID
+    created_by: UUID | None
+    created_at: datetime
+
+
 class AuditTargetListOut(BaseModel):
     total: int
     page: int

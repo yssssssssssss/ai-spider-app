@@ -705,7 +705,7 @@ def prepare(source, output, spec_path=None, limit=None, records_path=None, fresh
     return catalog, baseline, spec
 
 
-async def main(args):
+async def main(args, *, frozen_gold=False):
     source, output = Path(args.source).resolve(), Path(args.output).resolve()
     fresh = getattr(args, "fresh", False)
     catalog, baseline, spec = prepare(source, output, args.spec, args.limit, args.records_file, fresh=fresh)
@@ -748,7 +748,9 @@ async def main(args):
         blocked = gate is not None and gate["verdict"] == "blocked"
         newer = capture_newer(source, venue, folder / "audit.json")
         recaptured = not fresh and capture_newer(source, venue, source / "results.json")
-        skip_warnings = fresh_capture_warnings(output, venue, capture, identities.get(record_id)) if fresh else []
+        # Gold exports have already verified their frozen evidence hashes. They
+        # need no live QR identity evidence, which older imported runs lack.
+        skip_warnings = fresh_capture_warnings(output, venue, capture, identities.get(record_id)) if fresh and not frozen_gold else []
         if (folder / "audit.json").exists() and not args.normalize_only:
             cached = read(folder / "audit.json")
             if cached.get("capture_fingerprint") != capture_fingerprint(capture) and not newer:

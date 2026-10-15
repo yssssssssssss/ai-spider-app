@@ -227,7 +227,23 @@ export interface AuditFinding {
   rule_id: string; title: string; status: AuditStatus; observed: string; reason: string;
   evidence: AuditEvidence; method?: AuditEvidenceSource | 'hybrid'; model_status?: AuditStatus;
   evidence_integrity_error?: boolean;
+  review?: AuditReview | null; effective_status?: AuditStatus; excepted?: boolean; needs_recapture?: boolean;
+  uncovered?: boolean;
 }
+export type AuditReviewVerdict = 'confirmed' | 'false_positive' | 'false_negative' | 'exception' | 'recapture';
+export interface AuditReviewInput {
+  rule_id: string; verdict: AuditReviewVerdict; corrected_status?: 'pass' | 'fail' | 'not_applicable' | null; note?: string | null;
+}
+export interface AuditReview extends AuditReviewInput { id: string; target_id: string; created_by: string | null; created_at: string }
+export interface AuditQualityCounts {
+  reviewed: number; confirmed: number; false_positive: number; false_negative: number; exception: number; recapture: number;
+  fp_rate: number | null; fn_rate: number | null; uncertain_rate: number | null; findings: number; insufficient: boolean;
+}
+export interface AuditRuleQuality extends AuditQualityCounts {
+  rule_id: string; title: string; by_method: Record<AuditEvidenceSource, AuditQualityCounts>;
+}
+export const createAuditReview = (id: string, body: AuditReviewInput) => api.post<AuditReview>(`/audit-targets/${id}/reviews`, body);
+export const getAuditRuleQuality = (id: string) => api.get<{ spec_version_id: string; rules: AuditRuleQuality[] }>(`/audit-specs/versions/${id}/quality`);
 export interface AuditTarget {
   id: string; run_id: string; business_key: string | null; name: string; outcome: AuditOutcome;
   capture_reason: AuditCaptureReason | null; findings_json: AuditFinding[];

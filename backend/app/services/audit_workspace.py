@@ -121,6 +121,18 @@ def _immutable_spec_version(mapper, connection, version):
         raise ValueError("Published spec versions are immutable; import a new version")
 
 
+@event.listens_for(models.AuditFindingReview, "before_update")
+def _immutable_finding_review(mapper, connection, review):
+    if object_session(review).is_modified(review, include_collections=False):
+        raise ValueError("Finding reviews are append-only; add a new review")
+
+
+@event.listens_for(models.AuditFindingReview, "before_delete")
+def _retain_finding_review(mapper, connection, review):
+    # Target deletion uses the database FK cascade, which bypasses ORM events.
+    raise ValueError("Finding reviews are append-only; delete the target to remove its history")
+
+
 def _json_object(raw_bytes: bytes) -> dict:
     try:
         data = json.loads(raw_bytes)
@@ -400,8 +412,10 @@ def assign_run(db: Session, run: models.AuditRun, project: models.AuditProject |
 
 def compare_targets(pre: models.AuditTarget, post: models.AuditTarget) -> dict:
     """Compare findings without changing targets or requiring a stored baseline."""
+    from app.services.audit_analytics import effective_findings
+
     pre_spec, post_spec = pre.run.spec_version, post.run.spec_version
-    result = compare(pre.findings_json, post.findings_json,
+    result = compare(effective_findings(pre), effective_findings(post),
                      pre_spec=(str(pre_spec.spec_id), str(pre_spec.id)),
                      post_spec=(str(post_spec.spec_id), str(post_spec.id)))
     pre_rules = {rule["rule_id"]: rule for rule in pre_spec.rules_json}
@@ -423,7 +437,7 @@ def load_run(db: Session, run_id: UUID) -> models.AuditRun | None:
     from sqlalchemy.orm import joinedload, selectinload
 
     return db.query(models.AuditRun).options(
-        joinedload(models.AuditRun.spec_version), selectinload(models.AuditRun.targets),
+        joinedload(models.AuditRun.spec_version), selectinload(models.AuditRun.targets).selectinload(models.AuditTarget.reviews),
     ).filter_by(id=run_id).first()
 
 
@@ -431,7 +445,7 @@ def load_project_runs(db: Session, project_id: UUID) -> list[models.AuditRun]:
     from sqlalchemy.orm import joinedload, selectinload
 
     return db.query(models.AuditRun).options(
-        joinedload(models.AuditRun.spec_version), selectinload(models.AuditRun.targets),
+        joinedload(models.AuditRun.spec_version), selectinload(models.AuditRun.targets).selectinload(models.AuditTarget.reviews),
     ).filter_by(project_id=project_id).order_by(models.AuditRun.created_at, models.AuditRun.id).all()
 
 

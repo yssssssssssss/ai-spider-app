@@ -2874,3 +2874,18 @@ tr:hover td {
 /* Keep focused and programmatically revealed controls below the sticky navigation. */
 .aw :is(a, button, input, select, textarea, summary, [tabindex]) { scroll-margin-top: 88px; }
 @media (max-width: 640px) { .aw :is(a, button, input, select, textarea, summary, [tabindex]) { scroll-margin-top: 127px; } }
+
+/* Human finding review */
+.aw-review { border-top: 1px solid var(--aw-line); padding-top: 16px; margin-top: 16px; }
+.aw-review-fields { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+.aw-review-fields label { display: grid; gap: 6px; flex: 1 1 220px; min-width: 0; }
+.aw-review-fields textarea, .aw-review-fields select { width: 100%; box-sizing: border-box; font: inherit; }
+.aw-review-actions { flex-wrap: wrap; }
+.aw-review-actions button[aria-pressed="true"] { outline: 2px solid currentColor; outline-offset: 1px; }
+.aw-finding:focus-within { outline: 2px solid var(--aw-pre); outline-offset: 3px; }
+.aw-review-progress p { line-height: 1.7; overflow-wrap: anywhere; }
+@media (max-width: 480px) {
+  .aw-review-actions button { flex: 1 1 42%; white-space: normal; }
+  .aw-review-fields label { flex-basis: 100%; }
+}
+.aw-review-actions kbd { font: 600 11px var(--font-mono, monospace); opacity: .6; margin-right: 4px; }

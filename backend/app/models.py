@@ -1,7 +1,7 @@
 import uuid
 from enum import Enum
 from datetime import datetime, time, timezone
-from sqlalchemy import Boolean, Column, Date, DateTime, Enum as SAEnum, ForeignKey, Index, Integer, String, Text, Time, UniqueConstraint
+from sqlalchemy import Boolean, CheckConstraint, Column, Date, DateTime, Enum as SAEnum, ForeignKey, Index, Integer, String, Text, Time, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB, UUID, ARRAY as PGArray
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
@@ -567,3 +567,22 @@ class AuditTarget(Base):
 
     run = relationship("AuditRun", back_populates="targets")
     baseline_target = relationship("AuditTarget", remote_side=[id], foreign_keys=[baseline_target_id])
+    reviews = relationship("AuditFindingReview", passive_deletes="all")
+
+
+class AuditFindingReview(Base):
+    __tablename__ = "audit_finding_reviews"
+    __table_args__ = (
+        Index("ix_audit_finding_reviews_target_rule_created", "target_id", "rule_id", "created_at"),
+        CheckConstraint("verdict IN ('confirmed', 'false_positive', 'false_negative', 'exception', 'recapture')"),
+        CheckConstraint("corrected_status IN ('pass', 'fail', 'not_applicable')"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    target_id = Column(UUID(as_uuid=True), ForeignKey("audit_targets.id", ondelete="CASCADE"), nullable=False)
+    rule_id = Column(String, nullable=False)
+    verdict = Column(String, nullable=False)
+    corrected_status = Column(String, nullable=True)
+    note = Column(Text, nullable=True)
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime, nullable=False, default=utc_now)

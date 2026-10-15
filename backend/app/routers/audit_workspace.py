@@ -325,7 +325,43 @@ def list_targets(run_id: UUID, page: int = 1, page_size: int = 20, search: str |
 
 @router.get("/audit-targets/{target_id}", response_model=schemas.AuditTargetOut)
 def target_detail(target_id: UUID, db: Session = Depends(get_db)):
-    return _get(db, models.AuditTarget, target_id)
+    target = _get(db, models.AuditTarget, target_id)
+    return schemas.AuditTargetOut.model_validate(target).model_copy(update={
+        "findings_json": analytics.reviewed_findings(target),
+        "outcome": analytics.effective_outcome(target),
+        "summary_json": analytics.effective_summary(target),
+    })
+
+
+@router.post("/audit-targets/{target_id}/reviews", response_model=schemas.AuditReviewOut)
+def create_review(target_id: UUID, body: schemas.AuditReviewCreate, db: Session = Depends(get_db),
+                  user: models.User = Depends(require_at_least("operator"))):
+    target = _get(db, models.AuditTarget, target_id)
+    rules = {r["rule_id"] for r in target.run.spec_version.rules_json}
+    findings = {f["rule_id"] for f in target.findings_json}
+    if body.rule_id not in rules or (body.rule_id not in findings and body.verdict != "false_negative"):
+        raise HTTPException(422, "Rule must belong to the target's spec version and findings (unless false_negative)")
+    review = models.AuditFindingReview(target_id=target.id, created_by=user.id, **body.model_dump())
+    db.add(review)
+    db.commit()
+    return review
+
+
+@router.get("/audit-targets/{target_id}/reviews", response_model=list[schemas.AuditReviewOut])
+def list_reviews(target_id: UUID, db: Session = Depends(get_db)):
+    _get(db, models.AuditTarget, target_id)
+    return db.query(models.AuditFindingReview).filter_by(target_id=target_id).order_by(
+        models.AuditFindingReview.created_at.desc(), models.AuditFindingReview.id.desc()).all()
+
+
+@router.get("/audit-specs/versions/{version_id}/quality")
+def version_quality(version_id: UUID, db: Session = Depends(get_db)):
+    version = _get(db, models.AuditSpecVersion, version_id)
+    targets = db.query(models.AuditTarget).join(models.AuditRun).options(
+        joinedload(models.AuditTarget.run).joinedload(models.AuditRun.spec_version),
+        selectinload(models.AuditTarget.reviews),
+    ).filter(models.AuditRun.spec_version_id == version_id).all()
+    return analytics.rule_quality(version, targets)
 
 
 @router.patch("/audit-targets/{target_id}", response_model=schemas.AuditTargetOut)
@@ -345,7 +381,8 @@ def update_target(target_id: UUID, body: schemas.AuditTargetUpdate, db: Session 
 @router.get("/audit-projects", response_model=list[schemas.AuditProjectListOut])
 def list_projects(db: Session = Depends(get_db)):
     projects = db.query(models.AuditProject).order_by(models.AuditProject.created_at.desc(), models.AuditProject.id).all()
-    runs = db.query(models.AuditRun).options(joinedload(models.AuditRun.spec_version), selectinload(models.AuditRun.targets)).filter(
+    runs = db.query(models.AuditRun).options(joinedload(models.AuditRun.spec_version),
+        selectinload(models.AuditRun.targets).selectinload(models.AuditTarget.reviews)).filter(
         models.AuditRun.project_id.isnot(None)).all()
     by_project = {}
     for run in runs:
