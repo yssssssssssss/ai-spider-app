@@ -16,18 +16,22 @@ import SkillEditor from './pages/SkillEditor';
 import AdminTaskManagement from './pages/AdminTaskManagement';
 import ScrollPromoReport from './pages/ScrollPromoReport';
 import JdNewFloorReport from './pages/JdNewFloorReport';
-import AuditProjects from './pages/AuditProjects';
-import AuditProjectDetail from './pages/AuditProjectDetail';
-import AuditPageDetail from './pages/AuditPageDetail';
+import AuditSpecs from './pages/AuditSpecs';
+import AuditSpecDetail from './pages/AuditSpecDetail';
+import AuditRuns from './pages/AuditRuns';
+import AuditRunDetail from './pages/AuditRunDetail';
+import AuditTargetDetail from './pages/AuditTargetDetail';
 
 function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
   const { pathname } = useLocation();
   const active = to === '/' || to === '/admin'
     ? pathname === to
-    : pathname === to || pathname.startsWith(to + '/');
+    : pathname === to || pathname.startsWith(to + '/') || (to === '/audits' && pathname.startsWith('/audit-targets/'));
   return (
     <Link
       to={to}
+      aria-current={active ? 'page' : undefined}
+      className="app-nav-link"
       style={{
         padding: '8px 14px',
         borderRadius: 8,
@@ -35,7 +39,7 @@ function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
         fontWeight: 500,
         color: active ? '#fff' : '#a1a1a6',
         background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
-        transition: 'all 0.2s ease',
+        transition: 'color 0.2s ease, background-color 0.2s ease',
         whiteSpace: 'nowrap',
       }}
       onMouseEnter={(e) => {
@@ -53,7 +57,7 @@ function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
 function Navigation() {
   const { user, logout, hasRole } = useAuth();
   return (
-    <nav
+    <nav className="app-nav"
       style={{
         position: 'sticky',
         top: 0,
@@ -70,7 +74,7 @@ function Navigation() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          height: 64,
+          minHeight: 64,
           gap: 16,
         }}
       >
@@ -101,7 +105,8 @@ function Navigation() {
             <>
               <NavLink to="/search">图片检索</NavLink>
               <NavLink to="/admin/tasks">任务管理</NavLink>
-              <NavLink to="/audit-projects">项目走查</NavLink>
+              <NavLink to="/audits">审核</NavLink>
+              <NavLink to="/specs">规范库</NavLink>
               <NavLink to="/compare">对比分析</NavLink>
               <NavLink to="/skills">Skill 编辑</NavLink>
               <NavLink to="/admin/devices">设备管理</NavLink>
@@ -120,14 +125,21 @@ function Navigation() {
   );
 }
 
+function WorkspaceShell({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation();
+  const workspace = /^\/(specs|audits|audit-targets)(\/|$)/.test(pathname);
+  return <div className={workspace ? 'app-shell audit-workspace-shell' : 'app-shell'} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>{children}</div>;
+}
+
 function App() {
   return (
     <ToastProvider>
       <BrowserRouter>
         <AuthProvider>
-          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <WorkspaceShell>
+            <a className="app-skip-link" href="#main-content">跳到主要内容</a>
             <Navigation />
-            <main style={{ flex: 1, padding: '48px 0' }}>
+            <main id="main-content" tabIndex={-1} style={{ flex: 1, padding: '48px 0' }}>
               <div className="container">
                 <Routes>
                   <Route path="/" element={<HomePage />} />
@@ -137,9 +149,11 @@ function App() {
                   <Route path="/admin" element={<RequireAuth><Navigate to="/admin/tasks" replace /></RequireAuth>} />
                   <Route path="/admin/requests" element={<RequireAuth><Navigate to="/admin/tasks?tab=requests" replace /></RequireAuth>} />
                   <Route path="/admin/tasks" element={<RequireAuth><AdminTaskManagement /></RequireAuth>} />
-                  <Route path="/audit-projects" element={<RequireAuth><AuditProjects /></RequireAuth>} />
-                  <Route path="/audit-projects/:projectId" element={<RequireAuth><AuditProjectDetail /></RequireAuth>} />
-                  <Route path="/audit-pages/:pageId" element={<RequireAuth><AuditPageDetail /></RequireAuth>} />
+                  <Route path="/specs" element={<RequireAuth><AuditSpecs /></RequireAuth>} />
+                  <Route path="/specs/:specId" element={<RequireAuth><AuditSpecDetail /></RequireAuth>} />
+                  <Route path="/audits" element={<RequireAuth><AuditRuns /></RequireAuth>} />
+                  <Route path="/audits/:runId" element={<RequireAuth><AuditRunDetail /></RequireAuth>} />
+                  <Route path="/audit-targets/:id" element={<RequireAuth><AuditTargetDetail /></RequireAuth>} />
                   <Route path="/admin/tasks/:taskId/results" element={<RequireAuth><AdminTaskResults /></RequireAuth>} />
                   <Route path="/admin/tasks/:taskId/scroll-promo-report" element={<RequireAuth><ScrollPromoReport /></RequireAuth>} />
                   <Route path="/admin/tasks/:taskId/jd-new-floor-report" element={<RequireAuth><JdNewFloorReport /></RequireAuth>} />
@@ -166,7 +180,7 @@ function App() {
             >
               <div className="container">竞品分析平台 · AI 驱动</div>
             </footer>
-          </div>
+          </WorkspaceShell>
         </AuthProvider>
       </BrowserRouter>
     </ToastProvider>

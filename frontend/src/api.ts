@@ -118,101 +118,110 @@ export const deleteComparisonSkill = (id: string) => api.delete(`/compare/skills
 export const listComparisonReports = () => api.get('/compare/reports');
 export const createComparisonReport = (data: any) => api.post('/compare/reports', data);
 
+// Audit workspace v2. Shapes follow audit_workspace.py and audit_analytics.py.
 export type AuditPhase = 'pre' | 'post';
+export type AuditCarrier = 'h5' | 'app';
+export type AuditCarrierScope = AuditCarrier | 'both';
+export type AuditOutcome = 'issues' | 'needs_confirmation' | 'partial' | 'clean' | 'capture_failed';
 export type AuditStatus = 'pass' | 'fail' | 'uncertain' | 'not_applicable' | 'disabled';
-export type AuditCategory = 'regressed' | 'still_open' | 'new_issue' | 'needs_confirmation' | 'fixed' | 'kept' | 'not_comparable';
-export type AuditCounts = Record<string, number>;
-
-export interface AuditProjectInput { name: string; description?: string | null }
-export interface AuditProject extends AuditProjectInput {
-  id: string;
-  created_by: string | null;
-  created_at: string;
-  updated_at: string;
+export type AuditCaptureReason = 'offline' | 'expired' | 'login_required' | 'other';
+export type AuditSort = 'fail' | 'uncertain' | 'name';
+export interface AuditRule {
+  rule_id: string; title: string; clause: string; expected: string;
+  strength: 'mandatory' | 'conditional' | 'recommended'; enabled: boolean;
+  carriers: AuditCarrier[]; method: string | null; duplicate_of: string | null;
 }
-export interface AuditProjectListItem extends AuditProject {
-  page_count: number;
-  record_counts: AuditCounts;
+export interface AuditVersionRef {
+  id: string; spec_id: string; version: number; label: string;
+  carrier_scope: AuditCarrierScope; sha256: string; created_at: string;
 }
-export interface AuditPageInput { name: string; business_key?: string | null }
-export interface AuditPage extends AuditPageInput {
-  id: string;
-  project_id: string;
-  created_at: string;
+export interface AuditVersion extends AuditVersionRef { run_count: number; enabled_rules: number }
+export interface AuditVersionDetail extends AuditVersion { rules_json: AuditRule[]; source_json: Record<string, unknown> }
+export interface AuditSpecInput { key: string; name: string; description?: string | null }
+export interface AuditSpec extends AuditSpecInput {
+  id: string; created_at: string; updated_at: string;
+  latest_version: AuditVersion | null; versions: AuditVersion[];
 }
-export interface AuditRecordSummary { id: string; summary_json: AuditCounts; created_at: string }
-export interface AuditPageMatrix extends AuditPage {
-  latest_pre: AuditRecordSummary | null;
-  latest_post: AuditRecordSummary | null;
-  has_baseline: boolean;
-  compare_counts: AuditCounts | null;
+export interface AuditComposition {
+  total: number; outcomes: Record<AuditOutcome, number>;
+  capture_reasons: Record<AuditCaptureReason, number>;
 }
-export interface AuditProjectDetail extends AuditProject { pages: AuditPageMatrix[] }
+export interface AuditRun {
+  id: string; name: string; carrier: AuditCarrier; phase: AuditPhase;
+  spec_version_id: string; project_id: string | null;
+  source_kind: 'h5_import' | 'app_task_run'; source_ref_json: Record<string, unknown>;
+  summary_json: { targets: number; outcomes: Record<AuditOutcome, number>; capture_reasons: Record<AuditCaptureReason, number> }; created_at: string; spec_version: AuditVersionRef;
+}
+export interface AuditStrip { id: string; name: string; outcome: AuditOutcome; s: string }
+export interface AuditPareto { rule_id: string; title: string; fail: number; uncertain: number }
+export interface AuditRunDetail extends AuditRun {
+  composition: AuditComposition; pareto: AuditPareto[];
+  cooccurrence: { pairs: { rules: string[]; count: number }[]; shared_evidence: { rules: string[]; count: number }[]; note: string };
+  strips: AuditStrip[]; rule_order: string[]; status_codes: Record<AuditStatus, string>;
+  triage: {
+    focus: { id: string; name: string; fail: number; uncertain: number }[];
+    batches: { rule_id: string; count: number; target_ids: string[] }[];
+    evidence_gaps: { rule_id: string; count: number }[];
+    recapture: { total: number; offline: number; by_reason: Record<Exclude<AuditCaptureReason, 'offline'>, number> };
+  };
+}
+export interface AuditRunUpdate { name?: string; project_id?: string | null }
+export interface AuditH5RunInput {
+  file: File; spec_version_id: string; name: string; phase?: AuditPhase;
+  venue_ids?: string; project_id?: string;
+}
+export interface AuditAppRunInput {
+  task_run_id: string; skill_id: string; spec_version_id: string; name: string;
+  target_name: string; business_key?: string | null; phase?: AuditPhase; project_id?: string | null;
+}
+export interface AuditTargetBrief {
+  id: string; name: string; business_key: string | null; outcome: AuditOutcome;
+  fail: number; uncertain: number; capture_reason: AuditCaptureReason | null; baseline_target_id: string | null;
+}
 export interface AuditFinding {
-  rule_id: string;
-  title: string;
-  status: AuditStatus;
-  observed: string;
-  reason: string;
+  rule_id: string; title: string; status: AuditStatus; observed: string; reason: string;
   evidence: { kind: 'h5_report' | 'app_images'; image_ids: string[] };
 }
-export interface AuditRecord extends AuditRecordSummary {
-  page_id: string;
-  phase: AuditPhase;
-  carrier: 'h5' | 'app';
-  source_kind: 'h5_import' | 'app_task_run';
-  source_ref_json: Record<string, unknown>;
-  spec_key: string;
-  spec_version: string;
-  findings_json: AuditFinding[];
-  baseline_record_id: string | null;
-  note: string | null;
-  created_by: string | null;
+export interface AuditTarget {
+  id: string; run_id: string; business_key: string | null; name: string; outcome: AuditOutcome;
+  capture_reason: AuditCaptureReason | null; findings_json: AuditFinding[];
+  summary_json: Partial<Record<AuditStatus, number>> & { capture_detail?: { page_warnings: unknown; page_state: unknown } };
+  baseline_target_id: string | null;
 }
-export interface AuditComparisonRule {
-  rule_id: string;
-  title: string;
-  category: AuditCategory;
-  pre_status: string | null;
-  pre_observed: string | null;
-  post_status: string | null;
-  post_observed: string | null;
-}
-export interface AuditComparison { rules: AuditComparisonRule[]; counts: AuditCounts; spec_mismatch: boolean }
-export interface AuditPageDetail extends AuditPage { records: AuditRecord[]; comparison: AuditComparison | null }
-export interface AuditAppRecordInput {
-  task_run_id: string;
-  skill_id: string;
-  phase?: AuditPhase;
-  baseline_record_id?: string | null;
-}
-export interface AuditRecordUpdate { baseline_record_id?: string | null; note?: string | null }
-export interface AuditH5ImportResult { created: number; skipped: number; pages_created: number }
+export interface AuditTargetQuery { page?: number; page_size?: number; search?: string; outcome?: AuditOutcome; sort?: AuditSort }
+export interface AuditTargetList { total: number; page: number; page_size: number; items: AuditTargetBrief[] }
 export interface AuditAppCandidate {
-  task_run_id: string;
-  task_name: string | null;
-  completed_at: string | null;
-  skills: { id: string; name: string; version: number }[];
+  task_run_id: string; task_name: string; completed_at: string | null;
+  skills: { id: string; name: string; version: number; skill_type: string }[];
 }
-export interface AuditDeleteResult { ok: boolean }
-
-export const listAuditProjects = () => api.get<AuditProjectListItem[]>('/audit-projects');
-export const createAuditProject = (data: AuditProjectInput) => api.post<AuditProject>('/audit-projects', data);
-export const getAuditProject = (id: string) => api.get<AuditProjectDetail>(`/audit-projects/${id}`);
-export const updateAuditProject = (id: string, data: Partial<AuditProjectInput>) => api.patch<AuditProject>(`/audit-projects/${id}`, data);
-export const deleteAuditProject = (id: string) => api.delete<AuditDeleteResult>(`/audit-projects/${id}`);
-export const createAuditPage = (id: string, data: AuditPageInput) => api.post<AuditPage>(`/audit-projects/${id}/pages`, data);
-export const getAuditPage = (id: string) => api.get<AuditPageDetail>(`/audit-pages/${id}`);
-export const importAuditH5 = (id: string, file: File, venueIds?: string) => {
+// Read-only project names for run tags. Project screens and mutations belong to T7.
+export interface AuditProjectListItem {
+  id: string; name: string; description: string | null; created_at: string; updated_at: string;
+  page_count: number; run_count: number;
+  stages: Record<string, { count: number; pages: { id: string; name: string; outcome: AuditOutcome }[] }>;
+}
+export const listAuditSpecs = () => api.get<AuditSpec[]>('/audit-specs');
+export const createAuditSpec = (data: AuditSpecInput) => api.post<AuditSpec>('/audit-specs', data);
+export const getAuditSpec = (id: string) => api.get<AuditSpec>(`/audit-specs/${id}`);
+export const getAuditSpecVersion = (id: string) => api.get<AuditVersionDetail>(`/audit-spec-versions/${id}`);
+export const importAuditSpecVersion = (id: string, file: File, carrierScope: AuditCarrierScope) => {
   const data = new FormData();
-  data.append('file', file);
-  if (venueIds?.trim()) data.append('venue_ids', venueIds.trim().split(/[\s,，]+/).join(','));
-  return api.post<AuditH5ImportResult>(`/audit-projects/${id}/imports/h5`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+  data.append('file', file); data.append('carrier_scope', carrierScope);
+  return api.post<AuditVersionDetail>(`/audit-specs/${id}/versions`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
 };
-export const listAuditAppCandidates = () => api.get<AuditAppCandidate[]>('/audit-projects/app-candidates');
-export const addAuditAppRecord = (id: string, data: AuditAppRecordInput) => api.post<AuditRecord>(`/audit-pages/${id}/records/app`, data);
-export const updateAuditRecord = (id: string, data: AuditRecordUpdate) => api.patch<AuditRecord>(`/audit-records/${id}`, data);
-export const deleteAuditRecord = (id: string) => api.delete<AuditDeleteResult>(`/audit-records/${id}`);
-export const compareAuditRecords = (postId: string, preId?: string) => api.get<AuditComparison>(`/audit-records/${postId}/compare`, { params: preId ? { pre_id: preId } : undefined });
+export const listAuditRuns = (params?: { carrier?: AuditCarrier; project_id?: string; unassigned?: boolean }) => api.get<AuditRun[]>('/audit-runs', { params });
+export const getAuditRun = (id: string, outcome?: AuditOutcome) => api.get<AuditRunDetail>(`/audit-runs/${id}`, { params: { outcome } });
+export const updateAuditRun = (id: string, data: AuditRunUpdate) => api.patch<AuditRun>(`/audit-runs/${id}`, data);
+export const deleteAuditRun = (id: string) => api.delete<{ ok: boolean }>(`/audit-runs/${id}`);
+export const importAuditH5Run = ({ file, ...fields }: AuditH5RunInput) => {
+  const data = new FormData(); data.append('file', file);
+  Object.entries(fields).forEach(([key, value]) => { if (value) data.append(key, value); });
+  return api.post<AuditRun>('/audit-runs/h5', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+};
+export const collectAuditAppRun = (data: AuditAppRunInput) => api.post<AuditRun>('/audit-runs/app', data);
+export const listAuditTargets = (id: string, params?: AuditTargetQuery) => api.get<AuditTargetList>(`/audit-runs/${id}/targets`, { params });
+export const getAuditTarget = (id: string) => api.get<AuditTarget>(`/audit-targets/${id}`);
+export const listAuditAppCandidates = () => api.get<AuditAppCandidate[]>('/audit-app-candidates');
+export const listAuditProjects = () => api.get<AuditProjectListItem[]>('/audit-projects');
 
 export default api;
