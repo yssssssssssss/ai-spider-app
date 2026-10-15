@@ -386,3 +386,46 @@ def compare_targets(pre: models.AuditTarget, post: models.AuditTarget) -> dict:
             counts[row["category"]] += 1
     result["counts"] = counts
     return result
+
+
+def load_run(db: Session, run_id: UUID) -> models.AuditRun | None:
+    from sqlalchemy.orm import joinedload, selectinload
+
+    return db.query(models.AuditRun).options(
+        joinedload(models.AuditRun.spec_version), selectinload(models.AuditRun.targets),
+    ).filter_by(id=run_id).first()
+
+
+def load_project_runs(db: Session, project_id: UUID) -> list[models.AuditRun]:
+    from sqlalchemy.orm import joinedload, selectinload
+
+    return db.query(models.AuditRun).options(
+        joinedload(models.AuditRun.spec_version), selectinload(models.AuditRun.targets),
+    ).filter_by(project_id=project_id).order_by(models.AuditRun.created_at, models.AuditRun.id).all()
+
+
+def app_candidates(db: Session) -> list[dict]:
+    """T1 eligibility: latest 50 completed source runs, distinct inspection Skills."""
+    from sqlalchemy import JSON
+
+    eligible = db.query(models.Analysis.id).join(models.Image).join(models.AnalysisSkill).filter(
+        models.Image.task_run_id == models.TaskRun.id, models.Analysis.inspection_json.isnot(None),
+        models.Analysis.inspection_json != JSON.NULL,
+    ).exists()
+    runs = db.query(models.TaskRun, models.Task.name).join(models.Task).filter(
+        models.TaskRun.status == "completed", eligible,
+    ).order_by(models.TaskRun.completed_at.desc().nullslast(), models.TaskRun.created_at.desc(),
+               models.TaskRun.id.desc()).limit(50).all()
+    if not runs:
+        return []
+    skills = db.query(models.Image.task_run_id, models.AnalysisSkill).select_from(models.AnalysisSkill).join(
+        models.Analysis, models.Analysis.skill_id == models.AnalysisSkill.id,
+    ).join(models.Image, models.Image.id == models.Analysis.image_id).filter(
+        models.Image.task_run_id.in_([run.id for run, _ in runs]),
+        models.Analysis.inspection_json.isnot(None), models.Analysis.inspection_json != JSON.NULL,
+    ).distinct().order_by(models.AnalysisSkill.name, models.AnalysisSkill.id).all()
+    by_run = {run.id: [] for run, _ in runs}
+    for run_id, skill in skills:
+        by_run[run_id].append(skill)
+    return [{"task_run_id": run.id, "task_name": name, "completed_at": run.completed_at, "skills": by_run[run.id]}
+            for run, name in runs]

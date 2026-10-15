@@ -597,3 +597,172 @@ class WatchPlanDetailOut(BaseModel):
     latest_summary: Optional[WatchDailySummaryOut] = None
     period_reports: List[WatchPeriodReportOut] = Field(default_factory=list)
     recent_runs: List[WatchRunOut] = Field(default_factory=list)
+
+
+# Audit workspace v2. Findings and source documents are returned only on detail routes.
+class AuditSpecCreate(BaseModel):
+    key: str
+    name: str
+    description: str | None = None
+
+
+class AuditProjectCreate(BaseModel):
+    name: str
+    description: str | None = None
+
+
+class AuditProjectUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+
+
+class AuditRunUpdate(BaseModel):
+    name: str | None = None
+    project_id: UUID | None = None
+
+
+class AuditTargetUpdate(BaseModel):
+    baseline_target_id: UUID | None
+
+
+class AuditAppRunCreate(BaseModel):
+    task_run_id: UUID
+    skill_id: UUID
+    spec_version_id: UUID
+    name: str
+    target_name: str
+    business_key: str | None = None
+    phase: str = "post"
+    project_id: UUID | None = None
+
+
+class AuditVersionRefOut(OrmModel):
+    id: UUID
+    spec_id: UUID
+    version: int
+    label: str
+    carrier_scope: str
+    sha256: str
+    created_at: datetime
+
+
+class AuditVersionOut(AuditVersionRefOut):
+    run_count: int = 0
+    enabled_rules: int = 0
+
+
+class AuditVersionDetailOut(AuditVersionOut):
+    rules_json: list[dict]
+    source_json: dict
+
+
+class AuditSpecOut(OrmModel):
+    id: UUID
+    key: str
+    name: str
+    description: str | None
+    created_at: datetime
+    updated_at: datetime
+    latest_version: AuditVersionOut | None = None
+    versions: list[AuditVersionOut] = Field(default_factory=list)
+
+
+class AuditRunOut(OrmModel):
+    id: UUID
+    name: str
+    carrier: str
+    phase: str
+    spec_version_id: UUID
+    project_id: UUID | None
+    source_kind: str
+    source_ref_json: dict
+    summary_json: dict
+    created_at: datetime
+    spec_version: AuditVersionRefOut
+
+
+class AuditRunDetailOut(AuditRunOut):
+    composition: dict
+    pareto: list[dict]
+    cooccurrence: dict
+    strips: list[dict]
+    triage: dict
+    rule_order: list[str]
+    status_codes: dict
+
+
+class AuditTargetOut(OrmModel):
+    id: UUID
+    run_id: UUID
+    business_key: str | None
+    name: str
+    outcome: str
+    capture_reason: str | None
+    findings_json: list[dict]
+    summary_json: dict
+    baseline_target_id: UUID | None
+
+
+class AuditTargetListOut(BaseModel):
+    total: int
+    page: int
+    page_size: int
+    items: list[dict]
+
+
+class AuditProjectOut(OrmModel):
+    id: UUID
+    name: str
+    description: str | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class AuditProjectListOut(AuditProjectOut):
+    page_count: int
+    run_count: int
+    stages: dict
+
+
+class AuditProjectDetailOut(AuditProjectListOut):
+    stage_specs: dict
+    clusters: dict
+    flow: dict
+
+
+class AuditMatrixOut(BaseModel):
+    spec_version_id: UUID | None
+    rules: list[dict]
+    clauses: list[dict]
+    pages: list[dict]
+    pre_distribution: dict
+    delta_codes: dict
+    status_codes: dict
+
+
+class AuditPageLifelineOut(BaseModel):
+    id: str
+    name: str
+    stage: str
+    timeline: list[dict]
+    independent_check: bool
+    comparison: dict | None
+    groups: dict
+
+
+class AuditAppCandidateSkillOut(OrmModel):
+    id: UUID
+    name: str
+    version: int
+    skill_type: str
+
+
+class AuditAppCandidateOut(BaseModel):
+    task_run_id: UUID
+    task_name: str
+    completed_at: datetime | None
+    skills: list[AuditAppCandidateSkillOut]
+
+
+class AuditDeleteOut(BaseModel):
+    ok: bool

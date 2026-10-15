@@ -9,6 +9,7 @@ Run from the repository root with the backend dependencies installed:
 
 import argparse
 from collections import Counter
+from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
@@ -119,8 +120,30 @@ def seed(db, results_path: Path, records_path: Path, project_name: str) -> dict:
     task.analysis_skill_ids = [skill.id]
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     totals = Counter(dict.fromkeys(service.COMPARE_CATEGORIES, 0))
-    for index, pre in enumerate(sorted(pre_run.targets, key=lambda t: t.business_key)):
-        completed = now + timedelta(seconds=index)
+    ordered = sorted(pre_run.targets, key=lambda t: (-t.summary_json["fail"], t.business_key))
+    # One still-problematic venue gets a second pre; other untouched venues retain
+    # review and baseline stages. All fabricated records carry the demo marker.
+    recheck_source = ordered[2]
+    recheck = models.AuditRun(
+        name=f"演示：{recheck_source.name} 上线前复查（模拟）", carrier="h5", phase="pre",
+        spec_version=versions[-1], project=project, created_at=now,
+        source_kind="h5_import", source_ref_json={"demo": True},
+    )
+    findings = deepcopy(recheck_source.findings_json)
+    for finding in findings:
+        finding["observed"] = "【模拟复查】" + finding["observed"]
+    recheck.targets = [models.AuditTarget(
+        business_key=recheck_source.business_key, name=recheck_source.name,
+        outcome=recheck_source.outcome, findings_json=findings, summary_json=recheck_source.summary_json,
+    )]
+    recheck.summary_json = service._run_summary(recheck.targets)
+    db.add(recheck)
+    db.flush()
+    # Two automatically linked posts (one closed), plus an explicitly unmapped
+    # business key illustrating an independent check.
+    post_sources = [ordered[0], ordered[1], ordered[3]]
+    for index, pre in enumerate(post_sources):
+        completed = now + timedelta(seconds=index + 1)
         source = models.TaskRun(task_id=task.id, attempt_no=index + 1, status="completed", exit_code=0,
                                 started_at=now, completed_at=completed,
                                 analysis_skills_snapshot_json=[skill_snapshot(skill)],
@@ -131,23 +154,38 @@ def seed(db, results_path: Path, records_path: Path, project_name: str) -> dict:
                              source_app="京东（模拟）", scenario="官方会场（模拟）", captured_at=completed)
         db.add(image)
         db.flush()
-        inspection = build_inspection({"checks": synthetic_checks(pre.findings_json)}, specification, image, [],
+        checks = synthetic_checks(pre.findings_json)
+        if index == 0:
+            for check in checks:
+                if check["status"] in {"fail", "uncertain"}:
+                    check["status"] = "pass"
+                    check["observed"] = "【模拟数据】全部问题已修复，验收闭环。"
+                    check["bbox_norm"] = [50, 50, 950, 900]
+        inspection = build_inspection({"checks": checks}, specification, image, [],
                                       skill_snapshot(skill), (390, 844))
         inspection["synthetic"] = True
         db.add(models.Analysis(image_id=image.id, skill_id=skill.id, status="done", embedding_status="skipped",
                                analyzed_at=completed, inspection_json=inspection))
         db.flush()
+        business_key = pre.business_key if index < 2 else f"demo-independent:{pre.business_key}"
         post_run = service.create_app_run(db, source.id, skill.id, app_version,
                                           f"演示：{pre.name} App 上线后审核（模拟）", pre.name,
-                                          pre.business_key, project=project)
+                                          business_key, project=project)
+        post_run.created_at = completed
         post_run.source_ref_json = {**post_run.source_ref_json, "demo": True}
-        totals.update(service.compare_targets(pre, post_run.targets[0])["counts"])
+        if post_run.targets[0].baseline_target_id:
+            totals.update(service.compare_targets(pre, post_run.targets[0])["counts"])
     task.completed_at = completed
-    if not all(totals[category] for category in service.COMPARE_CATEGORIES):
-        raise ValueError("试点真实上线前状态不足以覆盖全部比对类别")
+    db.flush()
+    from app.services.audit_analytics import project_cockpit
+    cockpit = project_cockpit(service.load_project_runs(db, project.id))
+    stages = {key: value["count"] for key, value in cockpit["stages"].items()}
+    if not all(stages.values()):
+        raise ValueError("演示项目必须覆盖全部五种阶段")
     return {"project_id": str(project.id), "spec_versions": len(versions) + 1,
-            "pre_runs": 1, "pre_targets": len(pre_run.targets), "post_runs": 10, "post_targets": 10,
-            "with_baseline": 10, "compare_counts": dict(totals)}
+            "pre_runs": 2, "pre_targets": 11, "post_runs": 3, "post_targets": 3,
+            "with_baseline": 2, "compare_counts": dict(totals), "stages": stages}
+
 
 
 def import_full_run(db, results_path: Path) -> dict:
