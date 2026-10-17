@@ -791,11 +791,16 @@ class AuditMatrixOut(BaseModel):
     status_codes: dict
 
 
+class AuditLifelineTimelineItem(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    audited_at: datetime
+
+
 class AuditPageLifelineOut(BaseModel):
     id: str
     name: str
     stage: str
-    timeline: list[dict]
+    timeline: list[AuditLifelineTimelineItem]
     independent_check: bool
     comparison: dict | None
     groups: dict

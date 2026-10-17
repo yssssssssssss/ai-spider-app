@@ -13,6 +13,7 @@ delta follows the latest post's actual baseline, which may be an older pre.
 """
 
 from collections import Counter, defaultdict
+from datetime import datetime, timezone
 from itertools import combinations
 
 from app.services.audit_workspace import CAPTURE_REASONS, COMPARE_CATEGORIES, OUTCOMES, compare_targets
@@ -380,8 +381,17 @@ def page_lifeline(runs, page_key):
     timeline = [{**_brief(t), "run_id": str(t.run.id), "run_name": t.run.name, "phase": t.run.phase,
                  "carrier": t.run.carrier, "spec_version_id": str(t.run.spec_version.id),
                  "spec_label": t.run.spec_version.label, "date": t.run.created_at,
+                 "audited_at": t.run.source_ref_json.get("generated_at") or t.run.created_at,
                  "summary": effective_summary(t),
                  "demo": bool(t.run.source_ref_json.get("demo"))} for t in targets]
+    # Inputs can mix ISO report timestamps with naive database datetimes (UTC).
+    # Python's stable sort retains the existing _time_key order for ties.
+    def audit_time(item):
+        value = item["audited_at"]
+        date = datetime.fromisoformat(value.replace("Z", "+00:00")) if isinstance(value, str) else value
+        return date.replace(tzinfo=timezone.utc) if date.tzinfo is None else date
+
+    timeline.sort(key=audit_time)
     post = _latest(targets, "post")
     baseline = next((t for t in targets if post and t.id == post.baseline_target_id), None)
     comparison = _comparison(baseline, post) if baseline else None

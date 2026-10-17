@@ -299,7 +299,7 @@ export interface AuditComparisonRule {
 }
 export interface AuditPageLifeline {
   id: string; name: string; stage: AuditStage; independent_check: boolean;
-  timeline: (AuditTargetBrief & { run_id: string; run_name: string; phase: AuditPhase; carrier: AuditCarrier; spec_version_id: string; spec_label: string; date: string; summary: AuditTarget['summary_json']; demo: boolean })[];
+  timeline: (AuditTargetBrief & { run_id: string; run_name: string; phase: AuditPhase; carrier: AuditCarrier; spec_version_id: string; spec_label: string; date: string; audited_at: string; summary: AuditTarget['summary_json']; demo: boolean })[];
   comparison: { rules: AuditComparisonRule[]; counts: Record<AuditCategory, number>; spec_mismatch: boolean } | null;
   groups: Record<'need_action' | 'needs_confirmation' | 'closed', AuditComparisonRule[]>;
 }

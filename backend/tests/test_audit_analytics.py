@@ -247,6 +247,35 @@ class ProjectCockpitTests(unittest.TestCase):
         with self.assertRaises(LookupError):
             analytics.page_lifeline(runs, "foreign")
 
+    def test_lifeline_audit_time_fallback_order_and_stable_ties(self):
+        from app.schemas import AuditPageLifelineOut
+
+        rules = [rule("A")]
+        imported_first = run(rules)
+        imported_first.source_ref_json = {"generated_at": "2026-10-04T08:00:00+08:00"}
+        late_audit = target(imported_first, {"A": "fail"}, "page")
+        fallback = run(rules, day=1)
+        fallback_target = target(fallback, {"A": "pass"}, "page")
+        imported_last = run(rules, day=2)
+        imported_last.source_ref_json = {"generated_at": "2026-10-01T23:00:00Z"}
+        early_audit = target(imported_last, {"A": "uncertain"}, "page")
+        tied = run(rules, day=3)
+        tied.source_ref_json = {"generated_at": "2026-10-02T00:00:00Z"}
+        tied_target = target(tied, {"A": "fail"}, "page")
+        runs = [tied, imported_last, fallback, imported_first]
+
+        life = analytics.page_lifeline(runs, "page")
+        self.assertEqual([item["id"] for item in life["timeline"]],
+                         [str(t.id) for t in (early_audit, fallback_target, tied_target, late_audit)])
+        by_id = {item["id"]: item for item in life["timeline"]}
+        self.assertEqual(by_id[str(late_audit.id)]["audited_at"], imported_first.source_ref_json["generated_at"])
+        self.assertEqual(by_id[str(fallback_target.id)]["audited_at"], fallback.created_at)
+        self.assertEqual(by_id[str(late_audit.id)]["date"], imported_first.created_at)
+        self.assertEqual(analytics.page_lifeline(list(reversed(runs)), "page")["timeline"], life["timeline"])
+        serialized = jsonable_encoder(AuditPageLifelineOut(**life))
+        self.assertEqual(set(serialized["timeline"][0]), set(life["timeline"][0]))
+        self.assertEqual(serialized["timeline"][0]["audited_at"], "2026-10-01T23:00:00Z")
+
     def test_matrix_uses_latest_pre_columns_and_actual_post_baseline(self):
         rules = [rule("A", clause="一"), rule("B", clause="二"), rule("C", clause="一")]
         pre = run(rules)
